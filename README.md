@@ -44,7 +44,7 @@ Chessground is designed to fulfill all lichess.org web and mobile apps needs, so
 ## Installation
 
 ```
-npm install --save chessground
+npm install --save chessgroundx
 ```
 
 ### Usage

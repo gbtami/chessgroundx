@@ -2,8 +2,8 @@
   "name": "chessgroundx",
   "version": "7.3.5",
   "description": "Extended lichess.org Chess UI",
-  "main": "chessgroundx.js",
-  "typings": "chessgroundx.d.ts",
+  "main": "chessground.js",
+  "typings": "chessground.d.ts",
   "directories": {},
   "dependencies": {},
   "devDependencies": {
