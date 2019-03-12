@@ -1,9 +1,9 @@
 {
-  "name": "chessground",
+  "name": "chessgroundx",
   "version": "7.3.5",
-  "description": "lichess.org Chess UI",
-  "main": "chessground.js",
-  "typings": "chessground.d.ts",
+  "description": "Extended lichess.org Chess UI",
+  "main": "chessgroundx.js",
+  "typings": "chessgroundx.d.ts",
   "directories": {},
   "dependencies": {},
   "devDependencies": {
@@ -26,7 +26,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/ornicar/chessground.git"
+    "url": "git://github.com/gbtami/chessgroundx.git"
   },
   "keywords": [
     "chess",
@@ -35,10 +35,10 @@
     "UI",
     "typescript"
   ],
-  "author": "Thibault Duplessis (https://github.com/ornicar)",
+  "author": "Bajusz Tamás (https://github.com/gbtami)",
   "license": "GPL-3.0",
   "bugs": {
-    "url": "https://github.com/ornicar/chessground/issues"
+    "url": "https://github.com/gbtami/chessgroundx/issues"
   },
-  "homepage": "https://github.com/ornicar/chessground"
+  "homepage": "https://github.com/gbtami/chessgroundx"
 }

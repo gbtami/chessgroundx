@@ -50,7 +50,7 @@ npm install --save chessground
 ### Usage
 
 ```js
-var Chessground = require("chessground").Chessground;
+var Chessground = require("chessgroundx").Chessground;
 
 var ground = Chessground(document.body, config);
 ```
