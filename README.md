@@ -1,4 +1,4 @@
-<img src="https://raw.githubusercontent.com/ornicar/chessground/master/screenshot/chessgroundx.png" width="100%" alt="Chessground Xiangqi and Shogi" />
+<img src="https://raw.githubusercontent.com/gbtami/chessgroundx/master/screenshot/chessgroundx.png" width="100%" alt="Chessground Xiangqi and Shogi" />
 <img src="https://raw.githubusercontent.com/ornicar/chessground/master/screenshot/twin.jpg" width="100%" alt="Chessground in 2D and 3D" />
 
 **Chessground** is the opensource chess UI developed for [lichess.org](https://lichess.org).
