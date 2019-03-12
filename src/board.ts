@@ -75,19 +75,20 @@ function tryAutoCastle(state: State, orig: cg.Key, dest: cg.Key): boolean {
   if (!state.autoCastle) return false;
   const king = state.pieces[orig];
   if (!king || king.role !== 'king') return false;
-  const origPos = key2pos(orig);
+  const firstRankIs0 = state.dimensions.height === 10;
+  const origPos = key2pos(orig, firstRankIs0);
   if (origPos[0] !== 5) return false;
   if (origPos[1] !== 1 && origPos[1] !== 8) return false;
-  const destPos = key2pos(dest);
+  const destPos = key2pos(dest, firstRankIs0);
   let oldRookPos, newRookPos, newKingPos;
   if (destPos[0] === 7 || destPos[0] === 8) {
-    oldRookPos = pos2key([8, origPos[1]]);
-    newRookPos = pos2key([6, origPos[1]]);
-    newKingPos = pos2key([7, origPos[1]]);
+    oldRookPos = pos2key([8, origPos[1]], state.geometry);
+    newRookPos = pos2key([6, origPos[1]], state.geometry);
+    newKingPos = pos2key([7, origPos[1]], state.geometry);
   } else if (destPos[0] === 3 || destPos[0] === 1) {
-    oldRookPos = pos2key([1, origPos[1]]);
-    newRookPos = pos2key([4, origPos[1]]);
-    newKingPos = pos2key([3, origPos[1]]);
+    oldRookPos = pos2key([1, origPos[1]], state.geometry);
+    newRookPos = pos2key([4, origPos[1]], state.geometry);
+    newKingPos = pos2key([3, origPos[1]], state.geometry);
   } else return false;
 
   const rook = state.pieces[oldRookPos];
@@ -151,7 +152,7 @@ export function userMove(state: State, orig: cg.Key, dest: cg.Key): boolean {
       const metadata: cg.MoveMetadata = {
         premove: false,
         ctrlKey: state.stats.ctrlKey,
-        holdTime: holdTime
+        holdTime: holdTime,
       };
       if (result !== true) metadata.captured = result;
       callUserFunction(state.movable.events.after, orig, dest, metadata);
@@ -205,7 +206,7 @@ export function selectSquare(state: State, key: cg.Key, force?: boolean): void {
 export function setSelected(state: State, key: cg.Key): void {
   state.selected = key;
   if (isPremovable(state, key)) {
-    state.premovable.dests = premove(state.pieces, key, state.premovable.castle);
+    state.premovable.dests = premove(state.pieces, key, state.premovable.castle, state.geometry);
   }
   else state.premovable.dests = undefined;
 }
@@ -251,7 +252,7 @@ function isPremovable(state: State, orig: cg.Key): boolean {
 function canPremove(state: State, orig: cg.Key, dest: cg.Key): boolean {
   return orig !== dest &&
   isPremovable(state, orig) &&
-  containsX(premove(state.pieces, orig, state.premovable.castle), dest);
+  containsX(premove(state.pieces, orig, state.premovable.castle, state.geometry), dest);
 }
 
 function canPredrop(state: State, orig: cg.Key, dest: cg.Key): boolean {
@@ -327,10 +328,11 @@ export function stop(state: State): void {
   cancelMove(state);
 }
 
-export function getKeyAtDomPos(pos: cg.NumberPair, asWhite: boolean, bounds: ClientRect): cg.Key | undefined {
-  let file = Math.ceil(8 * ((pos[0] - bounds.left) / bounds.width));
-  if (!asWhite) file = 9 - file;
-  let rank = Math.ceil(8 - (8 * ((pos[1] - bounds.top) / bounds.height)));
-  if (!asWhite) rank = 9 - rank;
-  return (file > 0 && file < 9 && rank > 0 && rank < 9) ? pos2key([file, rank]) : undefined;
+export function getKeyAtDomPos(pos: cg.NumberPair, asWhite: boolean, bounds: ClientRect, geom: cg.Geometry): cg.Key | undefined {
+  const bd = cg.dimensions[geom];
+  let file = Math.ceil(bd.width * ((pos[0] - bounds.left) / bounds.width));
+  if (!asWhite) file = bd.width + 1 - file;
+  let rank = Math.ceil(bd.height - (bd.height * ((pos[1] - bounds.top) / bounds.height)));
+  if (!asWhite) rank = bd.height + 1 - rank;
+  return (file > 0 && file < bd.width + 1 && rank > 0 && rank < bd.height + 1) ? pos2key([file, rank], geom) : undefined;
 }

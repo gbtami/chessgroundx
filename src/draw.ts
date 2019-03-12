@@ -64,7 +64,7 @@ export function start(state: State, e: cg.MouchEvent): void {
   e.preventDefault();
   e.ctrlKey ? unselect(state) : cancelMove(state);
   const position = eventPosition(e) as cg.NumberPair;
-  const orig = getKeyAtDomPos(position, state.orientation === 'white', state.dom.bounds());
+  const orig = getKeyAtDomPos(position, state.orientation === 'white', state.dom.bounds(), state.geometry);
   if (!orig) return;
   state.drawable.current = {
     orig: orig,
@@ -78,7 +78,7 @@ export function processDraw(state: State): void {
   raf(() => {
     const cur = state.drawable.current;
     if (cur) {
-      const mouseSq = getKeyAtDomPos(cur.pos, state.orientation === 'white', state.dom.bounds());
+      const mouseSq = getKeyAtDomPos(cur.pos, state.orientation === 'white', state.dom.bounds(), state.geometry);
       if (mouseSq !== cur.mouseSq) {
         cur.mouseSq = mouseSq;
         cur.dest = mouseSq !== cur.orig ? mouseSq : undefined;

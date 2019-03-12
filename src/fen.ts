@@ -1,18 +1,38 @@
-import { pos2key, invRanks } from './util'
+import { pos2key, NRanks, invNRanks } from './util'
 import * as cg from './types'
 
 export const initial: cg.FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR';
 
-const roles: { [letter: string]: cg.Role } = { p: 'pawn', r: 'rook', n: 'knight', b: 'bishop', q: 'queen', k: 'king' };
+const roles8: { [letter: string]: cg.Role } = {
+    p: 'pawn', r: 'rook', n: 'knight', b: 'bishop', q: 'queen', k: 'king', m: 'met', f: 'ferz', s: 'silver', c: 'cancellor', a: 'archbishop', h: 'hawk', e: 'elephant' };
 
-const letters = { pawn: 'p', rook: 'r', knight: 'n', bishop: 'b', queen: 'q', king: 'k' };
+const roles9: { [letter: string]: cg.Role } = {
+    p: 'pawn', r: 'rook', n: 'knight', b: 'bishop', k: 'king', g: 'gold', s: 'silver', l: 'lance',
+    u: 'plance', v: 'ppawn', w: 'pknight', x: 'pbishop', y: 'prook', z: 'psilver' };
+
+const roles10: { [letter: string]: cg.Role } = {
+    p: 'pawn', r: 'rook', n: 'knight', b: 'bishop', k: 'king', c: 'cannon', a: 'advisor' };
+
+
+const letters8 = {
+    pawn: 'p', rook: 'r', knight: 'n', bishop: 'b', queen: 'q', king: 'k', met: 'm', ferz: 'f', silver: 's', cancellor: 'c', archbishop: 'a', hawk: 'h', elephant: 'e' };
+
+const letters9 = {
+    pawn: 'p', rook: 'r', knight: 'n', bishop: 'b', king: 'k', gold: 'g', silver: 's', lance: 'l', plance: 'u',
+    ppawn: 'v', pknight: 'w', pbishop: 'x', prook: 'y', psilver: 'z' };
+
+const letters10 = {
+    pawn: 'p', rook: 'r', knight: 'n', bishop: 'b', king: 'k', cannon: 'c', advisor: 'a'};
 
 
 export function read(fen: cg.FEN): cg.Pieces {
   if (fen === 'start') fen = initial;
+  if (fen.indexOf('[') !== -1) fen = fen.slice(0, fen.indexOf('['));
   const pieces: cg.Pieces = {};
-  let row: number = 8;
+  let row: number = fen.split("/").length;
   let col: number = 0;
+  const roles = row === 10 ? roles10 : row === 9 ? roles9 : roles8;
+  const firstRankIs0 = row === 10;
   for (const c of fen) {
     switch (c) {
       case ' ': return pieces;
@@ -22,16 +42,16 @@ export function read(fen: cg.FEN): cg.Pieces {
         col = 0;
         break;
       case '~':
-        const piece = pieces[pos2key([col, row])];
+        const piece = pieces[cg.files[col] + cg.ranks[firstRankIs0 ? row : row + 1]];
         if (piece) piece.promoted = true;
         break;
       default:
         const nb = c.charCodeAt(0);
-        if (nb < 57) col += nb - 48;
+        if (nb < 58) col += (c == '0') ? 9 : nb - 48;
         else {
           ++col;
           const role = c.toLowerCase();
-          pieces[pos2key([col, row])] = {
+          pieces[cg.files[col - 1] + cg.ranks[firstRankIs0 ? row - 1 : row]] = {
             role: roles[role],
             color: (c === role ? 'black' : 'white') as cg.Color
           };
@@ -41,11 +61,24 @@ export function read(fen: cg.FEN): cg.Pieces {
   return pieces;
 }
 
-export function write(pieces: cg.Pieces): cg.FEN {
-  return invRanks.map(y => cg.ranks.map(x => {
-      const piece = pieces[pos2key([x, y])];
+export function write(pieces: cg.Pieces, geom: cg.Geometry): cg.FEN {
+  const height: number = cg.dimensions[geom].height;
+  var letters: any = {};
+  switch (height) {
+  case 10:
+    letters = letters10;
+    break;
+  case 9:
+    letters = letters9;
+    break;
+  default:
+    letters = letters8;
+    break
+  };
+  return invNRanks.map(y => NRanks.map(x => {
+      const piece = pieces[pos2key([x, y], geom)];
       if (piece) {
-        const letter = letters[piece.role];
+        const letter: string = letters[piece.role];
         return piece.color === 'white' ? letter.toUpperCase() : letter;
       } else return '1';
     }).join('')

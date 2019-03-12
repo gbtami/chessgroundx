@@ -86,7 +86,8 @@ export interface Config {
     pieces?: {
       baseUrl?: string;
     }
-  }
+  };
+  geometry?: cg.Geometry; // dim8x8 | dim9x9 | dim10x8 | dim9x10
 }
 
 export function configure(state: State, config: Config) {
@@ -95,6 +96,8 @@ export function configure(state: State, config: Config) {
   if (config.movable && config.movable.dests) state.movable.dests = undefined;
 
   merge(state, config);
+
+  if (config.geometry) state.dimensions = cg.dimensions[config.geometry];
 
   // if a fen was provided, replace the pieces
   if (config.fen) {

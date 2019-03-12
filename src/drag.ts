@@ -28,7 +28,7 @@ export function start(s: State, e: cg.MouchEvent): void {
   const asWhite = s.orientation === 'white',
   bounds = s.dom.bounds(),
   position = util.eventPosition(e) as cg.NumberPair,
-  orig = board.getKeyAtDomPos(position, asWhite, bounds);
+  orig = board.getKeyAtDomPos(position, asWhite, bounds, s.geometry);
   if (!orig) return;
   const piece = s.pieces[orig];
   const previouslySelected = s.selected;
@@ -45,11 +45,12 @@ export function start(s: State, e: cg.MouchEvent): void {
   }
   const stillSelected = s.selected === orig;
   const element = pieceElementByKey(s, orig);
+  const firstRankIs0 = s.dimensions.height === 10;
   if (piece && element && stillSelected && board.isDraggable(s, orig)) {
-    const squareBounds = computeSquareBounds(orig, asWhite, bounds);
+    const squareBounds = computeSquareBounds(orig, asWhite, bounds, s.dimensions);
     s.draggable.current = {
       orig: orig,
-      origPos: util.key2pos(orig),
+      origPos: util.key2pos(orig, firstRankIs0),
       piece: piece,
       rel: position,
       epos: position,
@@ -69,7 +70,7 @@ export function start(s: State, e: cg.MouchEvent): void {
     const ghost = s.dom.elements.ghost;
     if (ghost) {
       ghost.className = `ghost ${piece.color} ${piece.role}`;
-      util.translateAbs(ghost, util.posToTranslateAbs(bounds)(util.key2pos(orig), asWhite));
+      util.translateAbs(ghost, util.posToTranslateAbs(bounds, s.dimensions)(util.key2pos(orig, firstRankIs0), asWhite));
       util.setVisible(ghost, true);
     }
     processDrag(s);
@@ -91,16 +92,17 @@ export function dragNewPiece(s: State, piece: cg.Piece, e: cg.MouchEvent, force?
   const position = util.eventPosition(e) as cg.NumberPair,
   asWhite = s.orientation === 'white',
   bounds = s.dom.bounds(),
-  squareBounds = computeSquareBounds(key, asWhite, bounds);
+  squareBounds = computeSquareBounds(key, asWhite, bounds, s.dimensions);
 
   const rel: cg.NumberPair = [
-    (asWhite ? 0 : 7) * squareBounds.width + bounds.left,
-    (asWhite ? 8 : -1) * squareBounds.height + bounds.top
+    (asWhite ? 0 : s.dimensions.width - 1) * squareBounds.width + bounds.left,
+    (asWhite ? s.dimensions.height : -1) * squareBounds.height + bounds.top
   ];
 
+  const firstRankIs0 = s.dimensions.height === 10;
   s.draggable.current = {
     orig: key,
-    origPos: util.key2pos(key),
+    origPos: util.key2pos(key, firstRankIs0),
     piece: piece,
     rel: rel,
     epos: position,
@@ -145,7 +147,7 @@ function processDrag(s: State): void {
         ];
 
         // move piece
-        const translation = util.posToTranslateAbs(bounds)(cur.origPos, asWhite);
+        const translation = util.posToTranslateAbs(bounds, s.dimensions)(cur.origPos, asWhite);
         translation[0] += cur.pos[0] + cur.dec[0];
         translation[1] += cur.pos[1] + cur.dec[1];
         util.translateAbs(cur.element, translation);
@@ -175,7 +177,7 @@ export function end(s: State, e: cg.MouchEvent): void {
   board.unsetPredrop(s);
   // touchend has no position; so use the last touchmove position instead
   const eventPos: cg.NumberPair = util.eventPosition(e) || cur.epos;
-  const dest = board.getKeyAtDomPos(eventPos, s.orientation === 'white', s.dom.bounds());
+  const dest = board.getKeyAtDomPos(eventPos, s.orientation === 'white', s.dom.bounds(), s.geometry);
   if (dest && cur.started) {
     if (cur.newPiece) board.dropNewPiece(s, cur.orig, dest, cur.force);
     else {
@@ -214,17 +216,18 @@ function removeDragElements(s: State) {
   if (e.ghost) util.setVisible(e.ghost, false);
 }
 
-function computeSquareBounds(key: cg.Key, asWhite: boolean, bounds: ClientRect) {
-  const pos = util.key2pos(key);
+function computeSquareBounds(key: cg.Key, asWhite: boolean, bounds: ClientRect, bd: cg.BoardDimensions) {
+  const firstRankIs0 = bd.height === 10;
+  const pos = util.key2pos(key, firstRankIs0);
   if (!asWhite) {
-    pos[0] = 9 - pos[0];
-    pos[1] = 9 - pos[1];
+    pos[0] = bd.width + 1 - pos[0];
+    pos[1] = bd.height + 1 - pos[1];
   }
   return {
-    left: bounds.left + bounds.width * (pos[0] - 1) / 8,
-    top: bounds.top + bounds.height * (8 - pos[1]) / 8,
-    width: bounds.width / 8,
-    height: bounds.height / 8
+    left: bounds.left + bounds.width * (pos[0] - 1) / bd.width,
+    top: bounds.top + bounds.height * (bd.height - pos[1]) / bd.height,
+    width: bounds.width / bd.width,
+    height: bounds.height / bd.height
   };
 }
 

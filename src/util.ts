@@ -2,13 +2,34 @@ import * as cg from './types';
 
 export const colors: cg.Color[] = ['white', 'black'];
 
-export const invRanks: cg.Rank[] = [8, 7, 6, 5, 4, 3, 2, 1];
+export const NRanks: number[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+export const invNRanks: number[] = [10, 9, 8, 7, 6, 5, 4, 3, 2, 1];
 
-export const allKeys: cg.Key[] = Array.prototype.concat(...cg.files.map(c => cg.ranks.map(r => c+r)));
+const files8 = cg.files.slice(0, 8);
+const files9 = cg.files.slice(0, 9);
+const files10 = cg.files.slice(0, 10);
 
-export const pos2key = (pos: cg.Pos) => allKeys[8 * pos[0] + pos[1] - 9];
+const ranks8 = cg.ranks.slice(1, 9);
+const ranks9 = cg.ranks.slice(1, 10);
+// we have to count ranks starting from 0 as in UCCI
+const ranks10 = cg.ranks.slice(0, 10);
 
-export const key2pos = (k: cg.Key) => [k.charCodeAt(0) - 96, k.charCodeAt(1) - 48] as cg.Pos;
+const allKeys8x8: cg.Key[] = Array.prototype.concat(...files8.map(c => ranks8.map(r => c+r)));
+const allKeys9x9: cg.Key[] = Array.prototype.concat(...files9.map(c => ranks9.map(r => c+r)));
+const allKeys10x8: cg.Key[] = Array.prototype.concat(...files10.map(c => ranks8.map(r => c+r)));
+const allKeys9x10: cg.Key[] = Array.prototype.concat(...files9.map(c => ranks10.map(r => c+r)));
+
+export const allKeys = [allKeys8x8, allKeys9x9, allKeys10x8, allKeys9x10];
+
+export function pos2key(pos: cg.Pos, geom: cg.Geometry) {
+    const bd = cg.dimensions[geom];
+    return allKeys[geom][bd.height * pos[0] + pos[1] - bd.height - 1];
+}
+
+export function key2pos(k: cg.Key, firstRankIs0: boolean) {
+  const shift = firstRankIs0 ? 1 : 0;
+  return [k.charCodeAt(0) - 96, k.charCodeAt(1) - 48 + shift] as cg.Pos;
+}
 
 export function memo<A>(f: () => A): cg.Memo<A> {
   let v: A | undefined;
@@ -49,20 +70,20 @@ export const samePiece: (p1: cg.Piece, p2: cg.Piece) => boolean = (p1, p2) =>
 
 export const computeIsTrident = () => window.navigator.userAgent.indexOf('Trident/') > -1;
 
-const posToTranslateBase: (pos: cg.Pos, asWhite: boolean, xFactor: number, yFactor: number) => cg.NumberPair =
-(pos, asWhite, xFactor, yFactor) => [
-  (asWhite ? pos[0] - 1 : 8 - pos[0]) * xFactor,
-  (asWhite ? 8 - pos[1] : pos[1] - 1) * yFactor
+const posToTranslateBase: (pos: cg.Pos, asWhite: boolean, xFactor: number, yFactor: number, bt: cg.BoardDimensions) => cg.NumberPair =
+(pos, asWhite, xFactor, yFactor, bt) => [
+  (asWhite ? pos[0] - 1 : bt.width - pos[0]) * xFactor,
+  (asWhite ? bt.height - pos[1] : pos[1] - 1) * yFactor
 ];
 
-export const posToTranslateAbs = (bounds: ClientRect) => {
-  const xFactor = bounds.width / 8,
-  yFactor = bounds.height / 8;
-  return (pos: cg.Pos, asWhite: boolean) => posToTranslateBase(pos, asWhite, xFactor, yFactor);
+export const posToTranslateAbs = (bounds: ClientRect, bt: cg.BoardDimensions) => {
+  const xFactor = bounds.width / bt.width,
+  yFactor = bounds.height / bt.height;
+  return (pos: cg.Pos, asWhite: boolean) => posToTranslateBase(pos, asWhite, xFactor, yFactor, bt);
 };
 
-export const posToTranslateRel: (pos: cg.Pos, asWhite: boolean) => cg.NumberPair =
-  (pos, asWhite) => posToTranslateBase(pos, asWhite, 12.5, 12.5);
+export const posToTranslateRel: (pos: cg.Pos, asWhite: boolean, bt: cg.BoardDimensions) => cg.NumberPair =
+  (pos, asWhite, bt) => posToTranslateBase(pos, asWhite, 100 / bt.width, 100 / bt.height, bt);
 
 export const translateAbs = (el: HTMLElement, pos: cg.Pos) => {
   el.style.transform = `translate(${pos[0]}px,${pos[1]}px)`;

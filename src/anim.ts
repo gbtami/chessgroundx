@@ -46,10 +46,10 @@ interface AnimPieces {
   [key: string]: AnimPiece
 }
 
-function makePiece(key: cg.Key, piece: cg.Piece): AnimPiece {
+function makePiece(key: cg.Key, piece: cg.Piece, firstRankIs0: boolean): AnimPiece {
   return {
     key: key,
-    pos: util.key2pos(key),
+    pos: util.key2pos(key, firstRankIs0),
     piece: piece
   };
 }
@@ -61,6 +61,7 @@ function closer(piece: AnimPiece, pieces: AnimPiece[]): AnimPiece {
 }
 
 function computePlan(prevPieces: cg.Pieces, current: State): AnimPlan {
+  const firstRankIs0 = current.dimensions.height === 10;
   const anims: AnimVectors = {},
   animedOrigs: cg.Key[] = [],
   fadings: AnimFadings = {},
@@ -69,18 +70,18 @@ function computePlan(prevPieces: cg.Pieces, current: State): AnimPlan {
   prePieces: AnimPieces = {};
   let curP: cg.Piece | undefined, preP: AnimPiece | undefined, i: any, vector: cg.NumberPair;
   for (i in prevPieces) {
-    prePieces[i] = makePiece(i as cg.Key, prevPieces[i]!);
+    prePieces[i] = makePiece(i as cg.Key, prevPieces[i]!, firstRankIs0);
   }
-  for (const key of util.allKeys) {
+  for (const key of util.allKeys[current.geometry]) {
     curP = current.pieces[key];
     preP = prePieces[key];
     if (curP) {
       if (preP) {
         if (!util.samePiece(curP, preP.piece)) {
           missings.push(preP);
-          news.push(makePiece(key, curP));
+          news.push(makePiece(key, curP, firstRankIs0));
         }
-      } else news.push(makePiece(key, curP));
+      } else news.push(makePiece(key, curP, firstRankIs0));
     } else if (preP) missings.push(preP);
   }
   news.forEach(newP => {

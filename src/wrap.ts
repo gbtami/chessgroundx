@@ -14,6 +14,10 @@ export default function wrap(element: HTMLElement, s: State, bounds?: ClientRect
   });
   element.classList.toggle('manipulable', !s.viewOnly);
 
+  const extension = createEl('div', 'extension');
+
+  element.appendChild(extension);
+
   const board = createEl('div', 'cg-board');
 
   element.appendChild(board);
@@ -27,8 +31,10 @@ export default function wrap(element: HTMLElement, s: State, bounds?: ClientRect
 
   if (s.coordinates) {
     const orientClass = s.orientation === 'black' ? ' black' : '';
-    element.appendChild(renderCoords(ranks, 'ranks' + orientClass));
-    element.appendChild(renderCoords(files, 'files' + orientClass));
+    const firstRankIs0 = s.dimensions.height === 10;
+    const shift = firstRankIs0 ? 0 : 1;
+    element.appendChild(renderCoords(ranks.slice(shift, s.dimensions.height + shift), 'ranks' + orientClass));
+    element.appendChild(renderCoords(files.slice(0, s.dimensions.width), 'files' + orientClass));
   }
 
   let ghost: HTMLElement | undefined;
