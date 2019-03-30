@@ -43,8 +43,10 @@ export function read(fen: cg.FEN): cg.Pieces {
       case '+':
       case '~':
         const piece = pieces[cg.files[col] + cg.ranks[firstRankIs0 ? row : row + 1]];
-        if (piece) piece.promoted = true;
-        if (c === '+') piece.role = 'p' + piece.role;
+        if (piece) {
+          piece.promoted = true;
+          if (c === '+') piece.role = 'p' + piece.role as cg.Role;
+        };
         break;
       default:
         const nb = c.charCodeAt(0);
