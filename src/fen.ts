@@ -17,8 +17,8 @@ const letters8 = {
     pawn: 'p', rook: 'r', knight: 'n', bishop: 'b', queen: 'q', king: 'k', met: 'm', ferz: 'f', silver: 's', cancellor: 'c', archbishop: 'a', hawk: 'h', elephant: 'e' };
 
 const letters9 = {
-    pawn: 'p', rook: 'r', knight: 'n', bishop: 'b', king: 'k', gold: 'g', silver: 's', lance: 'l', plance: 'u',
-    ppawn: 'p+', pknight: 'n+', pbishop: 'b+', prook: 'r+', psilver: 's+' };
+    pawn: 'p', rook: 'r', knight: 'n', bishop: 'b', king: 'k', gold: 'g', silver: 's', lance: 'l',
+    ppawn: '+p', pknight: '+n', pbishop: '+b', prook: '+r', psilver: '+s', plance: '+l' };
 
 const letters10 = {
     pawn: 'p', rook: 'r', knight: 'n', bishop: 'b', king: 'k', cannon: 'c', advisor: 'a'};
@@ -30,6 +30,7 @@ export function read(fen: cg.FEN): cg.Pieces {
   const pieces: cg.Pieces = {};
   let row: number = fen.split("/").length;
   let col: number = 0;
+  let promoted: boolean = false;
   const roles = row === 10 ? roles10 : row === 9 ? roles9 : roles8;
   const firstRankIs0 = row === 10;
   for (const c of fen) {
@@ -41,12 +42,11 @@ export function read(fen: cg.FEN): cg.Pieces {
         col = 0;
         break;
       case '+':
+        promoted = true;
+        break;
       case '~':
         const piece = pieces[cg.files[col] + cg.ranks[firstRankIs0 ? row : row + 1]];
-        if (piece) {
-          piece.promoted = true;
-          if (c === '+') piece.role = 'p' + piece.role as cg.Role;
-        };
+        if (piece) piece.promoted = true;
         break;
       default:
         const nb = c.charCodeAt(0);
@@ -54,10 +54,16 @@ export function read(fen: cg.FEN): cg.Pieces {
         else {
           ++col;
           const role = c.toLowerCase();
-          pieces[cg.files[col - 1] + cg.ranks[firstRankIs0 ? row - 1 : row]] = {
+          let piece = {
             role: roles[role],
             color: (c === role ? 'black' : 'white') as cg.Color
+          } as cg.Piece;
+          if (promoted) {
+            piece.role = 'p' + piece.role as cg.Role;
+            piece.promoted = true;
+            promoted = false;
           };
+          pieces[cg.files[col - 1] + cg.ranks[firstRankIs0 ? row - 1 : row]] = piece;
         }
     }
   }
