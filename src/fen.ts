@@ -7,8 +7,7 @@ const roles8: { [letter: string]: cg.Role } = {
     p: 'pawn', r: 'rook', n: 'knight', b: 'bishop', q: 'queen', k: 'king', m: 'met', f: 'ferz', s: 'silver', c: 'cancellor', a: 'archbishop', h: 'hawk', e: 'elephant' };
 
 const roles9: { [letter: string]: cg.Role } = {
-    p: 'pawn', r: 'rook', n: 'knight', b: 'bishop', k: 'king', g: 'gold', s: 'silver', l: 'lance',
-    u: 'plance', v: 'ppawn', w: 'pknight', x: 'pbishop', y: 'prook', z: 'psilver' };
+    p: 'pawn', r: 'rook', n: 'knight', b: 'bishop', k: 'king', g: 'gold', s: 'silver', l: 'lance' };
 
 const roles10: { [letter: string]: cg.Role } = {
     p: 'pawn', r: 'rook', n: 'knight', b: 'bishop', k: 'king', c: 'cannon', a: 'advisor' };
@@ -19,7 +18,7 @@ const letters8 = {
 
 const letters9 = {
     pawn: 'p', rook: 'r', knight: 'n', bishop: 'b', king: 'k', gold: 'g', silver: 's', lance: 'l', plance: 'u',
-    ppawn: 'v', pknight: 'w', pbishop: 'x', prook: 'y', psilver: 'z' };
+    ppawn: 'p+', pknight: 'n+', pbishop: 'b+', prook: 'r+', psilver: 's+' };
 
 const letters10 = {
     pawn: 'p', rook: 'r', knight: 'n', bishop: 'b', king: 'k', cannon: 'c', advisor: 'a'};
@@ -41,13 +40,15 @@ export function read(fen: cg.FEN): cg.Pieces {
         if (row === 0) return pieces;
         col = 0;
         break;
+      case '+':
       case '~':
         const piece = pieces[cg.files[col] + cg.ranks[firstRankIs0 ? row : row + 1]];
         if (piece) piece.promoted = true;
+        if (c === '+') piece.role = 'p' + piece.role;
         break;
       default:
         const nb = c.charCodeAt(0);
-        if (nb < 58) col += (c == '0') ? 9 : nb - 48;
+        if (nb < 58) col += (c === '0') ? 9 : nb - 48;
         else {
           ++col;
           const role = c.toLowerCase();
