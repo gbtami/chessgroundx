@@ -33,6 +33,7 @@ export function read(fen: cg.FEN): cg.Pieces {
   let promoted: boolean = false;
   const roles = row === 10 ? roles10 : row === 9 ? roles9 : roles8;
   const firstRankIs0 = row === 10;
+  const shogi = row === 9;
   for (const c of fen) {
     switch (c) {
       case ' ': return pieces;
@@ -56,14 +57,18 @@ export function read(fen: cg.FEN): cg.Pieces {
           const role = c.toLowerCase();
           let piece = {
             role: roles[role],
-            color: (c === role ? 'black' : 'white') as cg.Color
+            color: (c === role ? shogi ? 'white': 'black' : shogi ? 'black' : 'white') as cg.Color
           } as cg.Piece;
           if (promoted) {
             piece.role = 'p' + piece.role as cg.Role;
             piece.promoted = true;
             promoted = false;
           };
-          pieces[cg.files[col - 1] + cg.ranks[firstRankIs0 ? row - 1 : row]] = piece;
+          if (shogi) {
+              pieces[cg.files[10 - col - 1] + cg.ranks[10 - row]] = piece;
+          } else {
+              pieces[cg.files[col - 1] + cg.ranks[firstRankIs0 ? row - 1 : row]] = piece;
+          };
         }
     }
   }
