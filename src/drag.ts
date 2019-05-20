@@ -88,7 +88,7 @@ export function pieceCloseTo(s: State, pos: cg.Pos): boolean {
   bounds = s.dom.bounds(),
   radiusSq = Math.pow(bounds.width / 8, 2);
   for (let key in s.pieces) {
-    const squareBounds = computeSquareBounds(key as cg.Key, asWhite, bounds),
+    const squareBounds = computeSquareBounds(key as cg.Key, asWhite, bounds, s.dimensions),
     center: cg.Pos = [
       squareBounds.left + squareBounds.width / 2,
       squareBounds.top + squareBounds.height / 2
