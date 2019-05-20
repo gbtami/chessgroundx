@@ -78,6 +78,7 @@ export interface State {
     // was last piece dragged or clicked?
     // needs default to false for touch
     dragged: boolean,
+    touched: boolean, // has the screen been touched yet?
     ctrlKey?: boolean
   };
   events: {
@@ -87,6 +88,7 @@ export interface State {
     move?: (orig: cg.Key, dest: cg.Key, capturedPiece?: cg.Piece) => void;
     dropNewPiece?: (piece: cg.Piece, key: cg.Key) => void;
     select?: (key: cg.Key) => void // called when a square is selected
+    insert?: (elements: cg.Elements) => void; // when the board DOM has been (re)inserted
   };
   drawable: Drawable,
   exploding?: cg.Exploding;
@@ -147,7 +149,8 @@ export function defaults(): Partial<State> {
     stats: {
       // on touchscreen, default to "tap-tap" moves
       // instead of drag
-      dragged: !('ontouchstart' in window)
+      dragged: !('ontouchstart' in window),
+      touched: false
     },
     events: {},
     drawable: {

@@ -1,13 +1,18 @@
 <img src="https://raw.githubusercontent.com/gbtami/chessgroundx/master/screenshot/chessgroundx.png" width="100%" alt="Chessground Xiangqi and Shogi" />
 <img src="https://raw.githubusercontent.com/ornicar/chessground/master/screenshot/twin.jpg" width="100%" alt="Chessground in 2D and 3D" />
 
-**Chessground** is the opensource chess UI developed for [lichess.org](https://lichess.org).
+**Chessground** is free/libre open source chess UI developed for [lichess.org](https://lichess.org).
 
 It targets modern browsers, as well as mobile development using Cordova.
 
-Chessground is distributed under the GPL-3.0 license. If you're not sure what this means, check out [greendrake.info/#nfy0](http://greendrake.info/#nfy0).
+## License
 
-### Demos
+Chessground is distributed under the **GPL-3.0 license**.
+When you use chessground, your website becomes GPL as well, and **you must release your source code**.
+
+Please read more about GPL for JavaScript on [greendrake.info/#nfy0](http://greendrake.info/#nfy0).
+
+## Demos
 
 - [Chess TV](https://lichess.org/tv)
 - [Board editor](https://lichess.org/editor)

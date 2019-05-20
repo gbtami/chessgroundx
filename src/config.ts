@@ -74,7 +74,8 @@ export interface Config {
     // capturedPiece is undefined or like {color: 'white'; 'role': 'queen'}
     move?: (orig: cg.Key, dest: cg.Key, capturedPiece?: cg.Piece) => void;
     dropNewPiece?: (piece: cg.Piece, key: cg.Key) => void;
-    select?: (key: cg.Key) => void // called when a square is selected
+    select?: (key: cg.Key) => void; // called when a square is selected
+    insert?: (elements: cg.Elements) => void; // when the board DOM has been (re)inserted
   };
   drawable?: {
     enabled?: boolean; // can draw
@@ -133,7 +134,7 @@ export function configure(state: State, config: Config) {
 };
 
 function merge(base: any, extend: any) {
-  for (var key in extend) {
+  for (let key in extend) {
     if (isObject(base[key]) && isObject(extend[key])) merge(base[key], extend[key]);
     else base[key] = extend[key];
   }

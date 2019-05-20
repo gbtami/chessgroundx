@@ -23,7 +23,6 @@ const letters9 = {
 const letters10 = {
     pawn: 'p', rook: 'r', knight: 'n', bishop: 'b', king: 'k', cannon: 'c', advisor: 'a'};
 
-
 export function read(fen: cg.FEN): cg.Pieces {
   if (fen === 'start') fen = initial;
   if (fen.indexOf('[') !== -1) fen = fen.slice(0, fen.indexOf('['));

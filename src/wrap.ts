@@ -4,50 +4,62 @@ import { files, ranks } from './types'
 import { createElement as createSVG } from './svg'
 import { Elements } from './types'
 
-export default function wrap(element: HTMLElement, s: State, bounds?: ClientRect): Elements {
+export default function wrap(element: HTMLElement, s: State, relative: boolean): Elements {
+
+  // .cg-wrap (element passed to Chessground)
+  //   cg-helper (12.5%)
+  //     cg-container (800%)
+  //       cg-board
+  //       svg
+  //       coords.ranks
+  //       coords.files
+  //       piece.ghost
 
   element.innerHTML = '';
 
-  element.classList.add('cg-board-wrap');
+  element.classList.add('cg-wrap');
   colors.forEach(c => {
     element.classList.toggle('orientation-' + c, s.orientation === c);
   });
   element.classList.toggle('manipulable', !s.viewOnly);
 
-  const extension = createEl('div', 'extension');
+  const helper = createEl('cg-helper');
+  element.appendChild(helper);
+  const container = createEl('cg-container');
+  helper.appendChild(container);
 
-  element.appendChild(extension);
-
-  const board = createEl('div', 'cg-board');
-
-  element.appendChild(board);
+  const extension = createEl('extension');
+  container.appendChild(extension);
+  const board = createEl('cg-board');
+  container.appendChild(board);
 
   let svg: SVGElement | undefined;
-  if (s.drawable.visible && bounds) {
+  if (s.drawable.visible && !relative) {
     svg = createSVG('svg');
     svg.appendChild(createSVG('defs'));
-    element.appendChild(svg);
+    container.appendChild(svg);
   }
 
   if (s.coordinates) {
     const orientClass = s.orientation === 'black' ? ' black' : '';
     const firstRankIs0 = s.dimensions.height === 10;
     const shift = firstRankIs0 ? 0 : 1;
-    element.appendChild(renderCoords(ranks.slice(shift, s.dimensions.height + shift), 'ranks' + orientClass));
-    element.appendChild(renderCoords(files.slice(0, s.dimensions.width), 'files' + orientClass));
+    container.appendChild(renderCoords(ranks.slice(shift, s.dimensions.height + shift), 'ranks' + orientClass));
+    container.appendChild(renderCoords(files.slice(0, s.dimensions.width), 'files' + orientClass));
   }
 
   let ghost: HTMLElement | undefined;
-  if (bounds && s.draggable.showGhost) {
+  if (s.draggable.showGhost && !relative) {
     ghost = createEl('piece', 'ghost');
     setVisible(ghost, false);
-    element.appendChild(ghost);
+    container.appendChild(ghost);
   }
 
   return {
-    board: board,
-    ghost: ghost,
-    svg: svg
+    board,
+    container,
+    ghost,
+    svg
   };
 }
 
