@@ -70,6 +70,10 @@ export interface State {
     deleteOnDropOff: boolean; // delete a piece when it is dropped off the board
     current?: DragCurrent;
   };
+  dropmode: {
+    active: boolean;
+    piece?: cg.Piece;
+  }
   selectable: {
     // disable to enforce dragging over click-click move
     enabled: boolean
@@ -78,7 +82,6 @@ export interface State {
     // was last piece dragged or clicked?
     // needs default to false for touch
     dragged: boolean,
-    touched: boolean, // has the screen been touched yet?
     ctrlKey?: boolean
   };
   events: {
@@ -143,14 +146,16 @@ export function defaults(): Partial<State> {
       showGhost: true,
       deleteOnDropOff: false
     },
+    dropmode: {
+      active: false
+    },
     selectable: {
       enabled: true
     },
     stats: {
       // on touchscreen, default to "tap-tap" moves
       // instead of drag
-      dragged: !('ontouchstart' in window),
-      touched: false
+      dragged: !('ontouchstart' in window)
     },
     events: {},
     drawable: {

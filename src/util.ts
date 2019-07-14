@@ -110,5 +110,3 @@ export const createEl = (tagName: string, className?: string) => {
   if (className) el.className = className;
   return el;
 }
-
-export const raf = (window.requestAnimationFrame || window.setTimeout).bind(window);
