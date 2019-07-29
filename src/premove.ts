@@ -71,7 +71,7 @@ function lance(color: cg.Color): Mobility {
 // shogi silver, makruk/sittuyin bishop
 function silver(color: cg.Color): Mobility {
   return (x1, y1, x2, y2)  => (
-    met(x1, y1, x2, y2) || (x1 === x2 && color === 'white' ? y2 === y1 + 1 : y2 === y1 - 1)
+    met(x1, y1, x2, y2) || (x1 === x2 && (color === 'white' ? y2 === y1 + 1 : y2 === y1 - 1))
   );
 }
 
@@ -88,7 +88,7 @@ function gold(color: cg.Color): Mobility {
 
 // shogi pawn
 function spawn(color: cg.Color): Mobility {
-  return (x1, y1, x2, y2) => (x2 === x1 && color === 'white' ? y2 === y1 + 1 : y2 === y1 - 1);
+  return (x1, y1, x2, y2) => (x2 === x1 && (color === 'white' ? y2 === y1 + 1 : y2 === y1 - 1));
 }
 
 // shogi knight
@@ -115,8 +115,10 @@ const sking: Mobility = (x1, y1, x2, y2) => {
 
 // xiangqi pawn
 function xpawn(color: cg.Color): Mobility {
-  // TODO: over the river they can move horizontaly also
-  return (x1, y1, x2, y2) => (x2 === x1 && color === 'white' ? y2 === y1 + 1 : y2 === y1 - 1);
+  return (x1, y1, x2, y2) => (
+    (x2 === x1 && (color === 'white' ? y2 === y1 + 1 : y2 === y1 - 1)) ||
+    (y2 === y1 && (x2 === x1 + 1 || x2 === x1 - 1) && (color === 'white' ? y1 > 5: y1 < 6))
+    );
 }
 
 // xiangqi bishop
@@ -171,7 +173,8 @@ export default function premove(pieces: cg.Pieces, key: cg.Key, canCastle: boole
     case 'king':
       mobility = xking;
       break;
-    }
+    };
+    break;
   case cg.Geometry.dim9x9:
     switch (piece.role) {
     case 'pawn':
@@ -208,7 +211,8 @@ export default function premove(pieces: cg.Pieces, key: cg.Key, canCastle: boole
     case 'pbishop':
       mobility = pbishop;
       break;
-    }
+    };
+    break;
   default:
     switch (piece.role) {
     case 'pawn':
@@ -245,6 +249,7 @@ export default function premove(pieces: cg.Pieces, key: cg.Key, canCastle: boole
       mobility = silver(piece.color);
       break;
     };
+    break;
   };
   const allkeys = util.allKeys[geom];
 
