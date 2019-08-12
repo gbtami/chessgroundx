@@ -1,5 +1,5 @@
 import { State } from './state'
-import { unselect, cancelMove, getKeyAtDomPos } from './board'
+import { unselect, cancelMove, getKeyAtDomPos, whitePov } from './board'
 import { eventPosition, isRightButton } from './util'
 import * as cg from './types'
 
@@ -63,12 +63,12 @@ export function start(state: State, e: cg.MouchEvent): void {
   e.stopPropagation();
   e.preventDefault();
   e.ctrlKey ? unselect(state) : cancelMove(state);
-  const position = eventPosition(e) as cg.NumberPair;
-  const orig = getKeyAtDomPos(position, state.orientation === 'white', state.dom.bounds(), state.geometry);
+  const pos = eventPosition(e) as cg.NumberPair,
+  orig = getKeyAtDomPos(pos, whitePov(state), state.dom.bounds(), state.geometry);
   if (!orig) return;
   state.drawable.current = {
-    orig: orig,
-    pos: position,
+    orig,
+    pos,
     brush: eventBrush(e)
   };
   processDraw(state);
@@ -78,7 +78,7 @@ export function processDraw(state: State): void {
   requestAnimationFrame(() => {
     const cur = state.drawable.current;
     if (cur) {
-      const mouseSq = getKeyAtDomPos(cur.pos, state.orientation === 'white', state.dom.bounds(), state.geometry);
+      const mouseSq = getKeyAtDomPos(cur.pos, whitePov(state), state.dom.bounds(), state.geometry);
       if (mouseSq !== cur.mouseSq) {
         cur.mouseSq = mouseSq;
         cur.dest = mouseSq !== cur.orig ? mouseSq : undefined;
@@ -117,21 +117,13 @@ export function clear(state: State): void {
 }
 
 function eventBrush(e: cg.MouchEvent): string {
-  const a: number = e.shiftKey && isRightButton(e) ? 1 : 0;
-  const b: number = e.altKey ? 2 : 0;
-  return brushes[a + b];
-}
-
-function not<A>(f: (a: A) => boolean): (a: A) => boolean {
-  return (x: A) => !f(x);
+  return brushes[(e.shiftKey && isRightButton(e) ? 1 : 0) + (e.altKey ? 2 : 0)];
 }
 
 function addShape(drawable: Drawable, cur: DrawCurrent): void {
-  const sameShape = (s: DrawShape) => {
-    return s.orig === cur.orig && s.dest === cur.dest;
-  };
+  const sameShape = (s: DrawShape) => s.orig === cur.orig && s.dest === cur.dest;
   const similar = drawable.shapes.filter(sameShape)[0];
-  if (similar) drawable.shapes = drawable.shapes.filter(not(sameShape));
+  if (similar) drawable.shapes = drawable.shapes.filter(s => !sameShape(s));
   if (!similar || similar.brush !== cur.brush) drawable.shapes.push(cur);
   onChange(drawable);
 }

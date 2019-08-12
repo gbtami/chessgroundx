@@ -24,10 +24,9 @@ export interface DragCurrent {
 export function start(s: State, e: cg.MouchEvent): void {
   if (e.button !== undefined && e.button !== 0) return; // only touch or left click
   if (e.touches && e.touches.length > 1) return; // support one finger touch only
-  const asWhite = s.orientation === 'white',
-  bounds = s.dom.bounds(),
+  const bounds = s.dom.bounds(),
   position = util.eventPosition(e) as cg.NumberPair,
-  orig = board.getKeyAtDomPos(position, asWhite, bounds, s.geometry);
+  orig = board.getKeyAtDomPos(position, board.whitePov(s), bounds, s.geometry);
   if (!orig) return;
   const piece = s.pieces[orig];
   const previouslySelected = s.selected;
@@ -53,11 +52,11 @@ export function start(s: State, e: cg.MouchEvent): void {
   const element = pieceElementByKey(s, orig);
   const firstRankIs0 = s.dimensions.height === 10;
   if (piece && element && stillSelected && board.isDraggable(s, orig)) {
-    const squareBounds = computeSquareBounds(orig, asWhite, bounds, s.dimensions);
+    const squareBounds = computeSquareBounds(orig, board.whitePov(s), bounds, s.dimensions);
     s.draggable.current = {
-      orig: orig,
+      orig,
       origPos: util.key2pos(orig, firstRankIs0),
-      piece: piece,
+      piece,
       rel: position,
       epos: position,
       pos: [0, 0],
@@ -66,8 +65,8 @@ export function start(s: State, e: cg.MouchEvent): void {
         position[1] - (squareBounds.top + squareBounds.height / 2)
       ] : [0, 0],
       started: s.draggable.autoDistance && s.stats.dragged,
-      element: element,
-      previouslySelected: previouslySelected,
+      element,
+      previouslySelected,
       originTarget: e.target
     };
     element.cgDragging = true;
@@ -76,7 +75,7 @@ export function start(s: State, e: cg.MouchEvent): void {
     const ghost = s.dom.elements.ghost;
     if (ghost) {
       ghost.className = `ghost ${piece.color} ${piece.role}`;
-      util.translateAbs(ghost, util.posToTranslateAbs(bounds, s.dimensions)(util.key2pos(orig, firstRankIs0), asWhite));
+      util.translateAbs(ghost, util.posToTranslateAbs(bounds, s.dimensions)(util.key2pos(orig, firstRankIs0), board.whitePov(s)));
       util.setVisible(ghost, true);
     }
     processDrag(s);
@@ -88,7 +87,7 @@ export function start(s: State, e: cg.MouchEvent): void {
 }
 
 export function pieceCloseTo(s: State, pos: cg.Pos): boolean {
-  const asWhite = s.orientation === 'white',
+  const asWhite = board.whitePov(s),
   bounds = s.dom.bounds(),
   radiusSq = Math.pow(bounds.width / 8, 2);
   for (let key in s.pieces) {
@@ -111,7 +110,7 @@ export function dragNewPiece(s: State, piece: cg.Piece, e: cg.MouchEvent, force?
   s.dom.redraw();
 
   const position = util.eventPosition(e) as cg.NumberPair,
-  asWhite = s.orientation === 'white',
+  asWhite = board.whitePov(s),
   bounds = s.dom.bounds(),
   squareBounds = computeSquareBounds(key, asWhite, bounds, s.dimensions);
 
@@ -124,8 +123,8 @@ export function dragNewPiece(s: State, piece: cg.Piece, e: cg.MouchEvent, force?
   s.draggable.current = {
     orig: key,
     origPos: util.key2pos(key, firstRankIs0),
-    piece: piece,
-    rel: rel,
+    piece,
+    rel,
     epos: position,
     pos: [position[0] - rel[0], position[1] - rel[1]],
     dec: [-squareBounds.width / 2, -squareBounds.height / 2],
@@ -133,7 +132,7 @@ export function dragNewPiece(s: State, piece: cg.Piece, e: cg.MouchEvent, force?
     element: () => pieceElementByKey(s, key),
     originTarget: e.target,
     newPiece: true,
-    force: force || false
+    force: !!force
   };
   processDrag(s);
 }
@@ -155,20 +154,18 @@ function processDrag(s: State): void {
         if (typeof cur.element === 'function') {
           const found = cur.element();
           if (!found) return;
+          found.cgDragging = true;
+          found.classList.add('dragging');
           cur.element = found;
-          cur.element.cgDragging = true;
-          cur.element.classList.add('dragging');
         }
 
-        const asWhite = s.orientation === 'white',
-        bounds = s.dom.bounds();
         cur.pos = [
           cur.epos[0] - cur.rel[0],
           cur.epos[1] - cur.rel[1]
         ];
 
         // move piece
-        const translation = util.posToTranslateAbs(bounds, s.dimensions)(cur.origPos, asWhite);
+        const translation = util.posToTranslateAbs(s.dom.bounds(), s.dimensions)(cur.origPos, board.whitePov(s));
         translation[0] += cur.pos[0] + cur.dec[0];
         translation[1] += cur.pos[1] + cur.dec[1];
         util.translateAbs(cur.element, translation);
@@ -200,8 +197,8 @@ export function end(s: State, e: cg.MouchEvent): void {
   board.unsetPredrop(s);
   // touchend has no position; so use the last touchmove position instead
   const eventPos: cg.NumberPair = util.eventPosition(e) || cur.epos;
-  const dest = board.getKeyAtDomPos(eventPos, s.orientation === 'white', s.dom.bounds(), s.geometry);
-  if (dest && cur.started) {
+  const dest = board.getKeyAtDomPos(eventPos, board.whitePov(s), s.dom.bounds(), s.geometry);
+  if (dest && cur.started && cur.orig !== dest) {
     if (cur.newPiece) board.dropNewPiece(s, cur.orig, dest, cur.force);
     else {
       s.stats.ctrlKey = e.ctrlKey;
@@ -209,7 +206,7 @@ export function end(s: State, e: cg.MouchEvent): void {
     }
   } else if (cur.newPiece) {
     delete s.pieces[cur.orig];
-  } else if (s.draggable.deleteOnDropOff) {
+  } else if (s.draggable.deleteOnDropOff && !dest) {
     delete s.pieces[cur.orig];
     board.callUserFunction(s.events.change);
   }

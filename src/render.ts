@@ -1,5 +1,6 @@
 import { State } from './state'
 import { key2pos, createEl } from './util'
+import { whitePov } from './board'
 import * as util from './util'
 import { AnimCurrent, AnimVectors, AnimVector, AnimFadings } from './anim'
 import { DragCurrent } from './drag'
@@ -18,7 +19,7 @@ interface SquareClasses { [key: string]: string }
 // in case of bugs, blame @veloce
 export default function render(s: State): void {
   const firstRankIs0 = s.dimensions.height === 10;
-  const asWhite: boolean = s.orientation === 'white',
+  const asWhite: boolean = whitePov(s),
   posToTranslate = s.dom.relative ? util.posToTranslateRel : util.posToTranslateAbs(s.dom.bounds(), s.dimensions),
   translate = s.dom.relative ? util.translateRel : util.translateAbs,
   boardEl: HTMLElement = s.dom.elements.board,

@@ -56,10 +56,7 @@ export function unsetPremove(state: State): void {
 
 function setPredrop(state: State, role: cg.Role, key: cg.Key): void {
   unsetPremove(state);
-  state.predroppable.current = {
-    role: role,
-    key: key
-  };
+  state.predroppable.current = { role, key };
   callUserFunction(state.predroppable.events.set, role, key);
 }
 
@@ -152,7 +149,7 @@ export function userMove(state: State, orig: cg.Key, dest: cg.Key): boolean {
       const metadata: cg.MoveMetadata = {
         premove: false,
         ctrlKey: state.stats.ctrlKey,
-        holdTime: holdTime,
+        holdTime
       };
       if (result !== true) metadata.captured = result;
       callUserFunction(state.movable.events.after, orig, dest, metadata);
@@ -163,10 +160,9 @@ export function userMove(state: State, orig: cg.Key, dest: cg.Key): boolean {
       ctrlKey: state.stats.ctrlKey
     });
     unselect(state);
-  } else if (isMovable(state, dest) || isPremovable(state, dest)) {
-    setSelected(state, dest);
-    state.hold.start();
-  } else unselect(state);
+    return true;
+  }
+  unselect(state);
   return false;
 }
 
@@ -189,18 +185,23 @@ export function dropNewPiece(state: State, orig: cg.Key, dest: cg.Key, force?: b
 }
 
 export function selectSquare(state: State, key: cg.Key, force?: boolean): void {
+  callUserFunction(state.events.select, key);
   if (state.selected) {
     if (state.selected === key && !state.draggable.enabled) {
       unselect(state);
       state.hold.cancel();
+      return;
     } else if ((state.selectable.enabled || force) && state.selected !== key) {
-      if (userMove(state, state.selected, key)) state.stats.dragged = false;
-    } else state.hold.start();
-  } else if (isMovable(state, key) || isPremovable(state, key)) {
+      if (userMove(state, state.selected, key)) {
+        state.stats.dragged = false;
+        return;
+      }
+    }
+  }
+  if (isMovable(state, key) || isPremovable(state, key)) {
     setSelected(state, key);
     state.hold.start();
   }
-  callUserFunction(state.events.select, key);
 }
 
 export function setSelected(state: State, key: cg.Key): void {
@@ -335,4 +336,8 @@ export function getKeyAtDomPos(pos: cg.NumberPair, asWhite: boolean, bounds: Cli
   let rank = Math.ceil(bd.height - (bd.height * ((pos[1] - bounds.top) / bounds.height)));
   if (!asWhite) rank = bd.height + 1 - rank;
   return (file > 0 && file < bd.width + 1 && rank > 0 && rank < bd.height + 1) ? pos2key([file, rank], geom) : undefined;
+}
+
+export function whitePov(s: State): boolean {
+  return s.orientation === 'white';
 }
