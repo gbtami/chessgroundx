@@ -98,6 +98,6 @@ export interface BoardDimensions {
   height: number;
 }
 
-export const enum Geometry {dim8x8, dim9x9, dim10x8, dim9x10};
+export const enum Geometry {dim8x8, dim9x9, dim10x8, dim9x10, dim10x10};
 
-export const dimensions: BoardDimensions[] = [{width: 8, height: 8}, {width: 9, height: 9}, {width: 10, height: 8}, {width: 9, height: 10}];
+export const dimensions: BoardDimensions[] = [{width: 8, height: 8}, {width: 9, height: 9}, {width: 10, height: 8}, {width: 9, height: 10}, {width: 10, height: 10}];

@@ -5,32 +5,32 @@ export const initial: cg.FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR';
 
 const roles8: { [letter: string]: cg.Role } = {
     p: 'pawn', r: 'rook', n: 'knight', b: 'bishop', q: 'queen', k: 'king', m: 'met', f: 'ferz', s: 'silver', c: 'cancellor', a: 'archbishop', h: 'hawk', e: 'elephant' };
-
+// shogi
 const roles9: { [letter: string]: cg.Role } = {
     p: 'pawn', r: 'rook', n: 'knight', b: 'bishop', k: 'king', g: 'gold', s: 'silver', l: 'lance' };
-
+// xiangqi
 const roles10: { [letter: string]: cg.Role } = {
     p: 'pawn', r: 'rook', n: 'knight', b: 'bishop', k: 'king', c: 'cannon', a: 'advisor' };
 
 
 const letters8 = {
     pawn: 'p', rook: 'r', knight: 'n', bishop: 'b', queen: 'q', king: 'k', met: 'm', ferz: 'f', silver: 's', cancellor: 'c', archbishop: 'a', hawk: 'h', elephant: 'e' };
-
+// shogi
 const letters9 = {
     pawn: 'p', rook: 'r', knight: 'n', bishop: 'b', king: 'k', gold: 'g', silver: 's', lance: 'l',
     ppawn: '+p', pknight: '+n', pbishop: '+b', prook: '+r', psilver: '+s', plance: '+l' };
-
+// xiangqi
 const letters10 = {
     pawn: 'p', rook: 'r', knight: 'n', bishop: 'b', king: 'k', cannon: 'c', advisor: 'a'};
 
-export function read(fen: cg.FEN): cg.Pieces {
+export function read(fen: cg.FEN, geom: cg.Geometry): cg.Pieces {
   if (fen === 'start') fen = initial;
   if (fen.indexOf('[') !== -1) fen = fen.slice(0, fen.indexOf('['));
   const pieces: cg.Pieces = {};
   let row: number = fen.split("/").length;
   let col: number = 0;
   let promoted: boolean = false;
-  const roles = row === 10 ? roles10 : row === 9 ? roles9 : roles8;
+  const roles = geom === cg.Geometry.dim9x10 ? roles10 : geom === cg.Geometry.dim8x8 ? roles9 : roles8;
   const firstRankIs0 = row === 10;
   const shogi = row === 9;
   for (const c of fen) {
@@ -75,13 +75,12 @@ export function read(fen: cg.FEN): cg.Pieces {
 }
 
 export function write(pieces: cg.Pieces, geom: cg.Geometry): cg.FEN {
-  const height: number = cg.dimensions[geom].height;
   var letters: any = {};
-  switch (height) {
-  case 10:
+  switch (geom) {
+  case cg.Geometry.dim9x10:
     letters = letters10;
     break;
-  case 9:
+  case cg.Geometry.dim9x9:
     letters = letters9;
     break;
   default:

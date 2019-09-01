@@ -102,7 +102,7 @@ export function configure(state: State, config: Config) {
 
   // if a fen was provided, replace the pieces
   if (config.fen) {
-    state.pieces = fenRead(config.fen);
+    state.pieces = fenRead(config.fen, state.geometry);
     state.drawable.shapes = [];
   }
 

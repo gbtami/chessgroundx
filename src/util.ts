@@ -18,8 +18,9 @@ const allKeys8x8: cg.Key[] = Array.prototype.concat(...files8.map(c => ranks8.ma
 const allKeys9x9: cg.Key[] = Array.prototype.concat(...files9.map(c => ranks9.map(r => c+r)));
 const allKeys10x8: cg.Key[] = Array.prototype.concat(...files10.map(c => ranks8.map(r => c+r)));
 const allKeys9x10: cg.Key[] = Array.prototype.concat(...files9.map(c => ranks10.map(r => c+r)));
+const allKeys10x10: cg.Key[] = Array.prototype.concat(...files10.map(c => ranks10.map(r => c+r)));
 
-export const allKeys = [allKeys8x8, allKeys9x9, allKeys10x8, allKeys9x10];
+export const allKeys = [allKeys8x8, allKeys9x9, allKeys10x8, allKeys9x10, allKeys10x10];
 
 export function pos2key(pos: cg.Pos, geom: cg.Geometry) {
     const bd = cg.dimensions[geom];
