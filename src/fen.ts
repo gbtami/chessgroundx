@@ -30,7 +30,7 @@ export function read(fen: cg.FEN, geom: cg.Geometry): cg.Pieces {
   let row: number = fen.split("/").length;
   let col: number = 0;
   let promoted: boolean = false;
-  const roles = geom === cg.Geometry.dim9x10 ? roles10 : geom === cg.Geometry.dim8x8 ? roles9 : roles8;
+  const roles = (geom === cg.Geometry.dim9x10) ? roles10 : (geom === cg.Geometry.dim9x9) ? roles9 : roles8;
   const firstRankIs0 = row === 10;
   const shogi = row === 9;
   for (const c of fen) {
