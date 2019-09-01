@@ -2,7 +2,7 @@ import { State } from './state'
 import { colors, setVisible, createEl } from './util'
 import { files, ranks } from './types'
 import { createElement as createSVG } from './svg'
-import { Elements } from './types'
+import { Elements, Geometry } from './types'
 
 export default function wrap(element: HTMLElement, s: State, relative: boolean): Elements {
 
@@ -45,7 +45,7 @@ export default function wrap(element: HTMLElement, s: State, relative: boolean):
 
   if (s.coordinates) {
     const orientClass = s.orientation === 'black' ? ' black' : '';
-    const firstRankIs0 = s.dimensions.height === 10;
+    const firstRankIs0 = s.geometry === Geometry.dim9x10;
     const shift = firstRankIs0 ? 0 : 1;
     container.appendChild(renderCoords(ranks.slice(shift, s.dimensions.height + shift), 'ranks' + orientClass));
     container.appendChild(renderCoords(files.slice(0, s.dimensions.width), 'files' + orientClass));
