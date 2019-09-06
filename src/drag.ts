@@ -103,7 +103,7 @@ export function pieceCloseTo(s: State, pos: cg.Pos): boolean {
 
 export function dragNewPiece(s: State, piece: cg.Piece, e: cg.MouchEvent, force?: boolean): void {
 
-  const key: cg.Key = 'a0';
+  const key: cg.Key = 'z0';
 
   s.pieces[key] = piece;
 
@@ -122,7 +122,7 @@ export function dragNewPiece(s: State, piece: cg.Piece, e: cg.MouchEvent, force?
   const firstRankIs0 = s.geometry === cg.Geometry.dim9x10;
   s.draggable.current = {
     orig: key,
-    origPos: util.key2pos(key, firstRankIs0),
+    origPos: util.key2pos('a0', firstRankIs0),
     piece,
     rel,
     epos: position,

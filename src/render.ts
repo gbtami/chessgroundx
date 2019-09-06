@@ -213,13 +213,13 @@ function computeSquareClasses(s: State): SquareClasses {
   const squares: SquareClasses = {};
   let i: any, k: cg.Key;
   if (s.lastMove && s.highlight.lastMove) for (i in s.lastMove) {
-    if (s.lastMove[i] != 'a0') {
+    if (s.lastMove[i] != 'z0') {
       addSquare(squares, s.lastMove[i], 'last-move');
     }
   }
   if (s.check && s.highlight.check) addSquare(squares, s.check, 'check');
   if (s.selected) {
-    if (s.selected != 'a0') {
+    if (s.selected != 'z0') {
       addSquare(squares, s.selected, 'selected');
     }
     if (s.movable.showDests) {
