@@ -5,22 +5,25 @@ export const colors: cg.Color[] = ['white', 'black'];
 export const NRanks: number[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 export const invNRanks: number[] = [10, 9, 8, 7, 6, 5, 4, 3, 2, 1];
 
+const files5 = cg.files.slice(0, 5);
 const files8 = cg.files.slice(0, 8);
 const files9 = cg.files.slice(0, 9);
 const files10 = cg.files.slice(0, 10);
 
+const ranks5 = cg.ranks.slice(1, 6);
 const ranks8 = cg.ranks.slice(1, 9);
 const ranks9 = cg.ranks.slice(1, 10);
 // we have to count ranks starting from 0 as in UCCI
 const ranks10 = cg.ranks.slice(0, 10);
 
+const allKeys5x5: cg.Key[] = Array.prototype.concat(...files5.map(c => ranks5.map(r => c+r)));
 const allKeys8x8: cg.Key[] = Array.prototype.concat(...files8.map(c => ranks8.map(r => c+r)));
 const allKeys9x9: cg.Key[] = Array.prototype.concat(...files9.map(c => ranks9.map(r => c+r)));
 const allKeys10x8: cg.Key[] = Array.prototype.concat(...files10.map(c => ranks8.map(r => c+r)));
 const allKeys9x10: cg.Key[] = Array.prototype.concat(...files9.map(c => ranks10.map(r => c+r)));
 const allKeys10x10: cg.Key[] = Array.prototype.concat(...files10.map(c => ranks10.map(r => c+r)));
 
-export const allKeys = [allKeys8x8, allKeys9x9, allKeys10x8, allKeys9x10, allKeys10x10];
+export const allKeys = [allKeys8x8, allKeys9x9, allKeys10x8, allKeys9x10, allKeys10x10, allKeys5x5];
 
 export function pos2key(pos: cg.Pos, geom: cg.Geometry) {
     const bd = cg.dimensions[geom];

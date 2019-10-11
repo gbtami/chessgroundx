@@ -30,9 +30,10 @@ export function read(fen: cg.FEN, geom: cg.Geometry): cg.Pieces {
   let row: number = fen.split("/").length;
   let col: number = 0;
   let promoted: boolean = false;
-  const roles = (geom === cg.Geometry.dim9x10) ? roles10 : (geom === cg.Geometry.dim9x9) ? roles9 : roles8;
+  const roles = (geom === cg.Geometry.dim9x10) ? roles10 : (geom === cg.Geometry.dim9x9 || geom === cg.Geometry.dim5x5) ? roles9 : roles8;
   const firstRankIs0 = row === 10;
-  const shogi = row === 9;
+  const shogi = (row === 9 || row === 5);
+  const mini = row === 5;
   for (const c of fen) {
     switch (c) {
       case ' ': return pieces;
@@ -63,7 +64,9 @@ export function read(fen: cg.FEN, geom: cg.Geometry): cg.Pieces {
             piece.promoted = true;
             promoted = false;
           };
-          if (shogi) {
+          if (mini) {
+              pieces[cg.files[6 - col - 1] + cg.ranks[6 - row]] = piece;
+          } else if (shogi) {
               pieces[cg.files[10 - col - 1] + cg.ranks[10 - row]] = piece;
           } else {
               pieces[cg.files[col - 1] + cg.ranks[firstRankIs0 ? row - 1 : row]] = piece;
