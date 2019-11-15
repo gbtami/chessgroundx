@@ -3,24 +3,24 @@ import * as cg from './types'
 
 export const initial: cg.FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR';
 
-const roles8: { [letter: string]: cg.Role } = {
+const rolesVariants: { [letter: string]: cg.Role } = {
     p: 'pawn', r: 'rook', n: 'knight', b: 'bishop', q: 'queen', k: 'king', m: 'met', f: 'ferz', s: 'silver', c: 'cancellor', a: 'archbishop', h: 'hawk', e: 'elephant' };
 // shogi
-const roles9: { [letter: string]: cg.Role } = {
+const rolesShogi: { [letter: string]: cg.Role } = {
     p: 'pawn', r: 'rook', n: 'knight', b: 'bishop', k: 'king', g: 'gold', s: 'silver', l: 'lance' };
 // xiangqi
-const roles10: { [letter: string]: cg.Role } = {
+const rolesXiangqi: { [letter: string]: cg.Role } = {
     p: 'pawn', r: 'rook', n: 'knight', b: 'bishop', k: 'king', c: 'cannon', a: 'advisor' };
 
 
-const letters8 = {
+const lettersVariants = {
     pawn: 'p', rook: 'r', knight: 'n', bishop: 'b', queen: 'q', king: 'k', met: 'm', ferz: 'f', silver: 's', cancellor: 'c', archbishop: 'a', hawk: 'h', elephant: 'e' };
 // shogi
-const letters9 = {
+const lettersShogi = {
     pawn: 'p', rook: 'r', knight: 'n', bishop: 'b', king: 'k', gold: 'g', silver: 's', lance: 'l',
     ppawn: '+p', pknight: '+n', pbishop: '+b', prook: '+r', psilver: '+s', plance: '+l' };
 // xiangqi
-const letters10 = {
+const lettersXiangqi = {
     pawn: 'p', rook: 'r', knight: 'n', bishop: 'b', king: 'k', cannon: 'c', advisor: 'a'};
 
 export function read(fen: cg.FEN, geom: cg.Geometry): cg.Pieces {
@@ -30,10 +30,10 @@ export function read(fen: cg.FEN, geom: cg.Geometry): cg.Pieces {
   let row: number = fen.split("/").length;
   let col: number = 0;
   let promoted: boolean = false;
-  const roles = (geom === cg.Geometry.dim9x10) ? roles10 : (geom === cg.Geometry.dim9x9 || geom === cg.Geometry.dim5x5) ? roles9 : roles8;
+  const roles = (geom === cg.Geometry.dim9x10 || geom === cg.Geometry.dim7x7) ? rolesXiangqi : (geom === cg.Geometry.dim9x9 || geom === cg.Geometry.dim5x5) ? rolesShogi : rolesVariants;
   const firstRankIs0 = row === 10;
   const shogi = (row === 9 || row === 5);
-  const mini = row === 5;
+  const miniShogi = row === 5;
   for (const c of fen) {
     switch (c) {
       case ' ': return pieces;
@@ -64,7 +64,7 @@ export function read(fen: cg.FEN, geom: cg.Geometry): cg.Pieces {
             piece.promoted = true;
             promoted = false;
           };
-          if (mini) {
+          if (miniShogi) {
               pieces[cg.files[6 - col - 1] + cg.ranks[6 - row]] = piece;
           } else if (shogi) {
               pieces[cg.files[10 - col - 1] + cg.ranks[10 - row]] = piece;
@@ -80,14 +80,16 @@ export function read(fen: cg.FEN, geom: cg.Geometry): cg.Pieces {
 export function write(pieces: cg.Pieces, geom: cg.Geometry): cg.FEN {
   var letters: any = {};
   switch (geom) {
+  case cg.Geometry.dim7x7:
   case cg.Geometry.dim9x10:
-    letters = letters10;
+    letters = lettersXiangqi;
     break;
+  case cg.Geometry.dim5x5:
   case cg.Geometry.dim9x9:
-    letters = letters9;
+    letters = lettersShogi;
     break;
   default:
-    letters = letters8;
+    letters = lettersVariants;
     break
   };
   return invNRanks.map(y => NRanks.map(x => {

@@ -2,7 +2,7 @@ import { State } from './state'
 import { colors, setVisible, createEl } from './util'
 import { files, ranks } from './types'
 import { createElement as createSVG } from './svg'
-import { Elements, Geometry } from './types'
+import { Elements } from './types'
 
 export default function wrap(element: HTMLElement, s: State, relative: boolean): Elements {
 
