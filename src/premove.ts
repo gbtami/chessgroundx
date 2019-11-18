@@ -137,6 +137,11 @@ const xking: Mobility = (x1, y1, x2, y2) => {
   return (x1 === x2 || y1 === y2) && diff(x1, x2) === 1;
 }
 
+// shako elephant
+const shakoElephant: Mobility = (x1, y1, x2, y2) => {
+  return diff(x1, x2) === diff(y1, y2) && (diff(x1, x2) === 1 || diff(x1, x2) === 2);
+}
+
 function rookFilesOf(pieces: cg.Pieces, color: cg.Color, firstRankIs0: boolean) {
   return Object.keys(pieces).filter(key => {
     const piece = pieces[key];
@@ -144,7 +149,7 @@ function rookFilesOf(pieces: cg.Pieces, color: cg.Color, firstRankIs0: boolean) 
   }).map((key: string ) => util.key2pos(key as cg.Key, firstRankIs0)[0]);
 }
 
-export default function premove(pieces: cg.Pieces, key: cg.Key, canCastle: boolean, geom: cg.Geometry): cg.Key[] {
+export default function premove(pieces: cg.Pieces, key: cg.Key, canCastle: boolean, geom: cg.Geometry, variant: cg.Variant): cg.Key[] {
   const firstRankIs0 = cg.dimensions[geom].height === 10;
   const piece = pieces[key]!,
   pos = util.key2pos(key, firstRankIs0);
@@ -152,6 +157,7 @@ export default function premove(pieces: cg.Pieces, key: cg.Key, canCastle: boole
   // Piece premove depends on chess variant not on board geometry, but we will use it here
   // F.e. shogi is not the only 9x9 variant, see https://en.wikipedia.org/wiki/Jeson_Mor
   switch (geom) {
+  case cg.Geometry.dim7x7:
   case cg.Geometry.dim9x10:
     switch (piece.role) {
     case 'pawn':
@@ -175,6 +181,7 @@ export default function premove(pieces: cg.Pieces, key: cg.Key, canCastle: boole
       break;
     };
     break;
+  case cg.Geometry.dim5x5:
   case cg.Geometry.dim9x9:
     switch (piece.role) {
     case 'pawn':
@@ -238,8 +245,19 @@ export default function premove(pieces: cg.Pieces, key: cg.Key, canCastle: boole
       mobility = archbishop;
       break;
     case 'elephant':
+      if (variant === 'shako') {
+        mobility = shakoElephant;
+      } else {
+        mobility = cancellor;
+      }
+      break;
     case 'cancellor':
-      mobility = cancellor;
+      if (variant === 'shako') {
+        // cannon
+        mobility = rook;
+      } else {
+        mobility = cancellor;
+      }
       break;
     case 'met':
     case 'ferz':

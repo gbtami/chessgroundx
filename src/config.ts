@@ -88,7 +88,8 @@ export interface Config {
       baseUrl?: string;
     }
   };
-  geometry?: cg.Geometry; // dim8x8 | dim9x9 | dim10x8 | dim9x10
+  geometry?: cg.Geometry; // dim5x5 | dim7x7 | dim8x8 | dim9x9 | dim10x8 | dim9x10 | dim10x10
+  variant?: cg.Variant;
 }
 
 export function configure(state: State, config: Config) {

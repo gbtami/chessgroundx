@@ -99,6 +99,7 @@ export interface State {
   hold: cg.Timer,
   dimensions: cg.BoardDimensions, // number of lines and ranks of the board {width: 10, height: 8}
   geometry: cg.Geometry, // dim8x8 | dim9x9 | dim10x8 | dim9x10
+  variant: cg.Variant,
 }
 
 export function defaults(): Partial<State> {
@@ -182,5 +183,6 @@ export function defaults(): Partial<State> {
     hold: timer(),
     dimensions: {width: 8, height: 8},
     geometry: cg.Geometry.dim8x8,
+    variant: 'chess',
   };
 }
