@@ -90,7 +90,7 @@ export const posToTranslateAbs = (bounds: ClientRect, bt: cg.BoardDimensions) =>
 export const posToTranslateRel: (pos: cg.Pos, asWhite: boolean, bt: cg.BoardDimensions) => cg.NumberPair =
   (pos, asWhite, bt) => posToTranslateBase(pos, asWhite, 100 / bt.width, 100 / bt.height, bt);
 
-export const translateAbs = (el: HTMLElement, pos: cg.Pos) => {
+export const translateAbs = (el: HTMLElement, pos: cg.NumberPair) => {
   el.style.transform = `translate(${pos[0]}px,${pos[1]}px)`;
 }
 
