@@ -103,7 +103,10 @@ export function configure(state: State, config: Config) {
 
   // if a fen was provided, replace the pieces
   if (config.fen) {
-    state.pieces = fenRead(config.fen, state.geometry);
+    const pieces = fenRead(config.fen, state.geometry);
+    // prevent to cancel() already started piece drag from pocket!
+    if (state.pieces['z0'] !== undefined) pieces['z0'] = state.pieces['z0'];
+    state.pieces = pieces;
     state.drawable.shapes = [];
   }
 
