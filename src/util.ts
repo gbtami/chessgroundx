@@ -95,8 +95,7 @@ export const translateAbs = (el: HTMLElement, pos: cg.NumberPair) => {
 }
 
 export const translateRel = (el: HTMLElement, percents: cg.NumberPair) => {
-  el.style.left = percents[0] + '%';
-  el.style.top = percents[1] + '%';
+  el.style.transform = `translate(${percents[0]}%,${percents[1]}%)`;
 }
 
 export const setVisible = (el: HTMLElement, v: boolean) => {
