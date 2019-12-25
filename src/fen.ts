@@ -31,7 +31,6 @@ export function read(fen: cg.FEN, geom: cg.Geometry): cg.Pieces {
   let col: number = 0;
   let promoted: boolean = false;
   const roles = (geom === cg.Geometry.dim9x10 || geom === cg.Geometry.dim7x7) ? rolesXiangqi : (geom === cg.Geometry.dim9x9 || geom === cg.Geometry.dim5x5) ? rolesShogi : rolesVariants;
-  const firstRankIs0 = row === 10;
   const shogi = (row === 9 || row === 5);
   const miniShogi = row === 5;
   for (const c of fen) {
@@ -46,7 +45,7 @@ export function read(fen: cg.FEN, geom: cg.Geometry): cg.Pieces {
         promoted = true;
         break;
       case '~':
-        const piece = pieces[cg.files[col] + cg.ranks[firstRankIs0 ? row : row + 1]];
+        const piece = pieces[pos2key([col, row], geom)];
         if (piece) piece.promoted = true;
         break;
       default:
@@ -69,7 +68,7 @@ export function read(fen: cg.FEN, geom: cg.Geometry): cg.Pieces {
           } else if (shogi) {
               pieces[cg.files[10 - col - 1] + cg.ranks[10 - row]] = piece;
           } else {
-              pieces[cg.files[col - 1] + cg.ranks[firstRankIs0 ? row - 1 : row]] = piece;
+              pieces[pos2key([col, row], geom)] = piece;
           };
         }
     }
