@@ -45,10 +45,8 @@ export default function wrap(element: HTMLElement, s: State, relative: boolean):
 
   if (s.coordinates) {
     const orientClass = s.orientation === 'black' ? ' black' : '';
-    const firstRankIs0 = s.dimensions.height === 10;
-    const shift = firstRankIs0 ? 0 : 1;
-    container.appendChild(renderCoords(ranks.slice(shift, s.dimensions.height + shift), 'ranks' + orientClass));
-    container.appendChild(renderCoords(files.slice(0, s.dimensions.width), 'files' + orientClass));
+    container.appendChild(renderCoords(ranks.slice(1, s.dimensions.height + 1), 'ranks' + orientClass));
+    container.appendChild(renderCoords(files, 'files' + orientClass));
   }
 
   let ghost: HTMLElement | undefined;
