@@ -41,7 +41,8 @@ function king(color: cg.Color, rookFiles: number[], canCastle: boolean): Mobilit
     diff(x1, x2) < 2 && diff(y1, y2) < 2
   ) || (
     canCastle && y1 === y2 && y1 === (color === 'white' ? 1 : 8) && (
-      (x1 === 5 && (x2 === 3 || x2 === 7)) || util.containsX(rookFiles, x2)
+      (x1 === 5 && ((util.containsX(rookFiles, 1) && x2 === 3) || (util.containsX(rookFiles, 8) && x2 === 7))) ||
+      util.containsX(rookFiles, x2)
     )
   );
 }
@@ -143,9 +144,10 @@ const shakoElephant: Mobility = (x1, y1, x2, y2) => {
 }
 
 function rookFilesOf(pieces: cg.Pieces, color: cg.Color, firstRankIs0: boolean) {
+  const backrank = color == 'white' ? '1' : '8';
   return Object.keys(pieces).filter(key => {
     const piece = pieces[key];
-    return piece && piece.color === color && piece.role === 'rook';
+    return key[1] === backrank && piece && piece.color === color && piece.role === 'rook';
   }).map((key: string ) => util.key2pos(key as cg.Key, firstRankIs0)[0]);
 }
 
