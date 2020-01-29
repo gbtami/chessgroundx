@@ -62,6 +62,11 @@ const cancellor: Mobility = (x1, y1, x2, y2) => {
   return rook(x1, y1, x2, y2) || knight(x1, y1, x2, y2);
 }
 
+// shogun general
+const centaur: Mobility = (x1, y1, x2, y2) => {
+  return sking(x1, y1, x2, y2) || knight(x1, y1, x2, y2);
+}
+
 // shogi lance
 function lance(color: cg.Color): Mobility {
   return (x1, y1, x2, y2) => (
@@ -230,19 +235,31 @@ export default function premove(pieces: cg.Pieces, key: cg.Key, canCastle: boole
     case 'knight':
       mobility = knight;
       break;
+    case 'pknight':
+      // Shogun
+      mobility = centaur;
+      break
     case 'bishop':
       mobility = bishop;
       break;
     case 'rook':
       mobility = rook;
       break;
+    case 'pferz':
+      // Shogun
     case 'queen':
       mobility = queen;
+      break;
+    case 'ppawn':
+      // Shogun
+      mobility = sking;
       break;
     case 'king':
       mobility = king(piece.color, rookFilesOf(pieces, piece.color, firstRankIs0), canCastle);
       break;
     case 'hawk':
+    case 'pbishop':
+      // Shogun
     case 'archbishop':
       mobility = archbishop;
       break;
@@ -253,6 +270,8 @@ export default function premove(pieces: cg.Pieces, key: cg.Key, canCastle: boole
         mobility = cancellor;
       }
       break;
+    case 'prook':
+      // Shogun
     case 'cancellor':
       if (variant === 'shako') {
         // cannon
