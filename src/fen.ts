@@ -46,7 +46,10 @@ export function read(fen: cg.FEN, geom: cg.Geometry): cg.Pieces {
         break;
       case '~':
         const piece = pieces[pos2key([col, row], geom)];
-        if (piece) piece.promoted = true;
+        if (piece) {
+            piece.promoted = true;
+            if (piece.role=='met') piece.role = 'ferz';
+        };
         break;
       default:
         const nb = c.charCodeAt(0);
