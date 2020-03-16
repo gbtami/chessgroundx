@@ -14,7 +14,8 @@ const rolesXiangqi: { [letter: string]: cg.Role } = {
 
 
 const lettersVariants = {
-    pawn: 'p', rook: 'r', knight: 'n', bishop: 'b', queen: 'q', king: 'k', met: 'm', ferz: 'f', silver: 's', cancellor: 'c', archbishop: 'a', hawk: 'h', elephant: 'e' };
+    pawn: 'p', rook: 'r', knight: 'n', bishop: 'b', queen: 'q', king: 'k', met: 'm', ferz: 'f', silver: 's', cancellor: 'c', archbishop: 'a', hawk: 'h', elephant: 'e',
+    ppawn: '+p', pknight: '+n', pbishop: '+b', prook: '+r', pferz: '+f' };
 // shogi
 const lettersShogi = {
     pawn: 'p', rook: 'r', knight: 'n', bishop: 'b', king: 'k', gold: 'g', silver: 's', lance: 'l',
@@ -31,8 +32,8 @@ export function read(fen: cg.FEN, geom: cg.Geometry): cg.Pieces {
   let col: number = 0;
   let promoted: boolean = false;
   const roles = (geom === cg.Geometry.dim9x10 || geom === cg.Geometry.dim7x7) ? rolesXiangqi : (geom === cg.Geometry.dim9x9 || geom === cg.Geometry.dim5x5) ? rolesShogi : rolesVariants;
-  const shogi = (row === 9 || row === 5);
-  const miniShogi = row === 5;
+  const shogi = (geom === cg.Geometry.dim9x9 || geom === cg.Geometry.dim5x5);
+  const miniShogi = (geom === cg.Geometry.dim5x5);
   for (const c of fen) {
     switch (c) {
       case ' ': return pieces;
@@ -94,11 +95,12 @@ export function write(pieces: cg.Pieces, geom: cg.Geometry): cg.FEN {
     letters = lettersVariants;
     break
   };
-  return invNRanks.map(y => NRanks.map(x => {
+  const bd = cg.dimensions[geom];
+  return invNRanks.slice(-bd.height).map(y => NRanks.slice(0, bd.width).map(x => {
       const piece = pieces[pos2key([x, y], geom)];
       if (piece) {
-        const letter: string = letters[piece.role];
-        return piece.color === 'white' ? letter.toUpperCase() : letter;
+        const letter: string = letters[piece.role] + ((piece.promoted && (letters[piece.role].charAt(0) !== '+')) ? '~' : '');
+        return (piece.color === 'white') ? letter.toUpperCase() : letter;
       } else return '1';
     }).join('')
   ).join('/').replace(/1{2,}/g, s => s.length.toString());
