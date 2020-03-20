@@ -119,10 +119,9 @@ export function dragNewPiece(s: State, piece: cg.Piece, e: cg.MouchEvent, force?
     (asWhite ? s.dimensions.height : -1) * squareBounds.height + bounds.top
   ];
 
-  const firstRankIs0 = s.geometry === cg.Geometry.dim9x10;
   s.draggable.current = {
     orig: key,
-    origPos: util.key2pos('a0', firstRankIs0),
+    origPos: util.key2pos('a0', false),
     piece,
     rel,
     epos: position,
