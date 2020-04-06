@@ -127,7 +127,7 @@ function xpawn(color: cg.Color): Mobility {
     );
 }
 
-// xiangqi bishop
+// xiangqi elephant (bishop)
 const xbishop: Mobility = (x1, y1, x2, y2) => {
   return diff(x1, x2) === diff(y1, y2) && diff(x1, x2) === 2;
 }
@@ -148,6 +148,21 @@ const shakoElephant: Mobility = (x1, y1, x2, y2) => {
   return diff(x1, x2) === diff(y1, y2) && (diff(x1, x2) === 1 || diff(x1, x2) === 2);
 }
 
+// janggi elephant (bishop)
+const jbishop: Mobility = (x1, y1, x2, y2) => {
+  const xd = diff(x1, x2);
+  const yd = diff(y1, y2);
+  return (xd === 2 && yd === 3) || (xd === 3 && yd === 2);
+}
+
+// janggi pawn
+function jpawn(color: cg.Color): Mobility {
+  return (x1, y1, x2, y2) => (
+    (x2 === x1 && (color === 'white' ? y2 === y1 + 1 : y2 === y1 - 1)) ||
+    (y2 === y1 && (x2 === x1 + 1 || x2 === x1 - 1))
+    );
+}
+
 function rookFilesOf(pieces: cg.Pieces, color: cg.Color, firstRankIs0: boolean) {
   const backrank = color == 'white' ? '1' : '8';
   return Object.keys(pieces).filter(key => {
@@ -161,24 +176,33 @@ export default function premove(pieces: cg.Pieces, key: cg.Key, canCastle: boole
   const piece = pieces[key]!,
   pos = util.key2pos(key, firstRankIs0);
   let mobility: Mobility;
-  // Piece premove depends on chess variant not on board geometry, but we will use it here
-  // F.e. shogi is not the only 9x9 variant, see https://en.wikipedia.org/wiki/Jeson_Mor
+
   switch (geom) {
   case cg.Geometry.dim7x7:
   case cg.Geometry.dim9x10:
     switch (piece.role) {
     case 'pawn':
-      mobility = xpawn(piece.color);
+      // TODO: inside the Janggi palace pawn can move forward on diagonals also
+      if (variant === 'janggi') {
+        mobility = jpawn(piece.color);
+      } else {
+        mobility = xpawn(piece.color);
+      }
       break;
     case 'cannon':
     case 'rook':
+      // TODO: inside the Janggi palace they can move on diagonals also
       mobility = rook;
       break;
     case 'knight':
       mobility = knight;
       break;
     case 'bishop':
-      mobility = xbishop;
+      if (variant === 'janggi') {
+        mobility = jbishop;
+      } else {
+        mobility = xbishop;
+      }
       break;
     case 'advisor':
       mobility = advisor;
