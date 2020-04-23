@@ -36,6 +36,14 @@ const queen: Mobility = (x1, y1, x2, y2) => {
   return bishop(x1, y1, x2, y2) || rook(x1, y1, x2, y2);
 }
 
+const kniroo: Mobility = (x1, y1, x2, y2) => {
+  return knight(x1, y1, x2, y2) || rook(x1, y1, x2, y2);
+}
+
+const knibis: Mobility = (x1, y1, x2, y2) => {
+  return knight(x1, y1, x2, y2) || bishop(x1, y1, x2, y2);
+}
+
 function king(color: cg.Color, rookFiles: number[], canCastle: boolean): Mobility {
   return (x1, y1, x2, y2)  => (
     diff(x1, x2) < 2 && diff(y1, y2) < 2
@@ -282,10 +290,24 @@ export default function premove(pieces: cg.Pieces, key: cg.Key, canCastle: boole
       mobility = king(piece.color, rookFilesOf(pieces, piece.color, firstRankIs0), canCastle);
       break;
     case 'hawk':
+      if (variant === 'orda') {
+        mobility = centaur;
+      } else {
+        mobility = archbishop;
+      }
+      break;
     case 'pbishop':
       // Shogun
     case 'archbishop':
-      mobility = archbishop;
+      if (variant === 'orda') {
+        mobility = knibis;
+      } else {
+        mobility = archbishop;
+      }
+      break;
+    case 'lancer':
+      // Orda
+      mobility = kniroo;
       break;
     case 'elephant':
       if (variant === 'shako') {
@@ -308,6 +330,8 @@ export default function premove(pieces: cg.Pieces, key: cg.Key, canCastle: boole
     case 'ferz':
       mobility = met;
       break;
+    case 'yurt':
+    // Orda
     case 'silver':
       mobility = silver(piece.color);
       break;
