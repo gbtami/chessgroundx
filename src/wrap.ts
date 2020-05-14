@@ -47,7 +47,7 @@ export default function wrap(element: HTMLElement, s: State, relative: boolean):
     const orientClass = s.orientation === 'black' ? ' black' : '';
     const shogi = (s.geometry === Geometry.dim9x9 || s.geometry === Geometry.dim5x5);
     if (shogi) {
-        container.appendChild(renderCoords(files.slice(0, s.dimensions.height).reverse(), 'files' + orientClass));
+        container.appendChild(renderCoords(ranks.slice(1, s.dimensions.height + 1).reverse(), 'files' + orientClass));
         container.appendChild(renderCoords(ranks.slice(1, s.dimensions.width + 1).reverse(), 'ranks' + orientClass));
     } else if (s.notation === Notation.JANGGI) {
         container.appendChild(renderCoords((['0']).concat(ranks.slice(1, 10).reverse()), 'ranks' + orientClass));
