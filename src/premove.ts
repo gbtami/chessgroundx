@@ -287,7 +287,11 @@ export default function premove(pieces: cg.Pieces, key: cg.Key, canCastle: boole
       mobility = sking;
       break;
     case 'king':
-      mobility = king(piece.color, rookFilesOf(pieces, piece.color, firstRankIs0), canCastle);
+      if (variant === 'synochess' && piece.color === 'black') {
+        mobility = sking;
+      } else {
+        mobility = king(piece.color, rookFilesOf(pieces, piece.color, firstRankIs0), canCastle);
+      }
       break;
     case 'hawk':
       if (variant === 'orda') {
@@ -299,9 +303,14 @@ export default function premove(pieces: cg.Pieces, key: cg.Key, canCastle: boole
     case 'pbishop':
       // Shogun
     case 'archbishop':
-      if (variant === 'orda') {
+      switch (variant) {
+      case 'orda':
         mobility = knibis;
-      } else {
+        break
+      case 'synochess':
+        mobility = sking;
+        break
+      default:
         mobility = archbishop;
       }
       break;
@@ -310,7 +319,7 @@ export default function premove(pieces: cg.Pieces, key: cg.Key, canCastle: boole
       mobility = kniroo;
       break;
     case 'elephant':
-      if (variant === 'shako') {
+      if (variant === 'shako' || variant === 'synochess') {
         mobility = shakoElephant;
       } else {
         mobility = cancellor;
@@ -319,7 +328,7 @@ export default function premove(pieces: cg.Pieces, key: cg.Key, canCastle: boole
     case 'prook':
       // Shogun
     case 'cancellor':
-      if (variant === 'shako') {
+      if (variant === 'shako' || variant === 'synochess') {
         // cannon
         mobility = rook;
       } else {
@@ -333,7 +342,11 @@ export default function premove(pieces: cg.Pieces, key: cg.Key, canCastle: boole
     case 'yurt':
     // Orda
     case 'silver':
-      mobility = silver(piece.color);
+      if (variant === 'synochess') {
+        mobility = jpawn(piece.color);
+      } else {
+        mobility = silver(piece.color);
+      }
       break;
     };
     break;
