@@ -3,6 +3,28 @@ import * as cg from './types'
 
 type Mobility = (x1:number, y1:number, x2:number, y2:number) => boolean;
 
+const bPalace = [
+    [4, 10], [5, 10], [6, 10],
+    [4, 9], [5, 9], [6, 9],
+    [4, 8], [5, 8], [6, 8],
+];
+const wPalace = [
+    [4, 3], [5, 3], [6, 3],
+    [4, 2], [5, 2], [6, 2],
+    [4, 1], [5, 1], [6, 1],
+];
+
+const bPalace7 = [
+    [3, 7], [4, 7], [5, 7],
+    [3, 6], [4, 6], [5, 6],
+    [3, 5], [4, 5], [5, 5],
+];
+const wPalace7 = [
+    [3, 3], [4, 3], [5, 3],
+    [3, 2], [4, 2], [5, 2],
+    [3, 1], [4, 1], [5, 1],
+];
+
 function diff(a: number, b:number):number {
   return Math.abs(a - b);
 }
@@ -131,24 +153,31 @@ const sking: Mobility = (x1, y1, x2, y2) => {
 function xpawn(color: cg.Color): Mobility {
   return (x1, y1, x2, y2) => (
     (x2 === x1 && (color === 'white' ? y2 === y1 + 1 : y2 === y1 - 1)) ||
-    (y2 === y1 && (x2 === x1 + 1 || x2 === x1 - 1) && (color === 'white' ? y1 > 5: y1 < 6))
+    (y2 === y1 && (x2 === x1 + 1 || x2 === x1 - 1) && (color === 'white' ? y1 > 5 : y1 < 6))
     );
 }
 
 // xiangqi elephant (bishop)
-const xbishop: Mobility = (x1, y1, x2, y2) => {
-  return diff(x1, x2) === diff(y1, y2) && diff(x1, x2) === 2;
+function xbishop(color: cg.Color): Mobility {
+  return (x1, y1, x2, y2) => (
+    diff(x1, x2) === diff(y1, y2) && diff(x1, x2) === 2 && (color === 'white' ? y2 < 6 : y2 > 5)
+    );
 }
 
 // xiangqi advisor
-const advisor: Mobility = (x1, y1, x2, y2) => {
-  return diff(x1, x2) === diff(y1, y2) && diff(x1, x2) === 1;
+function xadvisor(color: cg.Color, geom: cg.Geometry): Mobility {
+    const palace = (color == 'white') ? ((geom === cg.Geometry.dim7x7) ? wPalace7 : wPalace) : ((geom === cg.Geometry.dim7x7) ? bPalace7 :bPalace);
+    return (x1, y1, x2, y2) => (
+        diff(x1, x2) === diff(y1, y2) && diff(x1, x2) === 1 && palace.some(point => (point[0] === x2 && point[1] === y2))
+    );
 }
 
 // xiangqi general(king)
-const xking: Mobility = (x1, y1, x2, y2) => {
-  // TODO: flying general can capture opp general
-  return (x1 === x2 || y1 === y2) && diff(x1, x2) === 1;
+function xking(color: cg.Color, geom: cg.Geometry): Mobility {
+    const palace = (color == 'white') ? ((geom === cg.Geometry.dim7x7) ? wPalace7 : wPalace) : ((geom === cg.Geometry.dim7x7) ? bPalace7 :bPalace);
+    return (x1, y1, x2, y2) => (
+        ((x1 === x2 && diff(y1, y2) === 1) || (y1 === y2 && diff(x1, x2) === 1)) && palace.some(point => (point[0] === x2 && point[1] === y2))
+    );
 }
 
 // shako elephant
@@ -168,6 +197,14 @@ function jpawn(color: cg.Color): Mobility {
   return (x1, y1, x2, y2) => (
     (x2 === x1 && (color === 'white' ? y2 === y1 + 1 : y2 === y1 - 1)) ||
     (y2 === y1 && (x2 === x1 + 1 || x2 === x1 - 1))
+    );
+}
+
+// janggi king
+function jking(color: cg.Color): Mobility {
+    const palace = (color == 'white') ?  wPalace : bPalace;
+    return (x1, y1, x2, y2) => (
+        diff(x1, x2) < 2 && diff(y1, y2) < 2 && palace.some(point => (point[0] === x2 && point[1] === y2))
     );
 }
 
@@ -191,7 +228,7 @@ export default function premove(pieces: cg.Pieces, key: cg.Key, canCastle: boole
     switch (piece.role) {
     case 'pawn':
       // TODO: inside the Janggi palace pawn can move forward on diagonals also
-      if (variant === 'janggi') {
+      if (variant === 'janggi' || geom === cg.Geometry.dim7x7) {
         mobility = jpawn(piece.color);
       } else {
         mobility = xpawn(piece.color);
@@ -209,14 +246,22 @@ export default function premove(pieces: cg.Pieces, key: cg.Key, canCastle: boole
       if (variant === 'janggi') {
         mobility = jbishop;
       } else {
-        mobility = xbishop;
+        mobility = xbishop(piece.color);
       }
       break;
     case 'advisor':
-      mobility = advisor;
+      if (variant === 'janggi') {
+        mobility = jking(piece.color);
+      } else {
+        mobility = xadvisor(piece.color, geom);
+      }
       break;
     case 'king':
-      mobility = xking;
+      if (variant === 'janggi') {
+        mobility = jking(piece.color);
+      } else {
+        mobility = xking(piece.color, geom);
+      }
       break;
     };
     break;
