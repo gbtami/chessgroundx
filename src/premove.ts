@@ -234,6 +234,9 @@ export default function premove(pieces: cg.Pieces, key: cg.Key, canCastle: boole
         mobility = xpawn(piece.color);
       }
       break;
+    case 'banner':
+      mobility = kniroo;
+      break;
     case 'cannon':
     case 'rook':
       // TODO: inside the Janggi palace they can move on diagonals also

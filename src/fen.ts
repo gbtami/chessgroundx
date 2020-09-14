@@ -10,7 +10,7 @@ const rolesShogi: { [letter: string]: cg.Role } = {
     p: 'pawn', r: 'rook', n: 'knight', b: 'bishop', k: 'king', g: 'gold', s: 'silver', l: 'lance' };
 // xiangqi
 const rolesXiangqi: { [letter: string]: cg.Role } = {
-    p: 'pawn', r: 'rook', n: 'knight', b: 'bishop', k: 'king', c: 'cannon', a: 'advisor' };
+    p: 'pawn', r: 'rook', n: 'knight', b: 'bishop', k: 'king', c: 'cannon', a: 'advisor', m: 'banner' };
 
 
 const lettersVariants = {
@@ -22,7 +22,7 @@ const lettersShogi = {
     ppawn: '+p', pknight: '+n', pbishop: '+b', prook: '+r', psilver: '+s', plance: '+l' };
 // xiangqi
 const lettersXiangqi = {
-    pawn: 'p', rook: 'r', knight: 'n', bishop: 'b', king: 'k', cannon: 'c', advisor: 'a'};
+    pawn: 'p', rook: 'r', knight: 'n', bishop: 'b', king: 'k', cannon: 'c', advisor: 'a', banner: 'm'};
 
 export function read(fen: cg.FEN, geom: cg.Geometry): cg.Pieces {
   if (fen === 'start') fen = initial;
