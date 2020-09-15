@@ -45,7 +45,7 @@ export default function wrap(element: HTMLElement, s: State, relative: boolean):
 
   if (s.coordinates) {
     const orientClass = s.orientation === 'black' ? ' black' : '';
-    const shogi = (s.geometry === Geometry.dim9x9 || s.geometry === Geometry.dim5x5);
+    const shogi = (s.geometry === Geometry.dim9x9 || s.geometry === Geometry.dim5x5 || s.geometry === Geometry.dim3x4);
     if (shogi) {
         container.appendChild(renderCoords(ranks.slice(1, s.dimensions.height + 1).reverse(), 'files' + orientClass));
         container.appendChild(renderCoords(ranks.slice(1, s.dimensions.width + 1).reverse(), 'ranks' + orientClass));
