@@ -46,6 +46,12 @@ const knight: Mobility = (x1, y1, x2, y2) => {
   return (xd === 1 && yd === 2) || (xd === 2 && yd === 1);
 }
 
+const wazir: Mobility = (x1, y1, x2, y2) => {
+  const xd = diff(x1, x2);
+  const yd = diff(y1, y2);
+  return (xd === 1 && yd === 0) || (xd === 0 && yd === 1);
+}
+
 const bishop: Mobility = (x1, y1, x2, y2) => {
   return diff(x1, x2) === diff(y1, y2);
 }
@@ -306,6 +312,28 @@ export default function premove(pieces: cg.Pieces, key: cg.Key, canCastle: boole
       mobility = pbishop;
       break;
     };
+    break;
+  case cg.Geometry.dim3x4:
+    switch (piece.role) {
+    case 'pawn':
+      mobility = spawn(piece.color);
+      break;
+    case 'bishop':
+      mobility = met;
+      break;
+    case 'rook':
+      mobility = wazir;
+      break;
+    case 'king':
+      mobility = sking;
+      break;
+    case 'ppawn':
+    case 'prook':
+    case 'pbishop':
+    case 'gold':
+      mobility = gold(piece.color);
+      break;
+    }
     break;
   default:
     switch (piece.role) {

@@ -8,6 +8,9 @@ const rolesVariants: { [letter: string]: cg.Role } = {
 // shogi
 const rolesShogi: { [letter: string]: cg.Role } = {
     p: 'pawn', r: 'rook', n: 'knight', b: 'bishop', k: 'king', g: 'gold', s: 'silver', l: 'lance' };
+// dobutsu
+const rolesDobutsu: { [letter: string]: cg.Role } = {
+    c: 'pawn', e: 'bishop', l: 'king', g: 'rook', h: 'gold' };
 // xiangqi
 const rolesXiangqi: { [letter: string]: cg.Role } = {
     p: 'pawn', r: 'rook', n: 'knight', b: 'bishop', k: 'king', c: 'cannon', a: 'advisor', m: 'banner' };
@@ -20,6 +23,10 @@ const lettersVariants = {
 const lettersShogi = {
     pawn: 'p', rook: 'r', knight: 'n', bishop: 'b', king: 'k', gold: 'g', silver: 's', lance: 'l',
     ppawn: '+p', pknight: '+n', pbishop: '+b', prook: '+r', psilver: '+s', plance: '+l' };
+// dobutsu
+const lettersDobutsu = {
+    pawn: 'c', bishop: 'e', king: 'l', rook: 'g', gold: 'h',
+    ppawn: '+c', pbishop: '+e', prook: '+g' };
 // xiangqi
 const lettersXiangqi = {
     pawn: 'p', rook: 'r', knight: 'n', bishop: 'b', king: 'k', cannon: 'c', advisor: 'a', banner: 'm'};
@@ -31,7 +38,22 @@ export function read(fen: cg.FEN, geom: cg.Geometry): cg.Pieces {
   let row: number = fen.split("/").length;
   let col: number = 0;
   let promoted: boolean = false;
-  const roles = (geom === cg.Geometry.dim9x10 || geom === cg.Geometry.dim7x7) ? rolesXiangqi : (geom === cg.Geometry.dim9x9 || geom === cg.Geometry.dim5x5) ? rolesShogi : rolesVariants;
+
+  let roles = rolesVariants;
+  switch (geom) {
+    case cg.Geometry.dim9x10:
+    case cg.Geometry.dim7x7:
+        roles = rolesXiangqi;
+        break;
+    case cg.Geometry.dim9x9:
+    case cg.Geometry.dim5x5:
+        roles = rolesShogi;
+        break;
+    case cg.Geometry.dim3x4:
+        roles = rolesDobutsu;
+        break;
+  }
+
   for (const c of fen) {
     switch (c) {
       case ' ': return pieces;
@@ -78,6 +100,9 @@ export function write(pieces: cg.Pieces, geom: cg.Geometry): cg.FEN {
   case cg.Geometry.dim7x7:
   case cg.Geometry.dim9x10:
     letters = lettersXiangqi;
+    break;
+  case cg.Geometry.dim3x4:
+    letters = lettersDobutsu;
     break;
   case cg.Geometry.dim5x5:
   case cg.Geometry.dim9x9:
