@@ -4,20 +4,20 @@ import * as cg from './types'
 export const initial: cg.FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR';
 
 const rolesVariants: { [letter: string]: cg.Role } = {
-    p: 'pawn', r: 'rook', n: 'knight', b: 'bishop', q: 'queen', k: 'king', m: 'met', f: 'ferz', s: 'silver', c: 'cancellor', a: 'archbishop', h: 'hawk', e: 'elephant', y: 'yurt', l: 'lancer' };
+    p: 'pawn', r: 'rook', n: 'knight', b: 'bishop', q: 'queen', k: 'king', m: 'met', f: 'ferz', s: 'silver', c: 'chancellor', a: 'archbishop', h: 'hawk', e: 'elephant', y: 'yurt', l: 'lancer' };
 // shogi
 const rolesShogi: { [letter: string]: cg.Role } = {
     p: 'pawn', r: 'rook', n: 'knight', b: 'bishop', k: 'king', g: 'gold', s: 'silver', l: 'lance' };
 // dobutsu
 const rolesDobutsu: { [letter: string]: cg.Role } = {
-    c: 'pawn', e: 'bishop', l: 'king', g: 'rook', h: 'gold' };
+    c: 'chancellor', e: 'elephant', l: 'lancer', g: 'gold', h: 'hawk' };
 // xiangqi
 const rolesXiangqi: { [letter: string]: cg.Role } = {
     p: 'pawn', r: 'rook', n: 'knight', b: 'bishop', k: 'king', c: 'cannon', a: 'advisor', m: 'banner' };
 
 
 const lettersVariants = {
-    pawn: 'p', rook: 'r', knight: 'n', bishop: 'b', queen: 'q', king: 'k', met: 'm', ferz: 'f', silver: 's', cancellor: 'c', archbishop: 'a', hawk: 'h', elephant: 'e',
+    pawn: 'p', rook: 'r', knight: 'n', bishop: 'b', queen: 'q', king: 'k', met: 'm', ferz: 'f', silver: 's', chancellor: 'c', archbishop: 'a', hawk: 'h', elephant: 'e',
     ppawn: '+p', pknight: '+n', pbishop: '+b', prook: '+r', pferz: '+f', yurt: 'y', lancer: 'l' };
 // shogi
 const lettersShogi = {
@@ -25,8 +25,8 @@ const lettersShogi = {
     ppawn: '+p', pknight: '+n', pbishop: '+b', prook: '+r', psilver: '+s', plance: '+l' };
 // dobutsu
 const lettersDobutsu = {
-    pawn: 'c', bishop: 'e', king: 'l', rook: 'g', gold: 'h',
-    ppawn: '+c', pbishop: '+e', prook: '+g' };
+    chancellor: 'c', elephant: 'e', lancer: 'l', gold: 'g', hawk: 'h',
+    pchancellor: '+c'};
 // xiangqi
 const lettersXiangqi = {
     pawn: 'p', rook: 'r', knight: 'n', bishop: 'b', king: 'k', cannon: 'c', advisor: 'a', banner: 'm'};

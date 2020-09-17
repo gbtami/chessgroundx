@@ -93,8 +93,8 @@ const archbishop: Mobility = (x1, y1, x2, y2) => {
   return bishop(x1, y1, x2, y2) || knight(x1, y1, x2, y2);
 }
 
-// capablanca cancellor, seirawan elephant
-const cancellor: Mobility = (x1, y1, x2, y2) => {
+// capablanca chancellor, seirawan elephant
+const chancellor: Mobility = (x1, y1, x2, y2) => {
   return rook(x1, y1, x2, y2) || knight(x1, y1, x2, y2);
 }
 
@@ -315,22 +315,23 @@ export default function premove(pieces: cg.Pieces, key: cg.Key, canCastle: boole
     break;
   case cg.Geometry.dim3x4:
     switch (piece.role) {
-    case 'pawn':
+    // chick
+    case 'chancellor':
       mobility = spawn(piece.color);
       break;
-    case 'bishop':
+    // elephant
+    case 'elephant':
       mobility = met;
       break;
-    case 'rook':
+    // giraffe
+    case 'gold':
       mobility = wazir;
       break;
-    case 'king':
+    // lion (=king)
+    case 'lancer':
       mobility = sking;
       break;
-    case 'ppawn':
-    case 'prook':
-    case 'pbishop':
-    case 'gold':
+    case 'pchancellor':
       mobility = gold(piece.color);
       break;
     }
@@ -398,17 +399,17 @@ export default function premove(pieces: cg.Pieces, key: cg.Key, canCastle: boole
       if (variant === 'shako' || variant === 'synochess') {
         mobility = shakoElephant;
       } else {
-        mobility = cancellor;
+        mobility = chancellor;
       }
       break;
     case 'prook':
       // Shogun
-    case 'cancellor':
+    case 'chancellor':
       if (variant === 'shako' || variant === 'synochess') {
         // cannon
         mobility = rook;
       } else {
-        mobility = cancellor;
+        mobility = chancellor;
       }
       break;
     case 'met':
