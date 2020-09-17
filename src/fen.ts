@@ -10,7 +10,7 @@ const rolesShogi: { [letter: string]: cg.Role } = {
     p: 'pawn', r: 'rook', n: 'knight', b: 'bishop', k: 'king', g: 'gold', s: 'silver', l: 'lance' };
 // dobutsu
 const rolesDobutsu: { [letter: string]: cg.Role } = {
-    c: 'chancellor', e: 'elephant', l: 'lancer', g: 'gold', h: 'hawk' };
+    c: 'chancellor', e: 'elephant', l: 'king', g: 'gold', h: 'hawk' };
 // xiangqi
 const rolesXiangqi: { [letter: string]: cg.Role } = {
     p: 'pawn', r: 'rook', n: 'knight', b: 'bishop', k: 'king', c: 'cannon', a: 'advisor', m: 'banner' };
@@ -25,7 +25,7 @@ const lettersShogi = {
     ppawn: '+p', pknight: '+n', pbishop: '+b', prook: '+r', psilver: '+s', plance: '+l' };
 // dobutsu
 const lettersDobutsu = {
-    chancellor: 'c', elephant: 'e', lancer: 'l', gold: 'g', hawk: 'h',
+    chancellor: 'c', elephant: 'e', king: 'l', gold: 'g', hawk: 'h',
     pchancellor: '+c'};
 // xiangqi
 const lettersXiangqi = {

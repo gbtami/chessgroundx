@@ -328,7 +328,7 @@ export default function premove(pieces: cg.Pieces, key: cg.Key, canCastle: boole
       mobility = wazir;
       break;
     // lion (=king)
-    case 'lancer':
+    case 'king':
       mobility = sking;
       break;
     case 'pchancellor':
