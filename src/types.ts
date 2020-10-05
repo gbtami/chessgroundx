@@ -100,6 +100,6 @@ export interface BoardDimensions {
 }
 
 export const enum Geometry {dim8x8, dim9x9, dim10x8, dim9x10, dim10x10, dim5x5, dim7x7, dim3x4};
-export const enum Notation {DEFAULT, SAN, LAN, SHOGI_HOSKING, SHOGI_HODGES, JANGGI, XIANGQI_WXF};
+export const enum Notation {DEFAULT, SAN, LAN, SHOGI_HOSKING, SHOGI_HODGES, SHOGI_HODGES_NUMBER, JANGGI, XIANGQI_WXF};
 
 export const dimensions: BoardDimensions[] = [{width: 8, height: 8}, {width: 9, height: 9}, {width: 10, height: 8}, {width: 9, height: 10}, {width: 10, height: 10}, {width: 5, height: 5}, {width: 7, height: 7}, {width: 3, height: 4}];
