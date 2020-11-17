@@ -214,6 +214,68 @@ function jking(color: cg.Color): Mobility {
     );
 }
 
+// musketeer leopard
+const leopard: Mobility = (x1, y1, x2, y2) => {
+  const xd = diff(x1, x2); const yd = diff(y1, y2);
+  return (
+    (xd === 1 || xd === 2)
+    && (yd === 1 || yd === 2)
+    );
+}
+// musketeer hawk
+const mhawk: Mobility = (x1, y1, x2, y2) => {
+  const xd = diff(x1, x2); const yd = diff(y1, y2);
+  return (
+    (xd === 0 && (yd === 2 || yd === 3))
+    || (yd === 0 && (xd === 2 || xd === 3))
+    || (xd === yd && (xd === 2 || xd === 3))
+  );
+}
+// musketeer elephant
+const melephant: Mobility = (x1, y1, x2, y2) => {
+  const xd = diff(x1, x2); const yd = diff(y1, y2);
+  return (
+    xd === 1 || yd === 1
+    || (xd === 2 && (yd === 0 || yd === 2))
+    || (xd === 0 && yd === 2)
+  );
+}
+// musketeer cannon
+const mcannon: Mobility = (x1, y1, x2, y2) => {
+  const xd = diff(x1, x2); const yd = diff(y1, y2);
+  return (
+    (xd < 3)
+    && ((yd < 2) || (yd === 2 && xd === 0))
+  );
+}
+// musketeer unicorn
+const unicorn: Mobility = (x1, y1, x2, y2) => {
+  const xd = diff(x1, x2); const yd = diff(y1, y2);
+  return knight(x1, y1, x2, y2) || (xd === 1 && yd === 3) || (xd === 3 && yd === 1);
+}
+// musketeer dragon
+const dragon: Mobility = (x1, y1, x2, y2) => {
+  return knight(x1, y1, x2, y2) || queen(x1, y1, x2, y2);
+}
+// musketeer fortress
+const fortress: Mobility = (x1, y1, x2, y2) => {
+  const xd = diff(x1, x2); const yd = diff(y1, y2);
+  return (
+    (xd === yd && xd < 4)
+    || (yd === 0 && xd === 2)
+    || (yd === 2 && xd < 2) 
+  );
+}
+// musketeer spider
+const spider: Mobility = (x1, y1, x2, y2) => {
+  const xd = diff(x1, x2); const yd = diff(y1, y2);
+  return (
+    xd < 3 && yd < 3
+    && !(xd === 1 && yd === 0)
+    && !(xd === 0 && yd === 1)
+  );
+}
+
 function rookFilesOf(pieces: cg.Pieces, color: cg.Color, firstRankIs0: boolean) {
   const backrank = color == 'white' ? '1' : '8';
   return Object.keys(pieces).filter(key => {
@@ -373,8 +435,10 @@ export default function premove(pieces: cg.Pieces, key: cg.Key, canCastle: boole
     case 'hawk':
       if (variant === 'orda') {
         mobility = centaur;
+      } else if(variant === 'musketeer'){
+        mobility = mhawk;
       } else {
-        mobility = archbishop;
+        mobility = archbishop; // seirawan
       }
       break;
     case 'pbishop':
@@ -392,12 +456,18 @@ export default function premove(pieces: cg.Pieces, key: cg.Key, canCastle: boole
       }
       break;
     case 'lancer':
+      if(variant === 'musketeer'){
+        mobility = leopard;
+      } else {
       // Orda
       mobility = kniroo;
+      }
       break;
     case 'elephant':
       if (variant === 'shako' || variant === 'synochess') {
         mobility = shakoElephant;
+      } else if(variant === 'musketeer') {
+        mobility = melephant;
       } else {
         mobility = chancellor;
       }
@@ -414,16 +484,27 @@ export default function premove(pieces: cg.Pieces, key: cg.Key, canCastle: boole
       break;
     case 'met':
     case 'ferz':
-      mobility = met;
+      if(variant === 'musketeer'){
+        mobility = fortress;
+      }
+      else mobility = met;
       break;
     case 'yurt':
     // Orda
     case 'silver':
       if (variant === 'synochess') {
         mobility = jpawn(piece.color);
+      } else if(variant === 'musketeer') {
+        mobility = spider;
       } else {
         mobility = silver(piece.color);
       }
+      break;
+    case 'unicorn':
+      mobility = unicorn;
+      break;
+    case 'dragon':
+      mobility = dragon;
       break;
     };
     break;
