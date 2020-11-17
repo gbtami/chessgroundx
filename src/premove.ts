@@ -500,6 +500,9 @@ export default function premove(pieces: cg.Pieces, key: cg.Key, canCastle: boole
         mobility = silver(piece.color);
       }
       break;
+    case 'cannon':
+      mobility = mcannon;
+      break;
     case 'unicorn':
       mobility = unicorn;
       break;
