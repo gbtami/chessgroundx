@@ -4,7 +4,9 @@ import * as cg from './types'
 export const initial: cg.FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR';
 
 const rolesVariants: { [letter: string]: cg.Role } = {
-    p: 'pawn', r: 'rook', n: 'knight', b: 'bishop', q: 'queen', k: 'king', m: 'met', f: 'ferz', s: 'silver', c: 'chancellor', a: 'archbishop', h: 'hawk', e: 'elephant', y: 'yurt', l: 'lancer' };
+    p: 'pawn', r: 'rook', n: 'knight', b: 'bishop', q: 'queen', k: 'king',
+    m: 'met', f: 'ferz', s: 'silver', c: 'chancellor', a: 'archbishop',
+    h: 'hawk', e: 'elephant', y: 'yurt', l: 'lancer', u: 'unicorn', d: 'dragon', o: 'cannon'};
 // shogi
 const rolesShogi: { [letter: string]: cg.Role } = {
     p: 'pawn', r: 'rook', n: 'knight', b: 'bishop', k: 'king', g: 'gold', s: 'silver', l: 'lance' };
@@ -18,7 +20,8 @@ const rolesXiangqi: { [letter: string]: cg.Role } = {
 
 const lettersVariants = {
     pawn: 'p', rook: 'r', knight: 'n', bishop: 'b', queen: 'q', king: 'k', met: 'm', ferz: 'f', silver: 's', chancellor: 'c', archbishop: 'a', hawk: 'h', elephant: 'e',
-    ppawn: '+p', pknight: '+n', pbishop: '+b', prook: '+r', pferz: '+f', yurt: 'y', lancer: 'l' };
+    ppawn: '+p', pknight: '+n', pbishop: '+b', prook: '+r', pferz: '+f', yurt: 'y', lancer: 'l',
+    unicorn: 'u', dragon: 'd', cannon: 'o'};
 // shogi
 const lettersShogi = {
     pawn: 'p', rook: 'r', knight: 'n', bishop: 'b', king: 'k', gold: 'g', silver: 's', lance: 'l',
