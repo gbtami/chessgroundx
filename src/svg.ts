@@ -186,7 +186,7 @@ function renderArrow(brush: DrawBrush, orig: cg.Pos, dest: cg.Pos, current: bool
 function renderPiece(baseUrl: string, pos: cg.Pos, piece: DrawShapePiece, bounds: ClientRect, bd: cg.BoardDimensions): SVGElement {
   const o = pos2px(pos, bounds, bd),
   width = bounds.width / bd.width * (piece.scale || 1),
-  height = bounds.width / bd.height * (piece.scale || 1),
+  height = bounds.height / bd.height * (piece.scale || 1),
   name = piece.color[0] + (piece.role === 'knight' ? 'n' : piece.role[0]).toUpperCase();
   return setAttributes(createElement('image'), {
     className: `${piece.role} ${piece.color}`,
