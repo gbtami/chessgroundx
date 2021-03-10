@@ -14,6 +14,7 @@ const files10 = cg.files.slice(0, 10);
 
 const ranks4 = cg.ranks.slice(1, 5);
 const ranks5 = cg.ranks.slice(1, 6);
+const ranks6 = cg.ranks.slice(1, 7);
 const ranks7 = cg.ranks.slice(1, 8);
 const ranks8 = cg.ranks.slice(1, 9);
 const ranks9 = cg.ranks.slice(1, 10);
@@ -22,6 +23,7 @@ const ranks10 = cg.ranks.slice(0, 10);
 
 const allKeys3x4: cg.Key[] = Array.prototype.concat(...files3.map(c => ranks4.map(r => c+r)));
 const allKeys5x5: cg.Key[] = Array.prototype.concat(...files5.map(c => ranks5.map(r => c+r)));
+const allKeys5x6: cg.Key[] = Array.prototype.concat(...files5.map(c => ranks6.map(r => c+r)));
 const allKeys7x7: cg.Key[] = Array.prototype.concat(...files7.map(c => ranks7.map(r => c+r)));
 const allKeys8x8: cg.Key[] = Array.prototype.concat(...files8.map(c => ranks8.map(r => c+r)));
 const allKeys9x9: cg.Key[] = Array.prototype.concat(...files9.map(c => ranks9.map(r => c+r)));
@@ -29,7 +31,7 @@ const allKeys10x8: cg.Key[] = Array.prototype.concat(...files10.map(c => ranks8.
 const allKeys9x10: cg.Key[] = Array.prototype.concat(...files9.map(c => ranks10.map(r => c+r)));
 const allKeys10x10: cg.Key[] = Array.prototype.concat(...files10.map(c => ranks10.map(r => c+r)));
 
-export const allKeys = [allKeys8x8, allKeys9x9, allKeys10x8, allKeys9x10, allKeys10x10, allKeys5x5, allKeys7x7, allKeys3x4];
+export const allKeys = [allKeys8x8, allKeys9x9, allKeys10x8, allKeys9x10, allKeys10x10, allKeys5x5, allKeys7x7, allKeys3x4, allKeys5x6];
 
 export function pos2key(pos: cg.Pos, geom: cg.Geometry) {
     const bd = cg.dimensions[geom];
