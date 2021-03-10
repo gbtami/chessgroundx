@@ -49,6 +49,7 @@ export function read(fen: cg.FEN, geom: cg.Geometry): cg.Pieces {
         roles = rolesXiangqi;
         break;
     case cg.Geometry.dim9x9:
+    case cg.Geometry.dim5x6:
     case cg.Geometry.dim5x5:
         roles = rolesShogi;
         break;
@@ -108,6 +109,7 @@ export function write(pieces: cg.Pieces, geom: cg.Geometry): cg.FEN {
     letters = lettersDobutsu;
     break;
   case cg.Geometry.dim5x5:
+  case cg.Geometry.dim5x6:
   case cg.Geometry.dim9x9:
     letters = lettersShogi;
     break;
