@@ -72,20 +72,19 @@ function tryAutoCastle(state: State, orig: cg.Key, dest: cg.Key): boolean {
   if (!state.autoCastle) return false;
   const king = state.pieces[orig];
   if (!king || king.role !== 'king') return false;
-  const firstRankIs0 = state.dimensions.height === 10;
-  const origPos = key2pos(orig, firstRankIs0);
+  const origPos = key2pos(orig);
   if (origPos[0] !== 5) return false;
   if (origPos[1] !== 1 && origPos[1] !== 8) return false;
-  const destPos = key2pos(dest, firstRankIs0);
+  const destPos = key2pos(dest);
   let oldRookPos, newRookPos, newKingPos;
   if (destPos[0] === 7 || destPos[0] === 8) {
-    oldRookPos = pos2key([8, origPos[1]], state.geometry);
-    newRookPos = pos2key([6, origPos[1]], state.geometry);
-    newKingPos = pos2key([7, origPos[1]], state.geometry);
+    oldRookPos = pos2key([8, origPos[1]]);
+    newRookPos = pos2key([6, origPos[1]]);
+    newKingPos = pos2key([7, origPos[1]]);
   } else if (destPos[0] === 3 || destPos[0] === 1) {
-    oldRookPos = pos2key([1, origPos[1]], state.geometry);
-    newRookPos = pos2key([4, origPos[1]], state.geometry);
-    newKingPos = pos2key([3, origPos[1]], state.geometry);
+    oldRookPos = pos2key([1, origPos[1]]);
+    newRookPos = pos2key([4, origPos[1]]);
+    newKingPos = pos2key([3, origPos[1]]);
   } else return false;
 
   const rook = state.pieces[oldRookPos];
@@ -335,7 +334,7 @@ export function getKeyAtDomPos(pos: cg.NumberPair, asWhite: boolean, bounds: Cli
   if (!asWhite) file = bd.width + 1 - file;
   let rank = Math.ceil(bd.height - (bd.height * ((pos[1] - bounds.top) / bounds.height)));
   if (!asWhite) rank = bd.height + 1 - rank;
-  return (file > 0 && file < bd.width + 1 && rank > 0 && rank < bd.height + 1) ? pos2key([file, rank], geom) : undefined;
+  return (file > 0 && file < bd.width + 1 && rank > 0 && rank < bd.height + 1) ? pos2key([file, rank]) : undefined;
 }
 
 export function whitePov(s: State): boolean {

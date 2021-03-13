@@ -18,7 +18,6 @@ interface SquareClasses { [key: string]: string }
 // ported from https://github.com/veloce/lichobile/blob/master/src/js/chessground/view.js
 // in case of bugs, blame @veloce
 export default function render(s: State): void {
-  const firstRankIs0 = s.dimensions.height === 10;
   const asWhite: boolean = whitePov(s),
   posToTranslate = s.dom.relative ? util.posToTranslateRel : util.posToTranslateAbs(s.dom.bounds(), s.dimensions),
   translate = s.dom.relative ? util.translateRel : util.translateAbs,
@@ -58,7 +57,7 @@ export default function render(s: State): void {
       // if piece not being dragged anymore, remove dragging style
       if (el.cgDragging && (!curDrag || curDrag.orig !== k)) {
         el.classList.remove('dragging');
-        translate(el, posToTranslate(key2pos(k, firstRankIs0), asWhite, s.dimensions));
+        translate(el, posToTranslate(key2pos(k), asWhite, s.dimensions));
         el.cgDragging = false;
       }
       // remove fading class if it still remains
@@ -71,7 +70,7 @@ export default function render(s: State): void {
         // continue animation if already animating and same piece
         // (otherwise it could animate a captured piece)
         if (anim && el.cgAnimating && elPieceName === pieceNameOf(pieceAtKey)) {
-          const pos = key2pos(k, firstRankIs0);
+          const pos = key2pos(k);
           pos[0] += anim[2];
           pos[1] += anim[3];
           el.classList.add('anim');
@@ -79,8 +78,8 @@ export default function render(s: State): void {
         } else if (el.cgAnimating) {
           el.cgAnimating = false;
           el.classList.remove('anim');
-          translate(el, posToTranslate(key2pos(k, firstRankIs0), asWhite, s.dimensions));
-          if (s.addPieceZIndex) el.style.zIndex = posZIndex(key2pos(k, firstRankIs0), asWhite);
+          translate(el, posToTranslate(key2pos(k), asWhite, s.dimensions));
+          if (s.addPieceZIndex) el.style.zIndex = posZIndex(key2pos(k), asWhite);
         }
         // same piece: flag as same
         if (elPieceName === pieceNameOf(pieceAtKey) && (!fading || !el.cgFading)) {
@@ -118,7 +117,7 @@ export default function render(s: State): void {
     if (!sameSquares[sk]) {
       sMvdset = movedSquares[squares[sk]];
       sMvd = sMvdset && sMvdset.pop();
-      const translation = posToTranslate(key2pos(sk as cg.Key, firstRankIs0), asWhite, s.dimensions);
+      const translation = posToTranslate(key2pos(sk as cg.Key), asWhite, s.dimensions);
       if (sMvd) {
         sMvd.cgKey = sk as cg.Key;
         translate(sMvd, translation);
@@ -149,7 +148,7 @@ export default function render(s: State): void {
           pMvd.classList.remove('fading');
           pMvd.cgFading = false;
         }
-        const pos = key2pos(k, firstRankIs0);
+        const pos = key2pos(k);
         if (s.addPieceZIndex) pMvd.style.zIndex = posZIndex(pos, asWhite);
         if (anim) {
           pMvd.cgAnimating = true;
@@ -165,7 +164,7 @@ export default function render(s: State): void {
 
         const pieceName = pieceNameOf(p),
         pieceNode = createEl('piece', pieceName) as cg.PieceNode,
-        pos = key2pos(k, firstRankIs0);
+        pos = key2pos(k);
 
         pieceNode.cgPiece = pieceName;
         pieceNode.cgKey = k;
@@ -213,13 +212,13 @@ function computeSquareClasses(s: State): SquareClasses {
   const squares: SquareClasses = {};
   let i: any, k: cg.Key;
   if (s.lastMove && s.highlight.lastMove) for (i in s.lastMove) {
-    if (s.lastMove[i] != 'z0') {
+    if (s.lastMove[i] != 'a0') {
       addSquare(squares, s.lastMove[i], 'last-move');
     }
   }
   if (s.check && s.highlight.check) addSquare(squares, s.check, 'check');
   if (s.selected) {
-    if (s.selected != 'z0') {
+    if (s.selected != 'a0') {
       addSquare(squares, s.selected, 'selected');
     }
     if (s.movable.showDests) {

@@ -5,42 +5,25 @@ export const colors: cg.Color[] = ['white', 'black'];
 export const NRanks: number[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 export const invNRanks: number[] = [10, 9, 8, 7, 6, 5, 4, 3, 2, 1];
 
-const files3 = cg.files.slice(0, 3);
-const files5 = cg.files.slice(0, 5);
-const files7 = cg.files.slice(0, 7);
-const files8 = cg.files.slice(0, 8);
-const files9 = cg.files.slice(0, 9);
-const files10 = cg.files.slice(0, 10);
-
-const ranks4 = cg.ranks.slice(1, 5);
-const ranks5 = cg.ranks.slice(1, 6);
-const ranks6 = cg.ranks.slice(1, 7);
-const ranks7 = cg.ranks.slice(1, 8);
-const ranks8 = cg.ranks.slice(1, 9);
-const ranks9 = cg.ranks.slice(1, 10);
-// we have to count ranks starting from 0 as in UCCI
-const ranks10 = cg.ranks.slice(0, 10);
-
-const allKeys3x4: cg.Key[] = Array.prototype.concat(...files3.map(c => ranks4.map(r => c+r)));
-const allKeys5x5: cg.Key[] = Array.prototype.concat(...files5.map(c => ranks5.map(r => c+r)));
-const allKeys5x6: cg.Key[] = Array.prototype.concat(...files5.map(c => ranks6.map(r => c+r)));
-const allKeys7x7: cg.Key[] = Array.prototype.concat(...files7.map(c => ranks7.map(r => c+r)));
-const allKeys8x8: cg.Key[] = Array.prototype.concat(...files8.map(c => ranks8.map(r => c+r)));
-const allKeys9x9: cg.Key[] = Array.prototype.concat(...files9.map(c => ranks9.map(r => c+r)));
-const allKeys10x8: cg.Key[] = Array.prototype.concat(...files10.map(c => ranks8.map(r => c+r)));
-const allKeys9x10: cg.Key[] = Array.prototype.concat(...files9.map(c => ranks10.map(r => c+r)));
-const allKeys10x10: cg.Key[] = Array.prototype.concat(...files10.map(c => ranks10.map(r => c+r)));
-
-export const allKeys = [allKeys8x8, allKeys9x9, allKeys10x8, allKeys9x10, allKeys10x10, allKeys5x5, allKeys7x7, allKeys3x4, allKeys5x6];
-
-export function pos2key(pos: cg.Pos, geom: cg.Geometry) {
-    const bd = cg.dimensions[geom];
-    return allKeys[geom][bd.height * pos[0] + pos[1] - bd.height - 1];
+function files(n: number) {
+  return cg.files.slice(0, n);
 }
 
-export function key2pos(k: cg.Key, firstRankIs0: boolean) {
-  const shift = firstRankIs0 ? 1 : 0;
-  return [k.charCodeAt(0) - 96, k.charCodeAt(1) - 48 + shift] as cg.Pos;
+function ranks(n: number) {
+  return cg.ranks.slice(0, n);
+}
+
+export function allKeys(geom: cg.Geometry) {
+  const bd = cg.dimensions[geom];
+  return Array.prototype.concat(...files(bd.width).map(c => ranks(bd.height).map(r => c+r)));
+}
+
+export function pos2key(pos: cg.Pos) {
+  return (cg.files[pos[0] - 1] + cg.ranks[pos[1] - 1]) as cg.Key;
+}
+
+export function key2pos(k: cg.Key) {
+  return [k.charCodeAt(0) - 96, k.charCodeAt(1) - 48] as cg.Pos;
 }
 
 export function memo<A>(f: () => A): cg.Memo<A> {
