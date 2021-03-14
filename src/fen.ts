@@ -70,7 +70,7 @@ export function read(fen: cg.FEN, geom: cg.Geometry): cg.Pieces {
         promoted = true;
         break;
       case '~':
-        const piece = pieces[pos2key([col, row], geom)];
+        const piece = pieces[pos2key([col, row])];
         if (piece) {
             piece.promoted = true;
             if (piece.role=='met') piece.role = 'ferz';
@@ -91,7 +91,7 @@ export function read(fen: cg.FEN, geom: cg.Geometry): cg.Pieces {
             piece.promoted = true;
             promoted = false;
           };
-          pieces[pos2key([col, row], geom)] = piece;
+          pieces[pos2key([col, row])] = piece;
         }
     }
   }
@@ -119,7 +119,7 @@ export function write(pieces: cg.Pieces, geom: cg.Geometry): cg.FEN {
   };
   const bd = cg.dimensions[geom];
   return invNRanks.slice(-bd.height).map(y => NRanks.slice(0, bd.width).map(x => {
-      const piece = pieces[pos2key([x, y], geom)];
+      const piece = pieces[pos2key([x, y])];
       if (piece) {
         const letter: string = letters[piece.role] + ((piece.promoted && (letters[piece.role].charAt(0) !== '+')) ? '~' : '');
         return (piece.color === 'white') ? letter.toUpperCase() : letter;

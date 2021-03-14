@@ -276,18 +276,17 @@ const spider: Mobility = (x1, y1, x2, y2) => {
   );
 }
 
-function rookFilesOf(pieces: cg.Pieces, color: cg.Color, firstRankIs0: boolean) {
+function rookFilesOf(pieces: cg.Pieces, color: cg.Color) {
   const backrank = color == 'white' ? '1' : '8';
   return Object.keys(pieces).filter(key => {
     const piece = pieces[key];
     return key[1] === backrank && piece && piece.color === color && piece.role === 'rook';
-  }).map((key: string ) => util.key2pos(key as cg.Key, firstRankIs0)[0]);
+  }).map((key: string ) => util.key2pos(key as cg.Key)[0]);
 }
 
 export default function premove(pieces: cg.Pieces, key: cg.Key, canCastle: boolean, geom: cg.Geometry, variant: cg.Variant): cg.Key[] {
-  const firstRankIs0 = cg.dimensions[geom].height === 10;
   const piece = pieces[key]!,
-  pos = util.key2pos(key, firstRankIs0);
+  pos = util.key2pos(key);
   let mobility: Mobility;
 
   switch (geom) {
@@ -429,7 +428,7 @@ export default function premove(pieces: cg.Pieces, key: cg.Key, canCastle: boole
       if (variant === 'synochess' && piece.color === 'black') {
         mobility = sking;
       } else {
-        mobility = king(piece.color, rookFilesOf(pieces, piece.color, firstRankIs0), canCastle);
+        mobility = king(piece.color, rookFilesOf(pieces, piece.color), canCastle);
       }
       break;
     case 'hawk':
@@ -512,15 +511,8 @@ export default function premove(pieces: cg.Pieces, key: cg.Key, canCastle: boole
     };
     break;
   };
-  const allkeys = util.allKeys[geom];
 
-  const pos2keyGeom = (geom: cg.Geometry) => ( (pos: cg.Pos) => util.pos2key(pos, geom) );
-  const pos2key = pos2keyGeom(geom);
-
-  const key2posRank0 = (firstrank0: boolean) => ( (key: cg.Key) => util.key2pos(key, firstrank0) );
-  const key2pos = key2posRank0(firstRankIs0);
-
-  return allkeys.map(key2pos).filter(pos2 => {
+  return util.allKeys(geom).map(util.key2pos).filter(pos2 => {
     return (pos[0] !== pos2[0] || pos[1] !== pos2[1]) && mobility(pos[0], pos[1], pos2[0], pos2[1]);
-  }).map(pos2key);
+  }).map(util.pos2key);
 };

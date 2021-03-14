@@ -50,12 +50,11 @@ export function start(s: State, e: cg.MouchEvent): void {
   }
   const stillSelected = s.selected === orig;
   const element = pieceElementByKey(s, orig);
-  const firstRankIs0 = s.dimensions.height === 10;
   if (piece && element && stillSelected && board.isDraggable(s, orig)) {
     const squareBounds = computeSquareBounds(orig, board.whitePov(s), bounds, s.dimensions);
     s.draggable.current = {
       orig,
-      origPos: util.key2pos(orig, firstRankIs0),
+      origPos: util.key2pos(orig),
       piece,
       rel: position,
       epos: position,
@@ -75,7 +74,7 @@ export function start(s: State, e: cg.MouchEvent): void {
     const ghost = s.dom.elements.ghost;
     if (ghost) {
       ghost.className = `ghost ${piece.color} ${piece.role}`;
-      util.translateAbs(ghost, util.posToTranslateAbs(bounds, s.dimensions)(util.key2pos(orig, firstRankIs0), board.whitePov(s)));
+      util.translateAbs(ghost, util.posToTranslateAbs(bounds, s.dimensions)(util.key2pos(orig), board.whitePov(s)));
       util.setVisible(ghost, true);
     }
     processDrag(s);
@@ -103,7 +102,7 @@ export function pieceCloseTo(s: State, pos: cg.NumberPair): boolean {
 
 export function dragNewPiece(s: State, piece: cg.Piece, e: cg.MouchEvent, force?: boolean): void {
 
-  const key: cg.Key = 'z0';
+  const key: cg.Key = 'a0';
 
   s.pieces[key] = piece;
 
@@ -121,7 +120,7 @@ export function dragNewPiece(s: State, piece: cg.Piece, e: cg.MouchEvent, force?
 
   s.draggable.current = {
     orig: key,
-    origPos: util.key2pos('a0', false),
+    origPos: util.key2pos('a0'),
     piece,
     rel,
     epos: position,
@@ -236,8 +235,7 @@ function removeDragElements(s: State) {
 }
 
 function computeSquareBounds(key: cg.Key, asWhite: boolean, bounds: ClientRect, bd: cg.BoardDimensions) {
-  const firstRankIs0 = bd.height === 10;
-  const pos = util.key2pos(key, firstRankIs0);
+  const pos = util.key2pos(key);
   if (!asWhite) {
     pos[0] = bd.width + 1 - pos[0];
     pos[1] = bd.height + 1 - pos[1];

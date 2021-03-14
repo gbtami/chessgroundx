@@ -118,23 +118,22 @@ function modifiersHash(m: DrawModifiers): Hash {
 }
 
 function renderShape(state: State, {shape, current, hash}: Shape, brushes: DrawBrushes, arrowDests: ArrowDests, bounds: ClientRect): SVGElement {
-  const firstRankIs0 = state.dimensions.height === 10;
   let el: SVGElement;
   if (shape.piece) el = renderPiece(
     state.drawable.pieces.baseUrl,
-    orient(key2pos(shape.orig, firstRankIs0), state.orientation, state.dimensions),
+    orient(key2pos(shape.orig), state.orientation, state.dimensions),
     shape.piece,
     bounds,
     state.dimensions);
   else {
-    const orig = orient(key2pos(shape.orig, firstRankIs0), state.orientation, state.dimensions);
+    const orig = orient(key2pos(shape.orig), state.orientation, state.dimensions);
     if (shape.orig && shape.dest) {
       let brush: DrawBrush = brushes[shape.brush];
       if (shape.modifiers) brush = makeCustomBrush(brush, shape.modifiers);
       el = renderArrow(
         brush,
         orig,
-        orient(key2pos(shape.dest, firstRankIs0), state.orientation, state.dimensions),
+        orient(key2pos(shape.dest), state.orientation, state.dimensions),
         current,
         arrowDests[shape.dest] > 1,
         bounds,
