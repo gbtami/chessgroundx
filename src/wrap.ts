@@ -1,8 +1,7 @@
 import { State } from './state'
 import { colors, setVisible, createEl } from './util'
-import { files, ranks } from './types'
+import { files, ranks, shogiVariants, Elements, Notation } from './types'
 import { createElement as createSVG } from './svg'
-import { Elements, Geometry, Notation } from './types'
 
 export default function wrap(element: HTMLElement, s: State, relative: boolean): Elements {
 
@@ -45,7 +44,7 @@ export default function wrap(element: HTMLElement, s: State, relative: boolean):
 
   if (s.coordinates) {
     const orientClass = s.orientation === 'black' ? ' black' : '';
-    const shogi = (s.geometry === Geometry.dim9x9 || s.geometry === Geometry.dim5x5 || s.geometry === Geometry.dim3x4);
+    const shogi = (shogiVariants.includes(s.variant));
     if (shogi) {
         container.appendChild(renderCoords(ranks.slice(1, s.dimensions.height + 1).reverse(), 'files' + orientClass));
         container.appendChild(renderCoords(ranks.slice(1, s.dimensions.width + 1).reverse(), 'ranks' + orientClass));
