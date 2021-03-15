@@ -3,6 +3,28 @@ import * as cg from './types'
 
 type Mobility = (x1:number, y1:number, x2:number, y2:number) => boolean;
 
+const bPalace = [
+    [4, 10], [5, 10], [6, 10],
+    [4, 9], [5, 9], [6, 9],
+    [4, 8], [5, 8], [6, 8],
+];
+const wPalace = [
+    [4, 3], [5, 3], [6, 3],
+    [4, 2], [5, 2], [6, 2],
+    [4, 1], [5, 1], [6, 1],
+];
+
+const bPalace7 = [
+    [3, 7], [4, 7], [5, 7],
+    [3, 6], [4, 6], [5, 6],
+    [3, 5], [4, 5], [5, 5],
+];
+const wPalace7 = [
+    [3, 3], [4, 3], [5, 3],
+    [3, 2], [4, 2], [5, 2],
+    [3, 1], [4, 1], [5, 1],
+];
+
 function diff(a: number, b:number):number {
   return Math.abs(a - b);
 }
@@ -47,14 +69,6 @@ function king(color: cg.Color, rookFiles: number[], canCastle: boolean): Mobilit
   );
 }
 
-function rookFilesOf(pieces: cg.Pieces, color: cg.Color) {
-  const backrank = color == 'white' ? '1' : '8';
-  return Object.keys(pieces).filter(key => {
-    const piece = pieces[key];
-    return key[1] === backrank && piece && piece.color === color && piece.role === 'r-piece';
-  }).map((key: string ) => util.key2pos(key as cg.Key)[0]);
-}
-
 // wazir
 const wazir: Mobility = (x1, y1, x2, y2) => {
   const xd = diff(x1, x2);
@@ -82,23 +96,11 @@ const centaur: Mobility = (x1, y1, x2, y2) => {
   return kingWithoutCastling(x1, y1, x2, y2) || knight(x1, y1, x2, y2);
 }
 
-// shogi pawn
-function shogiPawn(color: cg.Color): Mobility {
-  return (x1, y1, x2, y2) => (x2 === x1 && (color === 'white' ? y2 === y1 + 1 : y2 === y1 - 1));
-}
-
 // shogi lance
 function shogiLance(color: cg.Color): Mobility {
   return (x1, y1, x2, y2) => (
     x2 === x1 && (color === 'white' ? y2 > y1 : y2 < y1)
   );
-}
-
-// shogi knight
-function shogiKnight(color: cg.Color): Mobility {
-  return (x1, y1, x2, y2) => color === 'white' ?
-    (y2 === y1 + 2 && x2 === x1 - 1 || y2 === y1 + 2 && x2 === x1 + 1) :
-    (y2 === y1 - 2 && x2 === x1 - 1 || y2 === y1 - 2 && x2 === x1 + 1);
 }
 
 // shogi silver, makruk khon, sittuyin elephant
@@ -108,7 +110,7 @@ function silver(color: cg.Color): Mobility {
   );
 }
 
-// shogi gold
+// shogi gold, promoted pawn/knight/lance/silver
 function gold(color: cg.Color): Mobility {
   return (x1, y1, x2, y2)  => (
     diff(x1, x2) < 2 && diff(y1, y2) < 2 && (
@@ -119,49 +121,75 @@ function gold(color: cg.Color): Mobility {
   );
 }
 
-// king without castling
-const kingWithoutCastling: Mobility = (x1, y1, x2, y2) => {
-  return diff(x1, x2) < 2 && diff(y1, y2) < 2;
+// shogi pawn
+function shogiPawn(color: cg.Color): Mobility {
+  return (x1, y1, x2, y2) => (x2 === x1 && (color === 'white' ? y2 === y1 + 1 : y2 === y1 - 1));
+}
+
+// shogi knight
+function shogiKnight(color: cg.Color): Mobility {
+  return (x1, y1, x2, y2) => color === 'white' ?
+    (y2 === y1 + 2 && x2 === x1 - 1 || y2 === y1 + 2 && x2 === x1 + 1) :
+    (y2 === y1 - 2 && x2 === x1 - 1 || y2 === y1 - 2 && x2 === x1 + 1);
 }
 
 // shogi promoted rook (dragon king)
 const shogiDragon: Mobility = (x1, y1, x2, y2) => {
-  return rook(x1, y1, x2, y2) || kingWithoutCastling(x1, y1, x2, y2);
+  return rook(x1, y1, x2, y2) || (diff(x1, x2) < 2 && diff(y1, y2) < 2);
 }
 
 // shogi promoted bishop (dragon horse)
 const shogiHorse: Mobility = (x1, y1, x2, y2) => {
-  return bishop(x1, y1, x2, y2) || kingWithoutCastling(x1, y1, x2, y2);
+  return bishop(x1, y1, x2, y2) || (diff(x1, x2) < 2 && diff(y1, y2) < 2);
+}
+
+// king without castling
+const kingWithoutCastling: Mobility = (x1, y1, x2, y2) => {
+  return diff(x1, x2) < 2 && diff(y1, y2) < 2;
 }
 
 // xiangqi pawn
 function xiangqiPawn(color: cg.Color): Mobility {
   return (x1, y1, x2, y2) => (
     (x2 === x1 && (color === 'white' ? y2 === y1 + 1 : y2 === y1 - 1)) ||
-    (y2 === y1 && diff(x1, x2) < 2)
+    (y2 === y1 && (x2 === x1 + 1 || x2 === x1 - 1) && (color === 'white' ? y1 > 5 : y1 < 6))
     );
 }
 
-// shatranj/xiangqi elephant
-const elephant: Mobility = (x1, y1, x2, y2) => {
-  const xd = diff(x1, x2);
-  const yd = diff(y1, y2);
-  return xd === yd && xd === 2;
+// xiangqi elephant
+function xiangqiElephant(color: cg.Color): Mobility {
+  return (x1, y1, x2, y2) => (
+    diff(x1, x2) === diff(y1, y2) && diff(x1, x2) === 2 && (color === 'white' ? y2 < 6 : y2 > 5)
+    );
+}
+
+// xiangqi advisor
+function xiangqiAdvisor(color: cg.Color): Mobility {
+    const palace = (color == 'white') ? wPalace : bPalace;
+    return (x1, y1, x2, y2) => (
+        diff(x1, x2) === diff(y1, y2) && diff(x1, x2) === 1 && palace.some(point => (point[0] === x2 && point[1] === y2))
+    );
+}
+
+// xiangqi general (king)
+function xiangqiKing(color: cg.Color): Mobility {
+    const palace = (color == 'white') ? wPalace : bPalace;
+    return (x1, y1, x2, y2) => (
+        ((x1 === x2 && diff(y1, y2) === 1) || (y1 === y2 && diff(x1, x2) === 1)) && palace.some(point => (point[0] === x2 && point[1] === y2))
+    );
+}
+
+// minixiangqi general(king)
+function minixiangqiKing(color: cg.Color): Mobility {
+    const palace = (color == 'white') ? wPalace7 : bPalace7;
+    return (x1, y1, x2, y2) => (
+        ((x1 === x2 && diff(y1, y2) === 1) || (y1 === y2 && diff(x1, x2) === 1)) && palace.some(point => (point[0] === x2 && point[1] === y2))
+    );
 }
 
 // shako elephant
 const shakoElephant: Mobility = (x1, y1, x2, y2) => {
-  const xd = diff(x1, x2);
-  const yd = diff(y1, y2);
-  return xd === yd && xd < 3;
-}
-
-// janggi pawn
-function janggiPawn(color: cg.Color): Mobility {
-  return (x1, y1, x2, y2) => (diff(x1, x2) < 2) && (
-    (y2 === y1) ||
-    (color === 'white' ? y2 === y1 + 1 : y2 === y1 - 1)
-    );
+  return diff(x1, x2) === diff(y1, y2) && (diff(x1, x2) === 1 || diff(x1, x2) === 2);
 }
 
 // janggi elephant
@@ -169,6 +197,22 @@ const janggiElephant: Mobility = (x1, y1, x2, y2) => {
   const xd = diff(x1, x2);
   const yd = diff(y1, y2);
   return (xd === 2 && yd === 3) || (xd === 3 && yd === 2);
+}
+
+// janggi pawn
+function janggiPawn(color: cg.Color): Mobility {
+  return (x1, y1, x2, y2) => diff(x1, x2) < 2 && (
+    y2 === y1 ||
+    color === 'white' ? y2 === y1 + 1 : y2 === y1 - 1
+    );
+}
+
+// janggi general (king)
+function janggiKing(color: cg.Color): Mobility {
+    const palace = (color == 'white') ?  wPalace : bPalace;
+    return (x1, y1, x2, y2) => (
+        diff(x1, x2) < 2 && diff(y1, y2) < 2 && palace.some(point => (point[0] === x2 && point[1] === y2))
+    );
 }
 
 // musketeer leopard
@@ -179,7 +223,6 @@ const musketeerLeopard: Mobility = (x1, y1, x2, y2) => {
     && (yd === 1 || yd === 2)
     );
 }
-
 // musketeer hawk
 const musketeerHawk: Mobility = (x1, y1, x2, y2) => {
   const xd = diff(x1, x2); const yd = diff(y1, y2);
@@ -189,7 +232,6 @@ const musketeerHawk: Mobility = (x1, y1, x2, y2) => {
     || (xd === yd && (xd === 2 || xd === 3))
   );
 }
-
 // musketeer elephant
 const musketeerElephant: Mobility = (x1, y1, x2, y2) => {
   const xd = diff(x1, x2); const yd = diff(y1, y2);
@@ -199,7 +241,6 @@ const musketeerElephant: Mobility = (x1, y1, x2, y2) => {
     || (xd === 0 && yd === 2)
   );
 }
-
 // musketeer cannon
 const musketeerCannon: Mobility = (x1, y1, x2, y2) => {
   const xd = diff(x1, x2); const yd = diff(y1, y2);
@@ -208,18 +249,15 @@ const musketeerCannon: Mobility = (x1, y1, x2, y2) => {
     && ((yd < 2) || (yd === 2 && xd === 0))
   );
 }
-
 // musketeer unicorn
 const musketeerUnicorn: Mobility = (x1, y1, x2, y2) => {
   const xd = diff(x1, x2); const yd = diff(y1, y2);
   return knight(x1, y1, x2, y2) || (xd === 1 && yd === 3) || (xd === 3 && yd === 1);
 }
-
 // musketeer dragon
 const musketeerDragon: Mobility = (x1, y1, x2, y2) => {
   return knight(x1, y1, x2, y2) || queen(x1, y1, x2, y2);
 }
-
 // musketeer fortress
 const musketeerFortress: Mobility = (x1, y1, x2, y2) => {
   const xd = diff(x1, x2); const yd = diff(y1, y2);
@@ -229,7 +267,6 @@ const musketeerFortress: Mobility = (x1, y1, x2, y2) => {
     || (yd === 2 && xd < 2) 
   );
 }
-
 // musketeer spider
 const musketeerSpider: Mobility = (x1, y1, x2, y2) => {
   const xd = diff(x1, x2); const yd = diff(y1, y2);
@@ -240,6 +277,14 @@ const musketeerSpider: Mobility = (x1, y1, x2, y2) => {
   );
 }
 
+function rookFilesOf(pieces: cg.Pieces, color: cg.Color) {
+  const backrank = color == 'white' ? '1' : '8';
+  return Object.keys(pieces).filter(key => {
+    const piece = pieces[key];
+    return key[1] === backrank && piece && piece.color === color && piece.role === 'r-piece';
+  }).map((key: string ) => util.key2pos(key as cg.Key)[0]);
+}
+
 export default function premove(pieces: cg.Pieces, key: cg.Key, canCastle: boolean, geom: cg.Geometry, variant: cg.Variant): cg.Key[] {
   const piece = pieces[key]!,
   pos = util.key2pos(key);
@@ -248,16 +293,15 @@ export default function premove(pieces: cg.Pieces, key: cg.Key, canCastle: boole
   switch (variant) {
 
     case 'xiangqi':
-    case 'minixiangqi':
     case 'manchu':
       switch (piece.role) {
         case 'p-piece': mobility = xiangqiPawn(piece.color); break; // pawn
         case 'c-piece': // cannon
         case 'r-piece': mobility = rook; break; // rook
         case 'n-piece': mobility = knight; break; // horse
-        case 'b-piece': mobility = elephant; break; // elephant
-        case 'a-piece': mobility = ferz; break; // advisor
-        case 'k-piece': mobility = wazir; break; // king
+        case 'b-piece': mobility = xiangqiElephant(piece.color); break; // elephant
+        case 'a-piece': mobility = xiangqiAdvisor(piece.color); break; // advisor
+        case 'k-piece': mobility = xiangqiKing(piece.color); break; // king
         case 'm-piece': mobility = chancellor; break; // banner
       }
       break;
@@ -270,9 +314,20 @@ export default function premove(pieces: cg.Pieces, key: cg.Key, canCastle: boole
         case 'n-piece': mobility = knight; break; // horse
         case 'b-piece': mobility = janggiElephant; break; // elephant
         case 'a-piece': // advisor
-        case 'k-piece': mobility = kingWithoutCastling; break; // king
+        case 'k-piece': mobility = janggiKing(piece.color); break; // king
       }
       break;
+
+    case 'minixiangqi': {
+      switch (piece.role) {
+        case 'p-piece': mobility = janggiPawn(piece.color); break; // pawn
+        case 'c-piece': // cannon
+        case 'r-piece': mobility = rook; break; // rook
+        case 'n-piece': mobility = knight; break; // horse
+        case 'k-piece': mobility = minixiangqiKing(piece.color); break; // king
+      }
+    }
+    break;
 
   case 'shogi':
   case 'minishogi':
