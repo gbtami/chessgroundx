@@ -19,6 +19,7 @@ export function read(fen: cg.FEN): cg.Pieces {
         --row;
         if (row === 0) return pieces;
         col = 0;
+        num = 0;
         break;
       case '+':
         promoted = true;
