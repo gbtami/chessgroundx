@@ -201,9 +201,9 @@ const janggiElephant: Mobility = (x1, y1, x2, y2) => {
 
 // janggi pawn
 function janggiPawn(color: cg.Color): Mobility {
-  return (x1, y1, x2, y2) => diff(x1, x2) < 2 && (
-    y2 === y1 ||
-    color === 'white' ? y2 === y1 + 1 : y2 === y1 - 1
+  return (x1, y1, x2, y2) => (
+    (x2 === x1 && (color === 'white' ? y2 === y1 + 1 : y2 === y1 - 1)) ||
+    (y2 === y1 && (x2 === x1 + 1 || x2 === x1 - 1))
     );
 }
 
@@ -308,9 +308,10 @@ export default function premove(pieces: cg.Pieces, key: cg.Key, canCastle: boole
 
     case 'janggi':
       switch (piece.role) {
+        // TODO: inside the Janggi palace pawns, rooks, and cannons can also move on the diagonals
         case 'p-piece': mobility = janggiPawn(piece.color); break; // pawn
         case 'c-piece': // cannon
-        case 'r-piece': mobility = shogiDragon; break; // rook
+        case 'r-piece': mobility = rook; break; // rook
         case 'n-piece': mobility = knight; break; // horse
         case 'b-piece': mobility = janggiElephant; break; // elephant
         case 'a-piece': // advisor
