@@ -336,6 +336,7 @@ export default function premove(pieces: cg.Pieces, key: cg.Key, canCastle: boole
     };
     break;
   case cg.Geometry.dim5x5:
+  case cg.Geometry.dim5x6:
   case cg.Geometry.dim9x9:
     switch (piece.role) {
     case 'pawn':
