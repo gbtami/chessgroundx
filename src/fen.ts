@@ -4,6 +4,7 @@ import * as cg from './types'
 export const initial: cg.FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR';
 
 function roles(letter: string) {
+  letter = letter.replace("+", "p");
   return (letter + "-piece") as cg.Role;
 }
 
