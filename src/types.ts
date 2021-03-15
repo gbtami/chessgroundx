@@ -96,6 +96,18 @@ export const files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j'] as const
 export const ranks = ['1', '2', '3', '4', '5', '6', '7', '8', '9', ':'] as const;
 export const letters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'] as const;
 
+export function letter2role(letter: string) {
+  letter = letter.replace("+", "p");
+  return (letter + "-piece") as Role;
+}
+
+export function role2letter(role: Role) {
+  if (role.indexOf('-') === 1)
+    return role[0];
+  else
+    return '+' + role[1];
+}
+
 export interface BoardDimensions {
   width: number;
   height: number;
