@@ -186,7 +186,7 @@ function renderPiece(baseUrl: string, pos: cg.Pos, piece: DrawShapePiece, bounds
   const o = pos2px(pos, bounds, bd),
   width = bounds.width / bd.width * (piece.scale || 1),
   height = bounds.height / bd.height * (piece.scale || 1),
-  name = piece.color[0] + (piece.role === 'knight' ? 'n' : piece.role[0]).toUpperCase();
+  name = piece.color[0] + piece.role[0].toUpperCase();
   return setAttributes(createElement('image'), {
     className: `${piece.role} ${piece.color}`,
     x: o[0] - width / 2,
