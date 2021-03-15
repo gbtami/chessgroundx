@@ -333,22 +333,35 @@ export default function premove(pieces: cg.Pieces, key: cg.Key, canCastle: boole
   case 'shogi':
   case 'minishogi':
   case 'gorogoro':
-  case 'kyotoshogi':
     switch (piece.role) {
       case 'p-piece': mobility = shogiPawn(piece.color); break; // pawn
       case 'l-piece': mobility = shogiLance(piece.color); break; // lance
       case 'n-piece': mobility = shogiKnight(piece.color); break; // knight
       case 'k-piece': mobility = kingWithoutCastling; break; // king
       case 's-piece': mobility = silver(piece.color); break; // silver
-      case 'pp-piece':
-      case 'pl-piece':
-      case 'pn-piece':
-      case 'ps-piece':
+      case 'pp-piece': // tokin
+      case 'pl-piece': // promoted lance
+      case 'pn-piece': // promoted knight
+      case 'ps-piece': // promoted silver
       case 'g-piece': mobility = gold(piece.color); break; // gold
       case 'b-piece': mobility = bishop; break; // bishop
       case 'r-piece': mobility = rook; break; // rook
       case 'pr-piece': mobility = shogiDragon; break; // dragon
       case 'pb-piece': mobility = shogiHorse; break; // horse
+    };
+    break;
+
+  case 'kyotoshogi':
+    switch (piece.role) {
+      case 'l-piece': mobility = shogiLance(piece.color); break; // kyoto - lance-tokin
+      case 'pl-piece': mobility = gold(piece.color); break;
+      case 's-piece': mobility = silver(piece.color); break; // ginkaku - silver-bishop
+      case 'ps-piece': mobility = bishop; break;
+      case 'n-piece': mobility = shogiKnight(piece.color); break; // kinkei - gold-knight
+      case 'pn-piece': mobility = gold(piece.color); break;
+      case 'p-piece': mobility = shogiPawn(piece.color); break; // hifu - rook-pawn
+      case 'pp-piece': mobility = rook; break;
+      case 'k-piece': mobility = kingWithoutCastling; break; // king
     };
     break;
 
@@ -466,6 +479,7 @@ export default function premove(pieces: cg.Pieces, key: cg.Key, canCastle: boole
       case 'q-piece': mobility = queen; break; // queen
       case 'k-piece': mobility = king(piece.color, rookFilesOf(pieces, piece.color), canCastle); break; // king
     }
+    break;
 
   // Variants using standard pieces and additional fairy pieces like S-chess, Capablanca, etc.
   default:
