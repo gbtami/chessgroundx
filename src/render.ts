@@ -205,7 +205,8 @@ function posZIndex(pos: cg.Pos, asWhite: boolean): string {
 }
 
 function pieceNameOf(piece: cg.Piece): string {
-  return `${piece.color} ${piece.role}`;
+  const promoted = piece.promoted ? "promoted " : "";
+  return `${piece.color} ${promoted}${piece.role}`;
 }
 
 function computeSquareClasses(s: State): SquareClasses {
