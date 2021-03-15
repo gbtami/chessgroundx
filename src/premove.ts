@@ -457,6 +457,16 @@ export default function premove(pieces: cg.Pieces, key: cg.Key, canCastle: boole
     }
     break;
 
+  case 'hoppelpoppel':
+    switch (piece.role) {
+      case 'p-piece': mobility = pawn(piece.color); break; // pawn
+      case 'r-piece': mobility = rook; break; // rook
+      case 'n-piece': mobility = archbishop; break; // knight
+      case 'b-piece': mobility = archbishop; break; // bishop
+      case 'q-piece': mobility = queen; break; // queen
+      case 'k-piece': mobility = king(piece.color, rookFilesOf(pieces, piece.color), canCastle); break; // king
+    }
+
   // Variants using standard pieces and additional fairy pieces like S-chess, Capablanca, etc.
   default:
     switch (piece.role) {
