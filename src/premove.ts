@@ -47,32 +47,18 @@ function king(color: cg.Color, rookFiles: number[], canCastle: boolean): Mobilit
   );
 }
 
-// Define xiangqi palace based on geometry
-// The palace is the 3x3 squares in the middle files at each side's end of the board
-type Palace = cg.Pos[];
-
-function palace(geom: cg.Geometry, color: cg.Color): Palace {
-    const bd = cg.dimensions[geom];
-    const middleFile = Math.floor((bd.width + 1) / 2);
-    const startingRank = (color === "white") ? 1 : bd.height - 2;
-
-    return [
-        [middleFile - 1, startingRank + 2], [middleFile, startingRank + 2], [middleFile + 1, startingRank + 2],
-        [middleFile - 1, startingRank + 1], [middleFile, startingRank + 1], [middleFile + 1, startingRank + 1],
-        [middleFile - 1, startingRank],     [middleFile, startingRank],     [middleFile + 1, startingRank],
-    ];
+function rookFilesOf(pieces: cg.Pieces, color: cg.Color) {
+  const backrank = color == 'white' ? '1' : '8';
+  return Object.keys(pieces).filter(key => {
+    const piece = pieces[key];
+    return key[1] === backrank && piece && piece.color === color && piece.role === 'r-piece';
+  }).map((key: string ) => util.key2pos(key as cg.Key)[0]);
 }
 
-const palaces: { [geom in cg.Geometry]? : { [color in cg.Color]: Palace } } = {
-    [cg.Geometry.dim9x10]: {
-        white: palace(cg.Geometry.dim9x10, "white"),
-        black: palace(cg.Geometry.dim9x10, "black"),
-    },
-    [cg.Geometry.dim7x7]: {
-        white: palace(cg.Geometry.dim7x7, "white"),
-        black: palace(cg.Geometry.dim7x7, "black"),
-    },
-};
+// king without castling
+const noCastlingKing: Mobility = (x1, y1, x2, y2) => {
+  return diff(x1, x2) < 2 && diff(y1, y2) < 2;
+}
 
 // wazir
 const wazir: Mobility = (x1, y1, x2, y2) => {
@@ -82,8 +68,13 @@ const wazir: Mobility = (x1, y1, x2, y2) => {
 }
 
 // ferz, met
-const ferz: Mobility = (x1, y1, x2, y2) => {
-  return diff(x1, x2) === diff(y1, y2) && diff(x1, x2) === 1;
+const ferz: Mobility = (x1, y1, x2, y2) => diff(x1, x2) === diff(y1, y2) && diff(x1, x2) === 1;
+
+// shatranj elephant
+const elephant: Mobility = (x1, y1, x2, y2) => {
+  const xd = diff(x1, x2);
+  const yd = diff(y1, y2);
+  return xd === yd && xd === 2;
 }
 
 // archbishop (knight + bishop)
@@ -118,11 +109,7 @@ function shogiSilver(color: cg.Color): Mobility {
 // shogi gold, promoted pawn/knight/lance/silver
 function shogiGold(color: cg.Color): Mobility {
   return (x1, y1, x2, y2)  => (
-    diff(x1, x2) < 2 && diff(y1, y2) < 2 && (
-      color === 'white' ?
-        !((x2 === x1 - 1 && y2 === y1 - 1) || (x2 === x1 + 1 && y2 === y1 - 1)) :
-        !((x2 === x1 + 1 && y2 === y1 + 1) || (x2 === x1 - 1 && y2 === y1 + 1))
-    )
+    wazir(x1, y1, x2, y2) || (diff(x1, x2) < 2 && (color === 'white' ? y2 === y1 + 1 : y2 === y1 - 1))
   );
 }
 
@@ -133,25 +120,46 @@ function shogiPawn(color: cg.Color): Mobility {
 
 // shogi knight
 function shogiKnight(color: cg.Color): Mobility {
-  return (x1, y1, x2, y2) => color === 'white' ?
-    (y2 === y1 + 2 && x2 === x1 - 1 || y2 === y1 + 2 && x2 === x1 + 1) :
-    (y2 === y1 - 2 && x2 === x1 - 1 || y2 === y1 - 2 && x2 === x1 + 1);
+  return (x1, y1, x2, y2) => (x2 === x1 - 1 || x2 === x1 + 1) &&
+    (color === 'white' ? (y2 === y1 + 2) : (y2 === y1 - 2));
 }
 
 // shogi promoted rook (dragon king)
 const shogiDragon: Mobility = (x1, y1, x2, y2) => {
-  return rook(x1, y1, x2, y2) || (diff(x1, x2) < 2 && diff(y1, y2) < 2);
+  return rook(x1, y1, x2, y2) || ferz(x1, y1, x2, y2);
 }
 
 // shogi promoted bishop (dragon horse)
 const shogiHorse: Mobility = (x1, y1, x2, y2) => {
-  return bishop(x1, y1, x2, y2) || (diff(x1, x2) < 2 && diff(y1, y2) < 2);
+  return bishop(x1, y1, x2, y2) || wazir(x1, y1, x2, y2);
 }
 
-// king without castling
-const noCastlingKing: Mobility = (x1, y1, x2, y2) => {
-  return diff(x1, x2) < 2 && diff(y1, y2) < 2;
+// Define xiangqi palace based on geometry
+// The palace is the 3x3 squares in the middle files at each side's end of the board
+type Palace = cg.Pos[];
+
+function palace(geom: cg.Geometry, color: cg.Color): Palace {
+  const bd = cg.dimensions[geom];
+  const middleFile = Math.floor((bd.width + 1) / 2);
+  const startingRank = (color === "white") ? 1 : bd.height - 2;
+
+  return [
+    [middleFile - 1, startingRank + 2], [middleFile, startingRank + 2], [middleFile + 1, startingRank + 2],
+    [middleFile - 1, startingRank + 1], [middleFile, startingRank + 1], [middleFile + 1, startingRank + 1],
+    [middleFile - 1, startingRank],     [middleFile, startingRank],     [middleFile + 1, startingRank],
+  ];
 }
+
+const palaces: { [geom in cg.Geometry]? : { [color in cg.Color]: Palace } } = {
+  [cg.Geometry.dim9x10]: {
+    white: palace(cg.Geometry.dim9x10, "white"),
+    black: palace(cg.Geometry.dim9x10, "black"),
+  },
+  [cg.Geometry.dim7x7]: {
+    white: palace(cg.Geometry.dim7x7, "white"),
+    black: palace(cg.Geometry.dim7x7, "black"),
+  },
+};
 
 // xiangqi pawn
 function xiangqiPawn(color: cg.Color): Mobility {
@@ -171,25 +179,19 @@ function minixiangqiPawn(color: cg.Color): Mobility {
 
 // xiangqi elephant
 function xiangqiElephant(color: cg.Color): Mobility {
-  return (x1, y1, x2, y2) => (
-    diff(x1, x2) === diff(y1, y2) && diff(x1, x2) === 2 && (color === 'white' ? y2 < 6 : y2 > 5)
-    );
+  return (x1, y1, x2, y2) => elephant(x1, y1, x2, y2) && (color === 'white' ? y2 < 6 : y2 > 5)
 }
 
 // xiangqi advisor
 function xiangqiAdvisor(color: cg.Color, geom: cg.Geometry): Mobility {
     const palace = palaces[geom]![color];
-    return (x1, y1, x2, y2) => (
-        ferz(x1, y1, x2, y2) && palace.some(point => (point[0] === x2 && point[1] === y2))
-    );
+    return (x1, y1, x2, y2) => ferz(x1, y1, x2, y2) && palace.some(point => (point[0] === x2 && point[1] === y2))
 }
 
 // xiangqi general (king)
 function xiangqiKing(color: cg.Color, geom: cg.Geometry): Mobility {
     const palace = palaces[geom]![color];
-    return (x1, y1, x2, y2) => (
-        wazir(x1, y1, x2, y2) && palace.some(point => (point[0] === x2 && point[1] === y2))
-    );
+    return (x1, y1, x2, y2) => wazir(x1, y1, x2, y2) && palace.some(point => (point[0] === x2 && point[1] === y2));
 }
 
 // shako elephant
@@ -210,7 +212,7 @@ function janggiPawn(color: cg.Color): Mobility {
   return (x1, y1, x2, y2) => (
     (x2 === x1 && (color === 'white' ? y2 === y1 + 1 : y2 === y1 - 1)) ||
     (y2 === y1 && diff(x1, x2) < 2)
-    );
+  );
 }
 
 // janggi rook
@@ -220,10 +222,10 @@ const janggiRook: Mobility = (x1, y1, x2, y2) => rook(x1, y1, x2, y2);
 // janggi general (king)
 // TODO correct diagonal movement in palace
 function janggiKing(color: cg.Color, geom: cg.Geometry): Mobility {
-    const palace = palaces[geom]![color];
-    return (x1, y1, x2, y2) => (
-        noCastlingKing(x1, y1, x2, y2) && palace.some(point => (point[0] === x2 && point[1] === y2))
-    );
+  const palace = palaces[geom]![color];
+  return (x1, y1, x2, y2) => (
+    noCastlingKing(x1, y1, x2, y2) && palace.some(point => (point[0] === x2 && point[1] === y2))
+  );
 }
 
 // musketeer leopard
@@ -232,7 +234,7 @@ const musketeerLeopard: Mobility = (x1, y1, x2, y2) => {
   return (
     (xd === 1 || xd === 2)
     && (yd === 1 || yd === 2)
-    );
+  );
 }
 // musketeer hawk
 const musketeerHawk: Mobility = (x1, y1, x2, y2) => {
@@ -286,14 +288,6 @@ const musketeerSpider: Mobility = (x1, y1, x2, y2) => {
     && !(xd === 1 && yd === 0)
     && !(xd === 0 && yd === 1)
   );
-}
-
-function rookFilesOf(pieces: cg.Pieces, color: cg.Color) {
-  const backrank = color == 'white' ? '1' : '8';
-  return Object.keys(pieces).filter(key => {
-    const piece = pieces[key];
-    return key[1] === backrank && piece && piece.color === color && piece.role === 'r-piece';
-  }).map((key: string ) => util.key2pos(key as cg.Key)[0]);
 }
 
 export default function premove(pieces: cg.Pieces, key: cg.Key, canCastle: boolean, geom: cg.Geometry, variant: cg.Variant): cg.Key[] {
