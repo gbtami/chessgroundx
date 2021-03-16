@@ -8,10 +8,8 @@ function roles(letter: string) {
 }
 
 function letters(role: cg.Role) {
-  if (role.indexOf('-') === 1)
-    return role[0];
-  else
-    return '+' + role[1];
+  const letterPart = role.slice(0, role.indexOf('-'));
+  return (letterPart.length > 1) ? letterPart.replace('p', '+') : letterPart;
 }
 
 export function read(fen: cg.FEN): cg.Pieces {
