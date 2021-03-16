@@ -104,7 +104,7 @@ export function configure(state: State, config: Config) {
 
   // if a fen was provided, replace the pieces
   if (config.fen) {
-    const pieces = fenRead(config.fen, state.geometry);
+    const pieces = fenRead(config.fen);
     // prevent to cancel() already started piece drag from pocket!
     if (state.pieces['z0'] !== undefined) pieces['z0'] = state.pieces['z0'];
     state.pieces = pieces;
@@ -130,7 +130,7 @@ export function configure(state: State, config: Config) {
     kingStartPos = 'e' + rank,
     dests = state.movable.dests[kingStartPos],
     king = state.pieces[kingStartPos];
-    if (!dests || !king || king.role !== 'king') return;
+    if (!dests || !king || king.role !== 'k-piece') return;
     state.movable.dests[kingStartPos] = dests.filter(d =>
       !((d === 'a' + rank) && dests.indexOf('c' + rank as cg.Key) !== -1) &&
         !((d === 'h' + rank) && dests.indexOf('g' + rank as cg.Key) !== -1)

@@ -3,60 +3,23 @@ import * as cg from './types'
 
 export const initial: cg.FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR';
 
-const rolesVariants: { [letter: string]: cg.Role } = {
-    p: 'pawn', r: 'rook', n: 'knight', b: 'bishop', q: 'queen', k: 'king',
-    m: 'met', f: 'ferz', s: 'silver', c: 'chancellor', a: 'archbishop',
-    h: 'hawk', e: 'elephant', y: 'yurt', l: 'lancer', u: 'unicorn', d: 'dragon', o: 'cannon'};
-// shogi
-const rolesShogi: { [letter: string]: cg.Role } = {
-    p: 'pawn', r: 'rook', n: 'knight', b: 'bishop', k: 'king', g: 'gold', s: 'silver', l: 'lance' };
-// dobutsu
-const rolesDobutsu: { [letter: string]: cg.Role } = {
-    c: 'chancellor', e: 'elephant', l: 'king', g: 'gold', h: 'hawk' };
-// xiangqi
-const rolesXiangqi: { [letter: string]: cg.Role } = {
-    p: 'pawn', r: 'rook', n: 'knight', b: 'bishop', k: 'king', c: 'cannon', a: 'advisor', m: 'banner' };
+function roles(letter: string) {
+  return (letter.replace("+", "p") + "-piece") as cg.Role;
+}
 
+function letters(role: cg.Role) {
+  const letterPart = role.slice(0, role.indexOf('-'));
+  return (letterPart.length > 1) ? letterPart.replace('p', '+') : letterPart;
+}
 
-const lettersVariants = {
-    pawn: 'p', rook: 'r', knight: 'n', bishop: 'b', queen: 'q', king: 'k', met: 'm', ferz: 'f', silver: 's', chancellor: 'c', archbishop: 'a', hawk: 'h', elephant: 'e',
-    ppawn: '+p', pknight: '+n', pbishop: '+b', prook: '+r', pferz: '+f', yurt: 'y', lancer: 'l',
-    unicorn: 'u', dragon: 'd', cannon: 'o'};
-// shogi
-const lettersShogi = {
-    pawn: 'p', rook: 'r', knight: 'n', bishop: 'b', king: 'k', gold: 'g', silver: 's', lance: 'l',
-    ppawn: '+p', pknight: '+n', pbishop: '+b', prook: '+r', psilver: '+s', plance: '+l' };
-// dobutsu
-const lettersDobutsu = {
-    chancellor: 'c', elephant: 'e', king: 'l', gold: 'g', hawk: 'h',
-    pchancellor: '+c'};
-// xiangqi
-const lettersXiangqi = {
-    pawn: 'p', rook: 'r', knight: 'n', bishop: 'b', king: 'k', cannon: 'c', advisor: 'a', banner: 'm'};
-
-export function read(fen: cg.FEN, geom: cg.Geometry): cg.Pieces {
+export function read(fen: cg.FEN): cg.Pieces {
   if (fen === 'start') fen = initial;
   if (fen.indexOf('[') !== -1) fen = fen.slice(0, fen.indexOf('['));
   const pieces: cg.Pieces = {};
   let row: number = fen.split("/").length;
   let col: number = 0;
   let promoted: boolean = false;
-
-  let roles = rolesVariants;
-  switch (geom) {
-    case cg.Geometry.dim9x10:
-    case cg.Geometry.dim7x7:
-        roles = rolesXiangqi;
-        break;
-    case cg.Geometry.dim9x9:
-    case cg.Geometry.dim5x6:
-    case cg.Geometry.dim5x5:
-        roles = rolesShogi;
-        break;
-    case cg.Geometry.dim3x4:
-        roles = rolesDobutsu;
-        break;
-  }
+  let num = 0;
 
   for (const c of fen) {
     switch (c) {
@@ -65,6 +28,7 @@ export function read(fen: cg.FEN, geom: cg.Geometry): cg.Pieces {
         --row;
         if (row === 0) return pieces;
         col = 0;
+        num = 0;
         break;
       case '+':
         promoted = true;
@@ -72,22 +36,23 @@ export function read(fen: cg.FEN, geom: cg.Geometry): cg.Pieces {
       case '~':
         const piece = pieces[pos2key([col, row])];
         if (piece) {
-            piece.promoted = true;
-            if (piece.role=='met') piece.role = 'ferz';
-        };
+          piece.promoted = true;
+        }
         break;
       default:
         const nb = c.charCodeAt(0);
-        if (nb < 58) col += (c === '0') ? 9 : nb - 48;
-        else {
-          ++col;
-          const role = c.toLowerCase();
+        if (48 <= nb && nb < 58) {
+          num = 10 * num + nb - 48;
+        } else {
+          col += 1 + num;
+          num = 0;
+          const letter = c.toLowerCase();
           let piece = {
-            role: roles[role],
-            color: (c === role ? 'black' : 'white') as cg.Color
+            role: roles(letter),
+            color: (c === letter ? 'black' : 'white') as cg.Color
           } as cg.Piece;
           if (promoted) {
-            piece.role = 'p' + piece.role as cg.Role;
+            piece.role = ('p' + piece.role) as cg.Role;
             piece.promoted = true;
             promoted = false;
           };
@@ -99,29 +64,11 @@ export function read(fen: cg.FEN, geom: cg.Geometry): cg.Pieces {
 }
 
 export function write(pieces: cg.Pieces, geom: cg.Geometry): cg.FEN {
-  var letters: any = {};
-  switch (geom) {
-  case cg.Geometry.dim7x7:
-  case cg.Geometry.dim9x10:
-    letters = lettersXiangqi;
-    break;
-  case cg.Geometry.dim3x4:
-    letters = lettersDobutsu;
-    break;
-  case cg.Geometry.dim5x5:
-  case cg.Geometry.dim5x6:
-  case cg.Geometry.dim9x9:
-    letters = lettersShogi;
-    break;
-  default:
-    letters = lettersVariants;
-    break
-  };
   const bd = cg.dimensions[geom];
   return invNRanks.slice(-bd.height).map(y => NRanks.slice(0, bd.width).map(x => {
       const piece = pieces[pos2key([x, y])];
       if (piece) {
-        const letter: string = letters[piece.role] + ((piece.promoted && (letters[piece.role].charAt(0) !== '+')) ? '~' : '');
+        const letter: string = letters(piece.role) + ((piece.promoted && (letters(piece.role).charAt(0) !== '+')) ? '~' : '');
         return (piece.color === 'white') ? letter.toUpperCase() : letter;
       } else return '1';
     }).join('')

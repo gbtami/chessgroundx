@@ -105,7 +105,7 @@ export interface State {
 
 export function defaults(): Partial<State> {
   return {
-    pieces: fen.read(fen.initial, cg.Geometry.dim8x8),
+    pieces: fen.read(fen.initial),
     orientation: 'white',
     turnColor: 'white',
     coordinates: true,
