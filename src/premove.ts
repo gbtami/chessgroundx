@@ -241,18 +241,22 @@ function janggiRook(geom: cg.Geometry): Mobility {
   const wPalace = palaces[geom]!['white'];
   const bPalace = palaces[geom]!['black'];
   return (x1, y1, x2, y2) => {
-    let additionalMobility: Mobility;
+    let additionalMobility: boolean;
     const wPalacePos = wPalace.findIndex(point => point[0] === x1 && point[1] === y1);
     const bPalacePos = bPalace.findIndex(point => point[0] === x1 && point[1] === y1);
+    const xDiff = x2 - x1;
+    const xd = Math.abs(xDiff);
+    const yDiff = y2 - y1;
+    const yd = Math.abs(yDiff);
     switch (wPalacePos !== -1 ? wPalacePos : bPalacePos) {
-      case 0: additionalMobility = (x1, y1, x2, y2) => diff(x1, x2) === diff(y1, y2) && x2 <= x1 + 2 && y2 >= y1 - 2; break;
-      case 2: additionalMobility = (x1, y1, x2, y2) => diff(x1, x2) === diff(y1, y2) && x2 >= x1 - 2 && y2 >= y1 - 2; break;
-      case 4: additionalMobility = ferz; break;
-      case 6: additionalMobility = (x1, y1, x2, y2) => diff(x1, x2) === diff(y1, y2) && x2 <= x1 + 2 && y2 <= y1 + 2; break;
-      case 8: additionalMobility = (x1, y1, x2, y2) => diff(x1, x2) === diff(y1, y2) && x2 >= x1 - 2 && y2 <= y1 + 2; break;
-      default: additionalMobility = () => false;
+      case 0: additionalMobility = xd === yd && xDiff > 0 && xDiff <= 2 && yDiff < 0 && yDiff >= -2; break;
+      case 2: additionalMobility = xd === yd && xDiff < 0 && xDiff >= -2 && yDiff < 0 && yDiff >= -2; break;
+      case 4: additionalMobility = ferz(x1, y1, x2, y2); break;
+      case 6: additionalMobility = xd === yd && xDiff > 0 && xDiff <= 2 && yDiff > 0 && yDiff <= 2; break;
+      case 8: additionalMobility = xd === yd && xDiff < 0 && xDiff >= -2 && yDiff > 0 && yDiff <= 2; break;
+      default: additionalMobility = false;
     }
-    return rook(x1, y1, x2, y2) || additionalMobility(x1, y1, x2, y2);
+    return rook(x1, y1, x2, y2) || additionalMobility;
   }
 }
 
