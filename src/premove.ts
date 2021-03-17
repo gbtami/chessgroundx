@@ -92,6 +92,17 @@ const centaur: Mobility = (x1, y1, x2, y2) => {
   return noCastlingKing(x1, y1, x2, y2) || knight(x1, y1, x2, y2);
 }
 
+// grand pawn (10x10 board, can move two squares on third row)
+function grandPawn(color: cg.Color): Mobility {
+  return (x1, y1, x2, y2) => diff(x1, x2) < 2 && (
+    color === 'white' ? (
+      y2 === y1 + 1 || (y1 <= 3 && y2 === (y1 + 2) && x1 === x2)
+    ) : (
+      y2 === y1 - 1 || (y1 >= 8 && y2 === (y1 - 2) && x1 === x2)
+    )
+  );
+}
+
 // shogi lance
 function shogiLance(color: cg.Color): Mobility {
   return (x1, y1, x2, y2) => (
@@ -427,6 +438,19 @@ export default function premove(pieces: cg.Pieces, key: cg.Key, canCastle: boole
       case 'k-piece': mobility = noCastlingKing; break; // king
     }
     break;
+
+  case 'grand':
+  case 'grandhouse':
+    switch (piece.role) {
+      case 'p-piece': mobility = grandPawn(piece.color); break; // pawn
+      case 'r-piece': mobility = rook; break; // rook
+      case 'n-piece': mobility = knight; break; // knight
+      case 'b-piece': mobility = bishop; break; // bishop
+      case 'q-piece': mobility = queen; break; // queen
+      case 'c-piece': mobility = chancellor; break; // chancellor
+      case 'a-piece': mobility = archbishop; break; // archbishop
+      case 'k-piece': mobility = noCastlingKing; break; // king
+    }
 
   case 'shako':
     switch (piece.role) {
