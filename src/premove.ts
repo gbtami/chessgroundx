@@ -207,25 +207,59 @@ const janggiElephant: Mobility = (x1, y1, x2, y2) => {
 }
 
 // janggi pawn
-function janggiPawn(color: cg.Color): Mobility {
-  // TODO add diagonal movement in palace
-  return (x1, y1, x2, y2) => (
-    (x2 === x1 && (color === 'white' ? y2 === y1 + 1 : y2 === y1 - 1)) ||
-    (y2 === y1 && diff(x1, x2) < 2)
-  );
+function janggiPawn(color: cg.Color, geom: cg.Geometry): Mobility {
+  const oppPalace = palaces[geom]![util.opposite(color)];
+  return (x1, y1, x2, y2) => {
+    let additionalMobility: Mobility;
+    switch(oppPalace.findIndex(point => point[0] === x1 && point[1] === y1)) {
+      case 0: additionalMobility = (x1, y1, x2, y2) => x2 === x1 + 1 && color === 'black' && y2 === y1 - 1; break;
+      case 2: additionalMobility = (x1, y1, x2, y2) => x2 === x1 - 1 && color === 'black' && y2 === y1 - 1; break;
+      case 4: additionalMobility = (x1, y1, x2, y2) => diff(x1, x2) === 1 && (color === 'white' ? y2 === y1 + 1 : y2 === y1 - 1); break;
+      case 6: additionalMobility = (x1, y1, x2, y2) => x2 === x1 + 1 && color === 'white' && y2 === y1 + 1; break;
+      case 8: additionalMobility = (x1, y1, x2, y2) => x2 === x1 - 1 && color === 'white' && y2 === y1 + 1; break;
+      default: additionalMobility = () => false;
+    }
+    return (x2 === x1 && (color === 'white' ? y2 === y1 + 1 : y2 === y1 - 1)) ||
+      (y2 === y1 && diff(x1, x2) < 2) ||
+      additionalMobility(x1, y1, x2, y2);
+  };
 }
 
 // janggi rook
-// TODO add diagonal movement in palace
-const janggiRook: Mobility = (x1, y1, x2, y2) => rook(x1, y1, x2, y2);
+function janggiRook(geom: cg.Geometry): Mobility {
+  const wPalace = palaces[geom]!['white'];
+  const bPalace = palaces[geom]!['black'];
+  return (x1, y1, x2, y2) => {
+    let additionalMobility: Mobility;
+    const wPalacePos = wPalace.findIndex(point => point[0] === x1 && point[1] === y1);
+    const bPalacePos = bPalace.findIndex(point => point[0] === x1 && point[1] === y1);
+    switch (wPalacePos !== -1 ? wPalacePos : bPalacePos) {
+      case 0: additionalMobility = (x1, y1, x2, y2) => diff(x1, x2) === diff(y1, y2) && x2 <= x1 + 2 && y2 >= y1 - 2; break;
+      case 2: additionalMobility = (x1, y1, x2, y2) => diff(x1, x2) === diff(y1, y2) && x2 >= x1 - 2 && y2 >= y1 - 2; break;
+      case 4: additionalMobility = ferz; break;
+      case 6: additionalMobility = (x1, y1, x2, y2) => diff(x1, x2) === diff(y1, y2) && x2 <= x1 + 2 && y2 <= y1 + 2; break;
+      case 8: additionalMobility = (x1, y1, x2, y2) => diff(x1, x2) === diff(y1, y2) && x2 >= x1 - 2 && y2 <= y1 + 2; break;
+      default: additionalMobility = () => false;
+    }
+    return rook(x1, y1, x2, y2) || additionalMobility(x1, y1, x2, y2);
+  }
+}
 
 // janggi general (king)
-// TODO correct diagonal movement in palace
 function janggiKing(color: cg.Color, geom: cg.Geometry): Mobility {
   const palace = palaces[geom]![color];
-  return (x1, y1, x2, y2) => (
-    noCastlingKing(x1, y1, x2, y2) && palace.some(point => (point[0] === x2 && point[1] === y2))
-  );
+  return (x1, y1, x2, y2) => {
+    let additionalMobility: Mobility;
+    switch(palace.findIndex(point => point[0] === x1 && point[1] === y1)) {
+      case 0: additionalMobility = (x1, y1, x2, y2) => x2 === x1 + 1 && y2 === y1 - 1; break;
+      case 2: additionalMobility = (x1, y1, x2, y2) => x2 === x1 - 1 && y2 === y1 - 1; break;
+      case 4: additionalMobility = ferz; break;
+      case 6: additionalMobility = (x1, y1, x2, y2) => x2 === x1 + 1 && y2 === y1 + 1; break;
+      case 8: additionalMobility = (x1, y1, x2, y2) => x2 === x1 - 1 && y2 === y1 + 1; break;
+      default: additionalMobility = () => false;
+    }
+    return (wazir(x1, y1, x2, y2) || additionalMobility(x1, y1, x2, y2)) && palace.some(point => (point[0] === x2 && point[1] === y2))
+  };
 }
 
 // musketeer leopard
@@ -313,9 +347,9 @@ export default function premove(pieces: cg.Pieces, key: cg.Key, canCastle: boole
 
     case 'janggi':
       switch (piece.role) {
-        case 'p-piece': mobility = janggiPawn(piece.color); break; // pawn
+        case 'p-piece': mobility = janggiPawn(piece.color, geom); break; // pawn
         case 'c-piece': // cannon
-        case 'r-piece': mobility = janggiRook; break; // rook
+        case 'r-piece': mobility = janggiRook(geom); break; // rook
         case 'n-piece': mobility = knight; break; // horse
         case 'b-piece': mobility = janggiElephant; break; // elephant
         case 'a-piece': // advisor
@@ -446,7 +480,7 @@ export default function premove(pieces: cg.Pieces, key: cg.Key, canCastle: boole
       case 'n-piece': mobility = knight; break; // knight
       case 'b-piece': mobility = bishop; break; // bishop
       case 'q-piece': mobility = queen; break; // queen
-      case 's-piece': mobility = janggiPawn(piece.color); break; // soldier
+      case 's-piece': mobility = minixiangqiPawn(piece.color); break; // soldier
       case 'e-piece': mobility = shakoElephant; break; // elephant
       case 'a-piece': mobility = noCastlingKing; break; // advisor
       case 'k-piece': mobility = king(piece.color, rookFilesOf(pieces, piece.color), canCastle); break; // king
