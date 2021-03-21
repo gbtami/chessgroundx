@@ -187,13 +187,16 @@ function renderPiece(baseUrl: string, pos: cg.Pos, piece: DrawShapePiece, bounds
   width = bounds.width / bd.width * (piece.scale || 1),
   height = bounds.height / bd.height * (piece.scale || 1),
   name = piece.color[0] + piece.role[0].toUpperCase();
+  // If baseUrl doesn't ends with '/' use it as full href
+  // This is needed when drop piece suggestion .svg image file names are different than "name" produces
+  const href = (baseUrl.endsWith('/') ? baseUrl + name + '.svg' : baseUrl);
   return setAttributes(createElement('image'), {
     className: `${piece.role} ${piece.color}`,
     x: o[0] - width / 2,
     y: o[1] - height / 2,
     width: width,
     height: height,
-    href: baseUrl + name + '.svg'
+    href: href
   });
 }
 
