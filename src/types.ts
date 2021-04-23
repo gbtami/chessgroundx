@@ -1,4 +1,4 @@
-export type Variant = 'chess' | 'makruk' | 'cambodian' | 'sittuyin' | 'shogi' | 'minishogi' | 'kyotoshogi' | 'dobutsu' | 'gorogoro' | 'xiangqi' | 'minixiangqi' | 'capablanca' | 'seirawan' | 'capahouse' | 'shouse' | 'grand' | 'grandhouse' | 'gothic' | 'gothhouse' | 'shako' | 'shogun' | 'janggi' | 'makpong' | 'orda' | 'synochess' | 'manchu' | 'musketeer' | 'hoppelpoppel' | undefined;
+export type Variant = 'chess' | 'makruk' | 'cambodian' | 'sittuyin' | 'shogi' | 'minishogi' | 'kyotoshogi' | 'dobutsu' | 'gorogoro' | 'xiangqi' | 'minixiangqi' | 'capablanca' | 'seirawan' | 'capahouse' | 'shouse' | 'grand' | 'grandhouse' | 'gothic' | 'gothhouse' | 'shako' | 'shogun' | 'janggi' | 'makpong' | 'orda' | 'synochess' | 'manchu' | 'musketeer' | 'hoppelpoppel' | 'shinobi' | undefined;
 export type Color = 'white' | 'black';
 export type Letter = typeof letters[number];
 export type Role = `${Letter}-piece` | `p${Letter}-piece`;

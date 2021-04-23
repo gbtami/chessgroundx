@@ -547,6 +547,27 @@ export default function premove(pieces: cg.Pieces, key: cg.Key, canCastle: boole
     }
     break;
 
+  case 'shinobi':
+    switch (piece.role) {
+      case 'p-piece': mobility = pawn(piece.color); break; // pawn
+      case 'pl-piece':
+      case 'r-piece': mobility = rook; break; // rook
+      case 'ph-piece':
+      case 'n-piece': mobility = knight; break; // knight
+      case 'pm-piece':
+      case 'b-piece': mobility = bishop; break; // bishop
+      case 'q-piece': mobility = queen; break; // queen
+      case 'pp-piece':
+      case 'c-piece': mobility = noCastlingKing; break; // captain
+      case 'l-piece': mobility = shogiLance(piece.color); break; // lance
+      case 'h-piece': mobility = shogiKnight(piece.color); break; // horse
+      case 'm-piece': mobility = ferz; break; // monk
+      case 'd-piece': mobility = shogiDragon; break; // dragon
+      case 'j-piece': mobility = archbishop; break; // ninja
+      case 'k-piece': mobility = king(piece.color, rookFilesOf(pieces, piece.color), canCastle); break; // king
+    }
+    break;
+
   // Variants using standard pieces and additional fairy pieces like S-chess, Capablanca, etc.
   default:
     switch (piece.role) {
