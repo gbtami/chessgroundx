@@ -1,5 +1,6 @@
-Chessground
-===========
+#Chessgroundx
+[![npm](https://img.shields.io/npm/v/chessgroundx)](https://www.npmjs.com/package/chessgroundx)
+
 
 ![Chessground Xiangqi and Shogi](/screenshot/chessgroundx.png)
 ![Chessground in 2D and 3D](/screenshot/twin.jpg)
