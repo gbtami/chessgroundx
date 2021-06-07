@@ -1,6 +1,6 @@
 import { State } from './state'
 import { colors, setVisible, createEl } from './util'
-import { files, ranks, shogiVariants, Elements, Notation } from './types'
+import { files, ranks, ranks10, shogiVariants, Elements, Notation } from './types'
 import { createElement as createSVG } from './svg'
 
 export default function wrap(element: HTMLElement, s: State, relative: boolean): Elements {
@@ -52,7 +52,7 @@ export default function wrap(element: HTMLElement, s: State, relative: boolean):
         container.appendChild(renderCoords((['0']).concat(ranks.slice(0, 9).reverse()), 'ranks' + orientClass));
         container.appendChild(renderCoords(ranks.slice(0, 9), 'files' + orientClass));
     } else {
-        container.appendChild(renderCoords(ranks.slice(0, s.dimensions.height), 'ranks' + orientClass));
+        container.appendChild(renderCoords(ranks10.slice(0, s.dimensions.height), 'ranks' + orientClass));
         container.appendChild(renderCoords(files.slice(0, s.dimensions.width), 'files' + orientClass));
     }
   }
