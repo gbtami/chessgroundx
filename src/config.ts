@@ -106,7 +106,7 @@ export function configure(state: State, config: Config) {
   if (config.fen) {
     const pieces = fenRead(config.fen);
     // prevent to cancel() already started piece drag from pocket!
-    if (state.pieces['z0'] !== undefined) pieces['z0'] = state.pieces['z0'];
+    if (state.pieces['a0'] !== undefined) pieces['a0'] = state.pieces['a0'];
     state.pieces = pieces;
     state.drawable.shapes = [];
   }
