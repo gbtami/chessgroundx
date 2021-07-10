@@ -52,6 +52,8 @@ export interface State {
   };
   predroppable: {
     enabled: boolean; // allow predrops for color that can not move
+    showDropDests: boolean; // whether to add the premove-dest class on squares
+    dropDests?: cg.Key[]; // premove destinations for the drop selection
     current?: { // current saved predrop {role: 'knight'; key: 'e4'}
       role: cg.Role;
       key: cg.Key
@@ -72,7 +74,9 @@ export interface State {
   };
   dropmode: {
     active: boolean;
+    showDropDests: boolean;
     piece?: cg.Piece;
+    dropDests?: cg.DropDests;    
   }
   selectable: {
     // disable to enforce dragging over click-click move
@@ -138,6 +142,7 @@ export function defaults(): Partial<State> {
     },
     predroppable: {
       enabled: false,
+      showDropDests: true,
       events: {}
     },
     draggable: {
@@ -149,7 +154,8 @@ export function defaults(): Partial<State> {
       deleteOnDropOff: false
     },
     dropmode: {
-      active: false
+      active: false,
+      showDropDests: true,
     },
     selectable: {
       enabled: true

@@ -41,7 +41,7 @@ export function start(s: State, e: cg.MouchEvent): void {
       (!e.touches || !s.movable.color || piece || previouslySelected || pieceCloseTo(s, position)))
        e.preventDefault();
   const hadPremove = !!s.premovable.current;
-  const hadPredrop = !!s.predroppable.current;
+  const hadPredrop = !!s.predroppable.current;//TODO: in lishogi there is also || !!s.predroppable.dropDests here. i dont understand why 
   s.stats.ctrlKey = e.ctrlKey;
   if (s.selected && board.canMove(s, s.selected, orig)) {
     anim(state => board.selectSquare(state, orig), s);
@@ -133,6 +133,12 @@ export function dragNewPiece(s: State, piece: cg.Piece, e: cg.MouchEvent, force?
     newPiece: true,
     force: !!force
   };
+
+  //TODO:in lishogi here is i guess where the dest squares are calculated. adapt to pychess
+  // if (piece && board.isPredroppable(s)) {
+  //   s.predroppable.dropDests = predrop(s.pieces, piece);
+  // }
+
   processDrag(s);
 }
 

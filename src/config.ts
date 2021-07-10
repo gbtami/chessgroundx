@@ -51,6 +51,8 @@ export interface Config {
   };
   predroppable?: {
     enabled?: boolean; // allow predrops for color that can not move
+    showDropDests?: boolean; // whether to add the premove-dest class on squares for drops
+    dropDests?: cg.Key[]; // premove destinations for the drop selection
     events?: {
       set?: (role: cg.Role, key: cg.Key) => void; // called after the predrop has been set
       unset?: () => void; // called after the predrop has been unset
@@ -77,6 +79,12 @@ export interface Config {
     select?: (key: cg.Key) => void; // called when a square is selected
     insert?: (elements: cg.Elements) => void; // when the board DOM has been (re)inserted
   };
+  dropmode?: {
+    active?: boolean;
+    piece?: cg.Piece;
+    showDropDests?: boolean; // whether to add the move-dest class on squares for drops
+    dropDests?: cg.DropDests; // valid drops. {"pawn" ["a3" "a4"] "lance" ["a3" "c3"]}
+  };
   drawable?: {
     enabled?: boolean; // can draw
     visible?: boolean; // can view
@@ -97,7 +105,8 @@ export function configure(state: State, config: Config) {
 
   // don't merge destinations. Just override.
   if (config.movable && config.movable.dests) state.movable.dests = undefined;
-
+  if (config.dropmode?.dropDests) state.dropmode.dropDests = undefined;
+  
   merge(state, config);
 
   if (config.geometry) state.dimensions = cg.dimensions[config.geometry];
@@ -106,7 +115,7 @@ export function configure(state: State, config: Config) {
   if (config.fen) {
     const pieces = fenRead(config.fen);
     // prevent to cancel() already started piece drag from pocket!
-    if (state.pieces['z0'] !== undefined) pieces['z0'] = state.pieces['z0'];
+    if (state.pieces['a0'] !== undefined) pieces['a0'] = state.pieces['a0'];
     state.pieces = pieces;
     state.drawable.shapes = [];
   }

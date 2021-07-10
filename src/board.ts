@@ -125,6 +125,7 @@ export function baseNewPiece(state: State, piece: cg.Piece, key: cg.Key, force?:
   state.check = undefined;
   callUserFunction(state.events.change);
   state.movable.dests = undefined;
+  state.dropmode.dropDests = undefined;
   state.turnColor = opposite(state.turnColor);
   return true;
 }
@@ -133,6 +134,7 @@ function baseUserMove(state: State, orig: cg.Key, dest: cg.Key): cg.Piece | bool
   const result = baseMove(state, orig, dest);
   if (result) {
     state.movable.dests = undefined;
+    state.dropmode.dropDests = undefined;
     state.turnColor = opposite(state.turnColor);
     state.animation.current = undefined;
   }
@@ -208,12 +210,16 @@ export function setSelected(state: State, key: cg.Key): void {
   if (isPremovable(state, key)) {
     state.premovable.dests = premove(state.pieces, key, state.premovable.castle, state.geometry, state.variant);
   }
-  else state.premovable.dests = undefined;
+  else {
+    state.premovable.dests = undefined;
+    state.predroppable.dropDests = undefined;
+  }
 }
 
 export function unselect(state: State): void {
   state.selected = undefined;
   state.premovable.dests = undefined;
+  state.predroppable.dropDests = undefined;
   state.hold.cancel();
 }
 
@@ -247,6 +253,17 @@ function isPremovable(state: State, orig: cg.Key): boolean {
   return !!piece && state.premovable.enabled &&
   state.movable.color === piece.color &&
     state.turnColor !== piece.color;
+}
+
+export function isPredroppable(state: State): boolean {
+  const piece = state.dropmode.active ? state.dropmode.piece : state.draggable.current?.piece;
+  return (
+    !!piece &&
+    (state.dropmode.active || state.draggable.current?.orig === 'a0') &&
+    state.predroppable.enabled &&
+    state.movable.color === piece.color &&
+    state.turnColor !== piece.color
+  );
 }
 
 function canPremove(state: State, orig: cg.Key, dest: cg.Key): boolean {
@@ -324,6 +341,7 @@ export function cancelMove(state: State): void {
 export function stop(state: State): void {
   state.movable.color =
   state.movable.dests =
+  state.dropmode.dropDests = 
   state.animation.current = undefined;
   cancelMove(state);
 }

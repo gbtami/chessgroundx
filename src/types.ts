@@ -33,6 +33,8 @@ export interface Dests {
   [key: string]: Key[]
 }
 
+export type DropDests = Map<Role, Key[]>;
+
 export interface Elements {
   board: HTMLElement;
   container: HTMLElement;

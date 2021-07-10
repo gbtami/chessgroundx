@@ -55,7 +55,11 @@ export default function render(s: State): void {
       fading = fadings[k];
       elPieceName = el.cgPiece;
       // if piece not being dragged anymore, remove dragging style
+      console.log("---------------------------------------------------------------------- curDrag="+curDrag);
       if (el.cgDragging && (!curDrag || curDrag.orig !== k)) {
+        console.log("removing dragging class from "+el);
+        console.log("curDrag="+curDrag);
+ 
         el.classList.remove('dragging');
         translate(el, posToTranslate(key2pos(k), asWhite, s.dimensions));
         el.cgDragging = false;
@@ -98,8 +102,12 @@ export default function render(s: State): void {
       }
       // no piece: flag as moved
       else {
-        if (movedPieces[elPieceName]) movedPieces[elPieceName].push(el);
-        else movedPieces[elPieceName] = [el];
+//        if ( k == "a0") {
+//          console.log("dragging a pocket piece");
+//        } else {
+          if (movedPieces[elPieceName]) movedPieces[elPieceName].push(el);
+          else movedPieces[elPieceName] = [el];
+//        }
       }
     }
     else if (isSquareNode(el)) {
@@ -233,6 +241,20 @@ function computeSquareClasses(s: State): SquareClasses {
         k = pDests[i];
         addSquare(squares, k, 'premove-dest' + (s.pieces[k] ? ' oc' : ''));
       }
+    }
+  } else if (s.dropmode.active || s.draggable.current?.orig === 'a0') {
+    const piece = s.dropmode.active ? s.dropmode.piece : s.draggable.current?.piece;
+    if (piece /*&& s.dropmode.showDropDests TODO:dont have such proerty here*/) {
+      const dests = s.dropmode.dropDests?.get(piece.role);
+      if (dests)
+        for (const k of dests) {
+          addSquare(squares, k, 'move-dest');
+        }
+      const pDests = s.predroppable.dropDests;
+      if (pDests /*&& !dests TODO:testing without it - it is not always cleaned up*/)
+       for (const k of pDests) {
+         addSquare(squares, k, 'premove-dest' + (s.pieces[k] ? ' oc' : ''));
+       }
     }
   }
   const premove = s.premovable.current;
