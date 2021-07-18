@@ -53,6 +53,10 @@ export interface Config {
     enabled?: boolean; // allow predrops for color that can not move
     showDropDests?: boolean; // whether to add the premove-dest class on squares for drops
     dropDests?: cg.Key[]; // premove destinations for the drop selection
+    current?: { // current saved predrop {role: 'knight'; key: 'e4'}
+      role: cg.Role;
+      key: cg.Key;
+    };
     events?: {
       set?: (role: cg.Role, key: cg.Key) => void; // called after the predrop has been set
       unset?: () => void; // called after the predrop has been unset

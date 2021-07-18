@@ -1,7 +1,7 @@
 import { State } from './state'
 import * as drag from './drag'
 import * as draw from './draw'
-import { cancelDropMode, drop } from './drop'
+import { drop } from './drop'
 import { eventPosition, isRightButton } from './util'
 import * as cg from './types'
 import { getKeyAtDomPos, whitePov } from './board';
@@ -68,7 +68,7 @@ function startDragOrDraw(s: State): MouchBind {
     else if (!s.viewOnly) {
       if (s.dropmode.active && !squareOccupied(s, e)) drop(s, e);
       else {
-        cancelDropMode(s);//TODO:maybe not needed if in roundctrl.onselect instead
+        //cancelDropMode(s);//TODO:maybe not needed if in roundctrl.onselect instead
         drag.start(s, e);
       }
     }
