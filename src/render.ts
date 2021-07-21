@@ -55,11 +55,7 @@ export default function render(s: State): void {
       fading = fadings[k];
       elPieceName = el.cgPiece;
       // if piece not being dragged anymore, remove dragging style
-      console.log("---------------------------------------------------------------------- curDrag="+curDrag);
       if (el.cgDragging && (!curDrag || curDrag.orig !== k)) {
-        console.log("removing dragging class from "+el);
-        console.log("curDrag="+curDrag);
- 
         el.classList.remove('dragging');
         translate(el, posToTranslate(key2pos(k), asWhite, s.dimensions));
         el.cgDragging = false;
@@ -218,6 +214,7 @@ function pieceNameOf(piece: cg.Piece): string {
 }
 
 function computeSquareClasses(s: State): SquareClasses {
+  console.log('computeSquareClasses');
   const squares: SquareClasses = {};
   let i: any, k: cg.Key;
   if (s.lastMove && s.highlight.lastMove) for (i in s.lastMove) {
@@ -244,6 +241,10 @@ function computeSquareClasses(s: State): SquareClasses {
     }
   } else if (s.dropmode.active || s.draggable.current?.orig === 'a0') {
     const piece = s.dropmode.active ? s.dropmode.piece : s.draggable.current?.piece;
+    console.log('computeSquareClasses.piece=', piece);
+    console.log('computeSquareClasses.s.dropmode.active=', s.dropmode.active);
+    console.log('computeSquareClasses.s.draggable.current=', s.draggable.current);
+
     if (piece /*&& s.dropmode.showDropDests TODO:dont have such proerty here*/) {
       const dests = s.dropmode.dropDests?.get(piece.role);
       if (dests)
@@ -251,7 +252,9 @@ function computeSquareClasses(s: State): SquareClasses {
           addSquare(squares, k, 'move-dest');
         }
       const pDests = s.predroppable.dropDests;
-      if (pDests /*&& !dests TODO:testing without it - it is not always cleaned up*/)
+      console.log('computeSquareClasses.dests=',dests);
+      console.log('computeSquareClasses.pDests=',pDests);
+      if (pDests && !dests/* TODO:testing without it - it is not always cleaned up*/)
        for (const k of pDests) {
          addSquare(squares, k, 'premove-dest' + (s.pieces[k] ? ' oc' : ''));
        }
