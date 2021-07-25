@@ -54,7 +54,14 @@ export interface State {
     enabled: boolean; // allow predrops for color that can not move
     showDropDests: boolean; // whether to add the premove-dest class on squares
     dropDests?: cg.Key[]; // premove destinations for the drop selection
-    current?: { // current saved predrop {role: 'knight'; key: 'e4'}
+    current?: { // current saved predrop {role: 'knight'; key: 'e4'}.
+      // The story here is a bit messy so deserves some comments:
+      // Note that this only stores an actually performed predrop (thus key is non-null). If just a piece is selected for dropping during
+      // opponent's turn, but not yet dropped, then it is stored in "dropmode.piece" instead. Still its possible destinations
+      // (for the purpose of highlighting), when calculated, are still stored here in
+      // this "predroppable.dropDests and not in dropmode.dropDests - even if the piece is there, its dests are here
+      // Similarly when dragging of a pocket pieces starts while it is opponents turn, but has not yet been placed on the board (as an actual predrop)
+      // the piece that is being dragged is stored in "draggable".
       role: cg.Role;
       key: cg.Key
     };

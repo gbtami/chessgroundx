@@ -60,6 +60,7 @@ function unbindable(el: EventTarget, eventName: string, callback: MouchBind, opt
   return () => el.removeEventListener(eventName, callback as EventListener);
 }
 
+//TODO:slightly misleading name - because it also handles click-moving/dropping of pieces. generally it seems to handle all click events on the board. Write some doc or even rename maybe (i guess departing too much from chessground then - see what is the state there?)
 function startDragOrDraw(s: State): MouchBind {
   return e => {
     if (s.draggable.current) drag.cancel(s);
@@ -68,7 +69,7 @@ function startDragOrDraw(s: State): MouchBind {
     else if (!s.viewOnly) {
       if (s.dropmode.active && !squareOccupied(s, e)) drop(s, e);
       else {
-        //cancelDropMode(s);//TODO:maybe not needed if in roundctrl.onselect instead
+        //cancelDropMode(s);//TODO:this is the logically correct place (as in lishogi) imho, but pocket.ts is not accessible now to be able to call updatePockets right after cancelDropMode. When pokcet.ts is moved to chessgroundx remove those lines from roundCtrl and do that here
         drag.start(s, e);
       }
     }

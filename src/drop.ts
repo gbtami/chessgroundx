@@ -3,6 +3,7 @@ import * as cg from './types'
 import * as board from './board'
 import * as util from './util'
 import { cancel as cancelDrag } from './drag'
+import predrop from "./predrop";
 
 export function setDropMode(s: State, piece?: cg.Piece): void {
   s.dropmode.active = true;
@@ -12,10 +13,9 @@ export function setDropMode(s: State, piece?: cg.Piece): void {
 
   board.unselect(s);//TODO:in lishogi they do this - what does it change?
 
-  //TODO: adapt to pychess - apparently the calc of dests is done here
-  // if (piece && board.isPredroppable(s)) {
-  //   s.predroppable.dropDests = predrop(s.pieces, piece);
-  // }
+  if (piece && board.isPredroppable(s)) {
+    s.predroppable.dropDests = predrop(s.pieces, piece, s.variant);
+  }
 
 }
 

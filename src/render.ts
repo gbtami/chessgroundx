@@ -98,12 +98,8 @@ export default function render(s: State): void {
       }
       // no piece: flag as moved
       else {
-//        if ( k == "a0") {
-//          console.log("dragging a pocket piece");
-//        } else {
-          if (movedPieces[elPieceName]) movedPieces[elPieceName].push(el);
-          else movedPieces[elPieceName] = [el];
-//        }
+        if (movedPieces[elPieceName]) movedPieces[elPieceName].push(el);
+        else movedPieces[elPieceName] = [el];
       }
     }
     else if (isSquareNode(el)) {
@@ -214,7 +210,6 @@ function pieceNameOf(piece: cg.Piece): string {
 }
 
 function computeSquareClasses(s: State): SquareClasses {
-  console.log('computeSquareClasses');
   const squares: SquareClasses = {};
   let i: any, k: cg.Key;
   if (s.lastMove && s.highlight.lastMove) for (i in s.lastMove) {
@@ -224,7 +219,7 @@ function computeSquareClasses(s: State): SquareClasses {
   }
   if (s.check && s.highlight.check) addSquare(squares, s.check, 'check');
   if (s.selected) {
-    if (s.selected != 'a0') {
+    if (s.selected != 'a0') {//TODO:is this part of gbtabi's hack where a0 was selected. so far my understanding is selecting a0 is nonsense
       addSquare(squares, s.selected, 'selected');
     }
     if (s.movable.showDests) {
@@ -244,6 +239,8 @@ function computeSquareClasses(s: State): SquareClasses {
     console.log('computeSquareClasses.piece=', piece);
     console.log('computeSquareClasses.s.dropmode.active=', s.dropmode.active);
     console.log('computeSquareClasses.s.draggable.current=', s.draggable.current);
+
+//TODO:there was a function called isPredroppable that was used in drag.ts or drop.ts or both. Maybe use the same here to decide what to render
 
     if (piece /*&& s.dropmode.showDropDests TODO:dont have such proerty here*/) {
       const dests = s.dropmode.dropDests?.get(piece.role);

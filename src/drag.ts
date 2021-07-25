@@ -4,6 +4,7 @@ import * as util from './util'
 import { clear as drawClear } from './draw'
 import * as cg from './types'
 import { anim } from './anim'
+import predrop from "./predrop";
 
 export interface DragCurrent {
   orig: cg.Key; // orig key of dragging piece
@@ -41,7 +42,7 @@ export function start(s: State, e: cg.MouchEvent): void {
       (!e.touches || !s.movable.color || piece || previouslySelected || pieceCloseTo(s, position)))
        e.preventDefault();
   const hadPremove = !!s.premovable.current;
-  const hadPredrop = !!s.predroppable.current;//TODO: in lishogi there is also || !!s.predroppable.dropDests here. i dont understand why 
+  const hadPredrop = !!s.predroppable.current;//TODO: in lishogi there is also || !!s.predroppable.dropDests here. i dont understand why. Even if true because of that it will not be reset, because later in board.unsetPredrop nothing related to dropDests happens and again a check for current is made to even do anything at all
   s.stats.ctrlKey = e.ctrlKey;
   if (s.selected && board.canMove(s, s.selected, orig)) {
     anim(state => board.selectSquare(state, orig), s);
@@ -134,10 +135,9 @@ export function dragNewPiece(s: State, piece: cg.Piece, e: cg.MouchEvent, force?
     force: !!force
   };
 
-  //TODO:in lishogi here is i guess where the dest squares are calculated. adapt to pychess
-  // if (piece && board.isPredroppable(s)) {
-  //   s.predroppable.dropDests = predrop(s.pieces, piece);
-  // }
+  if (piece && board.isPredroppable(s)) {
+    s.predroppable.dropDests = predrop(s.pieces, piece, s.variant);
+  }
 
   processDrag(s);
 }

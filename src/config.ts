@@ -53,7 +53,7 @@ export interface Config {
     enabled?: boolean; // allow predrops for color that can not move
     showDropDests?: boolean; // whether to add the premove-dest class on squares for drops
     dropDests?: cg.Key[]; // premove destinations for the drop selection
-    current?: { // current saved predrop {role: 'knight'; key: 'e4'}
+    current?: { // current saved predrop {role: 'knight'; key: 'e4'}. See corresponding type in state.ts for more comments
       role: cg.Role;
       key: cg.Key;
     };
