@@ -272,6 +272,16 @@ function canPremove(state: State, orig: cg.Key, dest: cg.Key): boolean {
   containsX(premove(state.pieces, orig, state.premovable.castle, state.geometry, state.variant), dest);
 }
 
+/**
+ * TODO: current logic is only for chess - consider call to predrop.ts instead.
+ *
+ *       Also non-chess logic is worth debugging/studying - i do not understand why this check exists: destPiece.color !== state.movable.color
+ *       is "movable" defined at all during pre-dropping?
+ *       -> Ah - maybe this checks if it is a piece of the player whose turn it is not. I would not have expected this to be stored in the movable object
+ *
+ *       TODO: sometimes in case of click-select-drop mechanics and predrop fails the selected piece remains highlighted in pocket - not sure where relevant code is so just commenting here for the time being.
+ *       TODO: why cant i predrop on an occupied square by opponent's piece if using click-drop mechanics. works when drag-drop the predrop though (tested on grandhouse)
+ **/
 function canPredrop(state: State, orig: cg.Key, dest: cg.Key): boolean {
   const piece = state.pieces[orig];
   const destPiece = state.pieces[dest];

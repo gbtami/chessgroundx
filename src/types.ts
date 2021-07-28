@@ -1,4 +1,4 @@
-export type Variant = 'chess' | 'crazyhouse' | 'makruk' | 'cambodian' | 'sittuyin' | 'shogi' | 'minishogi' | 'kyotoshogi' | 'dobutsu' | 'gorogoro' | 'xiangqi' | 'minixiangqi' | 'capablanca' | 'seirawan' | 'capahouse' | 'shouse' | 'grand' | 'grandhouse' | 'gothic' | 'gothhouse' | 'shako' | 'shogun' | 'janggi' | 'makpong' | 'orda' | 'synochess' | 'manchu' | 'musketeer' | 'hoppelpoppel' | 'shinobi' | undefined;//TODO:where is crazyhouse - why does it work?
+export type Variant = 'chess' | 'crazyhouse' | 'makruk' | 'cambodian' | 'sittuyin' | 'placement' | 'shogi' | 'minishogi' | 'kyotoshogi' | 'dobutsu' | 'gorogoro' | 'xiangqi' | 'minixiangqi' | 'capablanca' | 'seirawan' | 'capahouse' | 'shouse' | 'grand' | 'grandhouse' | 'gothic' | 'gothhouse' | 'shako' | 'shogun' | 'janggi' | 'makpong' | 'orda' | 'synochess' | 'manchu' | 'musketeer' | 'hoppelpoppel' | 'shinobi' | undefined;//TODO:where is crazyhouse - why does it work?
 export type Color = 'white' | 'black';
 export type Letter = typeof letters[number];
 export type Role = `${Letter}-piece` | `p${Letter}-piece`;
