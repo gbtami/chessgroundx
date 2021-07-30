@@ -89,7 +89,7 @@ export interface Config {
     showDropDests?: boolean; // whether to add the move-dest class on squares for drops
     dropDests?: cg.DropDests; // valid drops. {"pawn" ["a3" "a4"] "lance" ["a3" "c3"]}
     events?: {
-      cancel?: () => void;
+      cancel?: () => void;//at least temporary - i need to refresh pocket on cancel of drop mode (sometimes - when?) and pocket is currently outside chessgroundx so need to provide callback here
     }
   };
   drawable?: {

@@ -276,9 +276,8 @@ function canPremove(state: State, orig: cg.Key, dest: cg.Key): boolean {
 }
 
 /**
- * TODO: current logic is only for chess - consider call to predrop.ts instead.
  *
- *       Also non-chess logic is worth debugging/studying - i do not understand why this check exists: destPiece.color !== state.movable.color
+ *       TODO: Also non-chess logic is worth debugging/studying - i do not understand why this check exists: destPiece.color !== state.movable.color
  *       is "movable" defined at all during pre-dropping?
  *       -> Ah - maybe this checks if it is a piece of the player whose turn it is not. I would not have expected this to be stored in the movable object
  *
