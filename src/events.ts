@@ -67,7 +67,7 @@ function startDragOrDraw(s: State): MouchBind {
     else if (s.drawable.current) draw.cancel(s);
     else if (e.shiftKey || isRightButton(e)) { if (s.drawable.enabled) draw.start(s, e); }
     else if (!s.viewOnly) {
-      if (s.dropmode.active && !squareOccupied(s, e)) drop(s, e);
+      if (s.dropmode.active /*&& !squareOccupied(s, e) we dont care if occupied at this point - predrop on occupied is possible - later there are more checks*/) drop(s, e);
       else {
         //cancelDropMode(s);//TODO:this is the logically correct place (as in lishogi) imho, but pocket.ts is not accessible now to be able to call updatePockets right after cancelDropMode. When pokcet.ts is moved to chessgroundx remove those lines from roundCtrl and do that here
         drag.start(s, e);
