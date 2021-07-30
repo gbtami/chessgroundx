@@ -87,6 +87,11 @@ const chancellor: Mobility = (x1, y1, x2, y2) => {
   return rook(x1, y1, x2, y2) || knight(x1, y1, x2, y2);
 }
 
+// amazon (knight + queen)
+const amazon: Mobility = (x1, y1, x2, y2) => {
+  return bishop(x1, y1, x2, y2) || rook(x1, y1, x2, y2) || knight(x1, y1, x2, y2);
+}
+
 // shogun general (knight + king)
 const centaur: Mobility = (x1, y1, x2, y2) => {
   return noCastlingKing(x1, y1, x2, y2) || knight(x1, y1, x2, y2);
@@ -487,6 +492,7 @@ export default function premove(pieces: cg.Pieces, key: cg.Key, canCastle: boole
     break;
 
   case 'orda':
+  case 'ordamirror':
     switch (piece.role) {
       case 'p-piece': mobility = pawn(piece.color); break; // pawn
       case 'r-piece': mobility = rook; break; // rook
@@ -497,6 +503,7 @@ export default function premove(pieces: cg.Pieces, key: cg.Key, canCastle: boole
       case 'h-piece': mobility = centaur; break; // kheshig
       case 'a-piece': mobility = archbishop; break; // archer
       case 'y-piece': mobility = shogiSilver(piece.color); break; // yurt
+      case 'f-piece': mobility = amazon; break; // falcon
       case 'k-piece': mobility = king(piece.color, rookFilesOf(pieces, piece.color), canCastle); break; // king
     }
     break;
@@ -565,6 +572,22 @@ export default function premove(pieces: cg.Pieces, key: cg.Key, canCastle: boole
       case 'm-piece': mobility = ferz; break; // monk
       case 'd-piece': mobility = shogiDragon; break; // dragon
       case 'j-piece': mobility = archbishop; break; // ninja
+      case 'k-piece': mobility = king(piece.color, rookFilesOf(pieces, piece.color), canCastle); break; // king
+    }
+    break;
+
+  case 'empire':
+    switch (piece.role) {
+      case 'p-piece': mobility = pawn(piece.color); break; // pawn
+      case 's-piece': mobility = minixiangqiPawn(piece.color); break; // soldier
+      case 'r-piece': mobility = rook; break; // rook
+      case 'n-piece': mobility = knight; break; // knight
+      case 'b-piece': mobility = bishop; break; // bishop
+      case 'd-piece': // duke
+      case 't-piece': // tower
+      case 'c-piece': // cardinal
+      case 'q-piece': mobility = queen; break; // queen
+      case 'e-piece': mobility = amazon; break; // aegle
       case 'k-piece': mobility = king(piece.color, rookFilesOf(pieces, piece.color), canCastle); break; // king
     }
     break;
