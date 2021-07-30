@@ -88,6 +88,9 @@ export interface Config {
     piece?: cg.Piece;
     showDropDests?: boolean; // whether to add the move-dest class on squares for drops
     dropDests?: cg.DropDests; // valid drops. {"pawn" ["a3" "a4"] "lance" ["a3" "c3"]}
+    events?: {
+      cancel?: () => void;
+    }
   };
   drawable?: {
     enabled?: boolean; // can draw

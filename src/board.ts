@@ -1,7 +1,9 @@
 import { State } from './state'
 import { pos2key, key2pos, opposite, containsX } from './util'
 import premove from './premove'
+import predrop from './predrop'
 import * as cg from './types'
+import {cancelDropMode} from "./drop";
 
 export type Callback = (...args: any[]) => void;
 
@@ -180,6 +182,7 @@ export function dropNewPiece(state: State, orig: cg.Key, dest: cg.Key, force?: b
   } else {
     unsetPremove(state);
     unsetPredrop(state);
+    cancelDropMode(state);
   }
   delete state.pieces[orig];
   unselect(state);
@@ -284,11 +287,15 @@ function canPremove(state: State, orig: cg.Key, dest: cg.Key): boolean {
  **/
 function canPredrop(state: State, orig: cg.Key, dest: cg.Key): boolean {
   const piece = state.pieces[orig];
+  if (!piece){
+    return false;
+  }
   const destPiece = state.pieces[dest];
-  return !!piece && dest &&
+  const isValidPredrop = containsX(predrop(state.pieces, piece, state.variant), dest);
+  return dest &&
   (!destPiece || destPiece.color !== state.movable.color) &&
-  state.predroppable.enabled &&
-  (piece.role !== 'p-piece' || (dest[1] !== '1' && dest[1] !== '8')) &&
+  state.predroppable.enabled && isValidPredrop
+  /*(piece.role !== 'p-piece' || (dest[1] !== '1' && dest[1] !== '8'))*/ &&
   state.movable.color === piece.color &&
     state.turnColor !== piece.color;
 }

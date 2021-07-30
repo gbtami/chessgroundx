@@ -219,9 +219,7 @@ function computeSquareClasses(s: State): SquareClasses {
   }
   if (s.check && s.highlight.check) addSquare(squares, s.check, 'check');
   if (s.selected) {
-    if (s.selected != 'a0') {//TODO:is this part of gbtabi's hack where a0 was selected. so far my understanding is selecting a0 is nonsense
-      addSquare(squares, s.selected, 'selected');
-    }
+    addSquare(squares, s.selected, 'selected');
     if (s.movable.showDests) {
       const dests = s.movable.dests && s.movable.dests[s.selected];
       if (dests) for (i in dests) {
@@ -236,25 +234,23 @@ function computeSquareClasses(s: State): SquareClasses {
     }
   } else if (s.dropmode.active || s.draggable.current?.orig === 'a0') {
     const piece = s.dropmode.active ? s.dropmode.piece : s.draggable.current?.piece;
-    console.log('computeSquareClasses.piece=', piece);
-    console.log('computeSquareClasses.s.dropmode.active=', s.dropmode.active);
-    console.log('computeSquareClasses.s.draggable.current=', s.draggable.current);
 
-//TODO:there was a function called isPredroppable that was used in drag.ts or drop.ts or both. Maybe use the same here to decide what to render
-
-    if (piece /*&& s.dropmode.showDropDests TODO:dont have such proerty here*/) {
-      const dests = s.dropmode.dropDests?.get(piece.role);
-      if (dests)
-        for (const k of dests) {
-          addSquare(squares, k, 'move-dest');
-        }
-      const pDests = s.predroppable.dropDests;
-      console.log('computeSquareClasses.dests=',dests);
-      console.log('computeSquareClasses.pDests=',pDests);
-      if (pDests && !dests/* TODO:testing without it - it is not always cleaned up*/)
-       for (const k of pDests) {
-         addSquare(squares, k, 'premove-dest' + (s.pieces[k] ? ' oc' : ''));
-       }
+    if (piece) {
+      //TODO:there was a function called isPredroppable that was used in drag.ts or drop.ts or both. Maybe use the same here to decide what to render
+      if (s.dropmode.showDropDests) {
+        const dests = s.dropmode.dropDests?.get(piece.role);
+        if (dests)
+          for (const k of dests) {
+            addSquare(squares, k, 'move-dest');
+          }
+      }
+      if (s.predroppable.showDropDests) {
+        const pDests = s.predroppable.dropDests;
+        if (pDests)
+          for (const k of pDests) {
+            addSquare(squares, k, 'premove-dest' + (s.pieces[k] ? ' oc' : ''));
+          }
+      }
     }
   }
   const premove = s.premovable.current;
