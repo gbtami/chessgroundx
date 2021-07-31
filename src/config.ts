@@ -51,9 +51,9 @@ export interface Config {
   };
   predroppable?: {
     enabled?: boolean; // allow predrops for color that can not move
-    showDropDests?: boolean; // whether to add the premove-dest class on squares for drops
-    dropDests?: cg.Key[]; // premove destinations for the drop selection
-    current?: { // current saved predrop {role: 'knight'; key: 'e4'}. See corresponding type in state.ts for more comments
+    showDropDests?: boolean;
+    dropDests?: cg.Key[];
+    current?: { //See corresponding type in state.ts for more comments
       role: cg.Role;
       key: cg.Key;
     };
@@ -87,9 +87,9 @@ export interface Config {
     active?: boolean;
     piece?: cg.Piece;
     showDropDests?: boolean; // whether to add the move-dest class on squares for drops
-    dropDests?: cg.DropDests; // valid drops. {"pawn" ["a3" "a4"] "lance" ["a3" "c3"]}
+    dropDests?: cg.DropDests; // see corresponding state.ts type for comments
     events?: {
-      cancel?: () => void;//at least temporary - i need to refresh pocket on cancel of drop mode (sometimes - when?) and pocket is currently outside chessgroundx so need to provide callback here
+      cancel?: () => void;//at least temporary - i need to refresh pocket on cancel of drop mode (mainly to clear the highlighting of the selected pocket piece) and pocket is currently outside chessgroundx so need to provide callback here
     }
   };
   drawable?: {

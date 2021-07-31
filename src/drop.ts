@@ -12,7 +12,7 @@ export function setDropMode(s: State, piece?: cg.Piece): void {
 
   cancelDrag(s);
 
-  board.unselect(s);//TODO:in lishogi they do this - what does it change?
+  board.unselect(s);
 
   if (piece && board.isPredroppable(s)) {
     s.predroppable.dropDests = predrop(s.pieces, piece, s.variant);

@@ -52,7 +52,7 @@ export interface State {
   };
   predroppable: {
     enabled: boolean; // allow predrops for color that can not move
-    showDropDests: boolean; // whether to add the premove-dest class on squares
+    showDropDests: boolean; // whether to add the premove-dest css class on dest squares. Maybe an overkill to have this showDest and showDrop dests in each and every place, but could make sense one day
     dropDests?: cg.Key[]; // premove destinations for the currently "selected" piece for pre-dropping. Both in case of drag-drop or click-drop
     current?: { // current saved predrop {role: 'knight'; key: 'e4'}.
       // The story here is a bit messy so deserves some comments:
@@ -79,11 +79,11 @@ export interface State {
     deleteOnDropOff: boolean; // delete a piece when it is dropped off the board
     current?: DragCurrent;
   };
-  dropmode: {//used for pocket pieces drops. Both in case of click-drop and drag-drop from pocket it stores the piece and possible dests from highlighting
+  dropmode: {//used for pocket pieces drops. 
     active: boolean;
     showDropDests: boolean;
     piece?: cg.Piece;
-    dropDests?: cg.DropDests;
+    dropDests?: cg.DropDests;//Both in case of click-drop and drag-drop from pocket it stores the possible dests from highlighting (TODO:which is not great to use this for both cases imho)
     events?: { cancel?: () => void; }
   }
   selectable: {

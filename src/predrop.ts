@@ -2,7 +2,7 @@ import * as util from './util'
 import * as cg from './types'
 
 export default function predrop(pieces: cg.Pieces, piece: cg.Piece, /*canCastle: boolean, geom: cg.Geometry,*/ variant: cg.Variant): cg.Key[] {
-	console.log("predrop. variant=",variant," piece=",piece, "pieces=",pieces);
+	//console.log("predrop. variant=",variant," piece=",piece, "pieces=",pieces);
 	//const geom = cg.dimensions[cg.Geometry.dim8x8];
 	switch (variant) {
 		case 'crazyhouse':

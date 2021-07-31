@@ -42,7 +42,7 @@ export function start(s: State, e: cg.MouchEvent): void {
       (!e.touches || !s.movable.color || piece || previouslySelected || pieceCloseTo(s, position)))
        e.preventDefault();
   const hadPremove = !!s.premovable.current;
-  const hadPredrop = !!s.predroppable.current;//TODO: in lishogi there is also || !!s.predroppable.dropDests here. i dont understand why. Even if true because of that it will not be reset, because later in board.unsetPredrop nothing related to dropDests happens and again a check for current is made to even do anything at all
+  const hadPredrop = !!s.predroppable.current;
   s.stats.ctrlKey = e.ctrlKey;
   if (s.selected && board.canMove(s, s.selected, orig)) {
     anim(state => board.selectSquare(state, orig), s);

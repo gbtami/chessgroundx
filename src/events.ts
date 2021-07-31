@@ -61,7 +61,7 @@ function unbindable(el: EventTarget, eventName: string, callback: MouchBind, opt
   return () => el.removeEventListener(eventName, callback as EventListener);
 }
 
-//TODO:slightly misleading name - because it also handles click-moving/dropping of pieces. generally it seems to handle all click events on the board. Write some doc or even rename maybe (i guess departing too much from chessground then - see what is the state there?)
+//slightly misleading name - because it also handles click-moving/dropping of pieces. generally it seems to handle all click events on the board. 
 function startDragOrDraw(s: State): MouchBind {
   return e => {
     if (s.draggable.current) drag.cancel(s);
