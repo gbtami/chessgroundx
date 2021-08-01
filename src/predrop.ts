@@ -41,6 +41,8 @@ export default function predrop(pieces: cg.Pieces, piece: cg.Piece, /*canCastle:
 			//all pieces can be pre-dropped on any empty square the first rank only
 			//this means we can take into account non-empty squares and exclude them as possible dests although maybe overkill
 			return predropPlacement(pieces, piece);
+		case 'synochess':
+			return predropSynochess(pieces, piece);
 		default:
 			console.warn("Unknown variant:", variant);
 			return util.allKeys(cg.Geometry.dim8x8);//TODO:get geomtry from param maybe
@@ -388,6 +390,25 @@ function predropPlacement(pieces: cg.Pieces, dropPiece: cg.Piece): cg.Key[] {
 			(!p || p.color !== color) /*TODO: this is not 100% right because of en passant - i.e a same color piece can be taken but without the square to end up occupied by opps piece - other variants that have en passant maybe have same issue - leaving it like this, because too ugly to highlight whole board somehow and too sophisticated to detect possible en passants and allow such pawns as dests*/
 			&&
 			firstRow(key, color)
+		);
+	});
+}
+
+/**
+ * 8x8
+ * only on 5th rank
+ */
+function predropSynochess(pieces: cg.Pieces, dropPiece: cg.Piece): cg.Key[] {
+
+	const color = dropPiece.color;
+	const allk : cg.Key[] = util.allKeys(cg.Geometry.dim8x8);
+
+	return allk.filter(key => {
+		const p = pieces[key];
+		return (
+			(!p || p.color !== color)
+			&&
+			key[1] === '5'
 		);
 	});
 }
