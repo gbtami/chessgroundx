@@ -43,6 +43,8 @@ export default function predrop(pieces: cg.Pieces, piece: cg.Piece, /*canCastle:
 			return predropPlacement(pieces, piece);
 		case 'synochess':
 			return predropSynochess(pieces, piece);
+		case 'shinobi':
+			return predropShinobi(pieces, piece);
 		default:
 			console.warn("Unknown variant:", variant);
 			return util.allKeys(cg.Geometry.dim8x8);//TODO:get geomtry from param maybe
@@ -409,6 +411,25 @@ function predropSynochess(pieces: cg.Pieces, dropPiece: cg.Piece): cg.Key[] {
 			(!p || p.color !== color)
 			&&
 			key[1] === '5'
+		);
+	});
+}
+
+/**
+ * 8x8
+ * only on 1th-4th rank
+ */
+function predropShinobi(pieces: cg.Pieces, dropPiece: cg.Piece): cg.Key[] {
+
+	const color = dropPiece.color;
+	const allk : cg.Key[] = util.allKeys(cg.Geometry.dim8x8);
+
+	return allk.filter(key => {
+		const p = pieces[key];
+		return (
+			(!p || p.color !== color)
+			&&
+			(key[1] === '1' || key[1] === '2' || key[1] === '3' || key[1] === '4')
 		);
 	});
 }
