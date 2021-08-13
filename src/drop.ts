@@ -15,7 +15,7 @@ export function setDropMode(s: State, piece?: cg.Piece): void {
   board.unselect(s);
 
   if (piece && board.isPredroppable(s)) {
-    s.predroppable.dropDests = predrop(s.pieces, piece, s.variant);
+    s.predroppable.dropDests = predrop(s.pieces, piece, s.geometry, s.variant);
   }
 
 }

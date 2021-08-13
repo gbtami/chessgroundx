@@ -1,105 +1,83 @@
 import * as util from './util'
 import * as cg from './types'
 
-export default function predrop(pieces: cg.Pieces, piece: cg.Piece, /*canCastle: boolean, geom: cg.Geometry,*/ variant: cg.Variant): cg.Key[] {
-	//console.log("predrop. variant=",variant," piece=",piece, "pieces=",pieces);
-	//const geom = cg.dimensions[cg.Geometry.dim8x8];
+export default function predrop(pieces: cg.Pieces, piece: cg.Piece, /*canCastle: boolean,*/ geom: cg.Geometry, variant: cg.Variant): cg.Key[] {
+
 	switch (variant) {
 		case 'crazyhouse':
-			return predropCrazyhouse(pieces, piece);
+			return predropCrazyhouse(piece);
 		case 'shogi':
-			return predropShogi(pieces, piece);
+			return predropShogi(piece);
 		case 'minishogi':
-			return predropMiniShogi(pieces, piece);
+			return predropMiniShogi(piece);
 		case 'gorogoro':
-			return predropGorogo(pieces, piece);
+			return predropGorogo(piece);
 		case 'kyotoshogi':
-			return predropKyotoShogi(pieces, piece);
+			return predropKyotoShogi();
 		case 'dobutsu':
-			return predropDobutsu(pieces, piece);
+			return predropDobutsu();
 		case 'grandhouse':
-			return predropGrandhouse(pieces, piece);
+			return predropGrandhouse(piece);
 		case 'shogun':
-			return predropShogun(pieces, piece);
+			return predropShogun(piece);
 		case 'shouse':
-			return predropSHouse(pieces, piece);
+			return predropSHouse(piece);
 		case 'capahouse':
-			return predropCapaHouse(pieces, piece);
+			return predropCapaHouse(piece);
 		case 'gothhouse':
-			//10x8
-			//cannot find it this anywhere - there is something called gothic starting position though in capahouse for example
-			//see chess.ts -> disabledVariants
-			return predropGothHouse(pieces, piece);
+			return predropGothHouse(piece);
 		case 'sittuyin':
-			//8x8
-			//r-piece on first rank only as far as i can tell - havent read it anywhere
-			//rest pieces can be pre-dropped on any empty square first 2 ranks and right-most 4 squares of the 3d rank
-			//this means we can take into account non-empty squares and exclude them as possible dests although maybe overkill
 			return predropSittuyin(pieces, piece);
 		case 'placement':
-			//8x8
-			//all pieces can be pre-dropped on any empty square the first rank only
-			//this means we can take into account non-empty squares and exclude them as possible dests although maybe overkill
 			return predropPlacement(pieces, piece);
 		case 'synochess':
-			return predropSynochess(pieces, piece);
+			return predropSynochess();
 		case 'shinobi':
-			return predropShinobi(pieces, piece);
+			return predropShinobi();
 		default:
 			console.warn("Unknown variant:", variant);
-			return util.allKeys(cg.Geometry.dim8x8);//TODO:get geomtry from param maybe
+			return util.allKeys(geom);
 	}
-
-	return util.allKeys(cg.Geometry.dim8x8)
 }
 
-function predropCrazyhouse(pieces: cg.Pieces, dropPiece: cg.Piece): cg.Key[] {
-	function lastRow(key: cg.Key, color: cg.Color): boolean {
-		return color === 'white' ?
-			key[1] === '8':
-			key[1] === '1';
-	}
-
-	function firstRow(key: cg.Key, color: cg.Color): boolean {
-		return color === 'white' ?
-			key[1] === '1':
-			key[1] === '8';
-	}
+/**
+ * 8x8
+ * everything everwhere except pawn cannot be dropped on 1st and last rank
+ * */
+function predropCrazyhouse(dropPiece: cg.Piece): cg.Key[] {
 
 	const color = dropPiece.color;
 	const role = dropPiece.role;
-	const allk : cg.Key[] = util.allKeys(cg.Geometry.dim8x8);
+	const geom = cg.Geometry.dim8x8;
 
-	return allk.filter(key => {
-		const p = pieces[key];
-		return (
-			(!p || p.color !== color) /*TODO: this is not 100% right because of en passant - i.e a same color piece can be taken but without the square to end up occupied by opps piece - other variants that have en passant maybe have same issue - leaving it like this, because too ugly to highlight whole board somehow and too sophisticated to detect possible en passants and allow such pawns as dests*/
-			&&
-			(role === 'p-piece' ? !lastRow(key, color) && !firstRow(key, color) : true)
-		);
+	return util.allKeys(geom).filter(key => {
+		return role !== 'p-piece' ||
+			!isLastRank(key, color, geom, 0) && !isFirstRank(key, color, geom, 0) ;
 	});
 }
 
-export function predropShogi(pieces: cg.Pieces, dropPiece: cg.Piece): cg.Key[] {
-
-	function lastRow(key: cg.Key, color: cg.Color): boolean {
-		return color === /*'sente'*/'white' ? key[1] === '9' : key[1] === '1';
-	}
-
-	function lastTwoRows(key: cg.Key, color: cg.Color): boolean {
-		return color === /*'sente'*/'white' ? key[1] === '8' || key[1] === '9' : key[1] === '1' || key[1] === '2';
-	}
+/**
+ * 9x9
+ * - p and l cannot be dropped on last row (but can on first).
+ * - n cannot also be dropped on second to last row either.
+ * Everything else can be PREdropped everywhere
+ * */
+export function predropShogi(dropPiece: cg.Piece): cg.Key[] {
 
 	const color = dropPiece.color;
 	const role = dropPiece.role;
-	const allk : cg.Key[] = util.allKeys(cg.Geometry.dim9x9);
-	return allk.filter(key => {
-		const p = pieces[key];
-		return (//TODO:i came up with l-piece and n-piece and n-piece names by guesswork - works for pawns it seems to me while testing but no idea if i guessed the other two piece names right
-			(!p || p.color !== color) &&
-				//p and l cannot be dropped on last row (but can on first). n cannot also be dropped on second to last row either.
-			(role === 'p-piece'/*'pawn'*/ || role === 'l-piece'/*'lance'*/ ? !lastRow(key, color) : role === 'n-piece'/*'knight'*/ ? !lastTwoRows(key, color) : true)
-		);
+	const geom = cg.Geometry.dim9x9;
+
+	return util.allKeys(geom).filter(key => {
+		switch (role) {
+			case "p-piece":
+			case "l-piece":
+				return !isLastRank(key, color, geom, 0);
+			case "n-piece":
+				return !isLastRank(key, color, geom, 0) && !isLastRank(key, color, geom, 1);
+			default:
+				return true;
+		}
 	});
 }
 
@@ -107,77 +85,47 @@ export function predropShogi(pieces: cg.Pieces, dropPiece: cg.Piece): cg.Key[] {
  * 5x5
  * p-piece cannot be dropped on last row
  */
-export function predropMiniShogi(pieces: cg.Pieces, dropPiece: cg.Piece): cg.Key[] {
-	function lastRow(key: cg.Key, color: cg.Color): boolean {
-		return color === /*'sente'*/'white' ? key[1] === '5' : key[1] === '1';
-	}
+export function predropMiniShogi(dropPiece: cg.Piece): cg.Key[] {
 
 	const color = dropPiece.color;
 	const role = dropPiece.role;
-	const allk : cg.Key[] = util.allKeys(cg.Geometry.dim5x5);
-	return allk.filter(key => {
-		const p = pieces[key];
-		return (
-			(!p || p.color !== color) &&
-			//p cannot be dropped on last row (but can on first).
-			(role === 'p-piece'/*'pawn'*/ ? !lastRow(key, color) : true)
-		);
+	const geom = cg.Geometry.dim5x5;
+	return util.allKeys(geom).filter(key => {
+		return (role === 'p-piece'/*'pawn'*/ ? !isLastRank(key, color, geom, 0) : true);
 	});
 
 }
 
 /**
  * 5x6
- * p-piece cannot be dropped on last row
+ * p-piece cannot be dropped on last row (but can on first)
  * (Almost identical to minishogi except board size - still prefer to "repeat myself" for sake being more clear)
  */
-export function predropGorogo(pieces: cg.Pieces, dropPiece: cg.Piece): cg.Key[] {
-	function lastRow(key: cg.Key, color: cg.Color): boolean {
-		return color === /*'sente'*/'white' ? key[1] === '6' : key[1] === '1';
-	}
+export function predropGorogo( dropPiece: cg.Piece): cg.Key[] {
 
 	const color = dropPiece.color;
 	const role = dropPiece.role;
-	const allk : cg.Key[] = util.allKeys(cg.Geometry.dim5x6);
-	return allk.filter(key => {
-		const p = pieces[key];
-		return (
-			(!p || p.color !== color) &&
-			//p cannot be dropped on last row (but can on first).
-			(role === 'p-piece' ? !lastRow(key, color) : true)
-		);
+	const geom = cg.Geometry.dim5x6
+	return util.allKeys(geom).filter(key => {
+		return role === 'p-piece' ? !isLastRank(key, color, geom, 0) : true;
 	});
 
 }
 
 /**
  * 5x5
- * Seems to me anything can be dropped anywhere (except as usual on own pieces)
+ * Anything can be predropped anywhere
  */
-export function predropKyotoShogi(pieces: cg.Pieces, dropPiece: cg.Piece): cg.Key[] {
-
-	const color = dropPiece.color;
-	const allk : cg.Key[] = util.allKeys(cg.Geometry.dim5x5);
-	return allk.filter(key => {
-		const p = pieces[key];
-		return !p || p.color !== color;
-	});;
-
+export function predropKyotoShogi(): cg.Key[] {
+	return util.allKeys(cg.Geometry.dim5x5);
 }
 
 /**
  * 3x4 (3 files)
  * no restrictions for dropping
  */
-export function predropDobutsu(pieces: cg.Pieces, dropPiece: cg.Piece): cg.Key[] {
-
-	const color = dropPiece.color;
-	const allk : cg.Key[] = util.allKeys(cg.Geometry.dim3x4);
-	return allk.filter(key => {
-		const p = pieces[key];
-		return !p || p.color !== color;
-	});
-
+export function predropDobutsu(): cg.Key[] {
+	return util.allKeys(cg.Geometry.dim3x4);
 }
 
 
@@ -185,88 +133,54 @@ export function predropDobutsu(pieces: cg.Pieces, dropPiece: cg.Piece): cg.Key[]
  * 10x10
  * cannot drop pawns on 1st and last 3 ranks (8th to 10th)
  */
-export function predropGrandhouse(pieces: cg.Pieces, dropPiece: cg.Piece): cg.Key[] {
-	function lastThreeRows(key: cg.Key, color: cg.Color): boolean {
-		return color === 'white' ?
-			key[1] === '8' || key[1] === '9' || key[1] === ':'/*means 10*/ :
-			key[1] === '1' || key[1] === '2' || key[1] === '3';
-	}
-
-	function firstRow(key: cg.Key, color: cg.Color): boolean {
-		return color === 'white' ?
-			key[1] === '1':
-			key[1] === ':'/*means 10*/;
-	}
+export function predropGrandhouse(dropPiece: cg.Piece): cg.Key[] {
 
 	const color = dropPiece.color;
 	const role = dropPiece.role;
-	const allk : cg.Key[] = util.allKeys(cg.Geometry.dim10x10);
+	const geom = cg.Geometry.dim10x10;
 
-	return allk.filter(key => {
-		const p = pieces[key];
-		return (
-			(!p || p.color !== color) /*TODO: this is not 100% right because of en passant - i.e a same color piece can be taken but without the square to end up occupied by opps piece - other variants that have en passant maybe have same issue - leaving it like this, because too ugly to highlight whole board somehow and too sophisticated to detect possible en passants and allow such pawns as dests*/
-			&&
-			(role === 'p-piece' ? !lastThreeRows(key, color) && !firstRow(key, color) : true)
-		);
+	return util.allKeys(geom).filter(key => {
+		return role === 'p-piece' ?
+				 !isLastRank(key, color, geom, 0) &&
+				 !isLastRank(key, color, geom, 1) &&
+				 !isLastRank(key, color, geom, 2) &&
+				 !isFirstRank(key, color, geom, 0) :
+				 true;
 	});
-
 }
 
 /**
  * 8x8
  * anything can be dropped anywhere except the last 3 ranks (aka the promotion zone). This also means pawns can be dropped on 1st rank.
  * */
-export function predropShogun(pieces: cg.Pieces, dropPiece: cg.Piece): cg.Key[] {
-	function lastThreeRows(key: cg.Key, color: cg.Color): boolean {
-		return color === 'white' ?
-			key[1] === '6' || key[1] === '7' || key[1] === '8':
-			key[1] === '1' || key[1] === '2' || key[1] === '3';
-	}
+export function predropShogun(dropPiece: cg.Piece): cg.Key[] {
 
 	const color = dropPiece.color;
-	const allk : cg.Key[] = util.allKeys(cg.Geometry.dim8x8);
+	const geom = cg.Geometry.dim8x8;
 
-	return allk.filter(key => {
-		const p = pieces[key];
+	return util.allKeys(geom).filter(key => {
 		return (
-			(!p || p.color !== color) /*TODO: this is not 100% right because of en passant - i.e a same color piece can be taken but without the square to end up occupied by opps piece - other variants that have en passant maybe have same issue - leaving it like this, because too ugly to highlight whole board somehow and too sophisticated to detect possible en passants and allow such pawns as dests*/
-			&&
-			!lastThreeRows(key, color)
+			!isLastRank(key, color, geom, 0) &&
+			!isLastRank(key, color, geom, 1) &&
+			!isLastRank(key, color, geom, 2)
 		);
 	});
-
 }
-
 
 /**
  * 8x8
  * no drop of p-piece on first and last rank (like zh)
  */
-function predropSHouse(pieces: cg.Pieces, dropPiece: cg.Piece): cg.Key[] {
-	function lastRow(key: cg.Key, color: cg.Color): boolean {
-		return color === 'white' ?
-			key[1] === '8':
-			key[1] === '1';
-	}
-
-	function firstRow(key: cg.Key, color: cg.Color): boolean {
-		return color === 'white' ?
-			key[1] === '1':
-			key[1] === '8';
-	}
+function predropSHouse(dropPiece: cg.Piece): cg.Key[] {
 
 	const color = dropPiece.color;
 	const role = dropPiece.role;
-	const allk : cg.Key[] = util.allKeys(cg.Geometry.dim8x8);
+	const geom = cg.Geometry.dim8x8;
 
-	return allk.filter(key => {
-		const p = pieces[key];
-		return (
-			(!p || p.color !== color) /*TODO: this is not 100% right because of en passant - i.e a same color piece can be taken but without the square to end up occupied by opps piece - other variants that have en passant maybe have same issue - leaving it like this, because too ugly to highlight whole board somehow and too sophisticated to detect possible en passants and allow such pawns as dests*/
-			&&
-			(role === 'p-piece' ? !lastRow(key, color) && !firstRow(key, color) : true)
-		);
+	return util.allKeys(geom).filter(key => {
+		return role === 'p-piece' ?
+			!isLastRank(key, color, geom, 0) && !isFirstRank(key, color, geom, 0) :
+			true;
 	});
 }
 
@@ -274,124 +188,82 @@ function predropSHouse(pieces: cg.Pieces, dropPiece: cg.Piece): cg.Key[] {
  * 10x8
  * no drop of p-piece on first and last rank (like zh)
  */
-function predropCapaHouse(pieces: cg.Pieces, dropPiece: cg.Piece): cg.Key[] {
-	function lastRow(key: cg.Key, color: cg.Color): boolean {
-		return color === 'white' ?
-			key[1] === '8':
-			key[1] === '1';
-	}
-
-	function firstRow(key: cg.Key, color: cg.Color): boolean {
-		return color === 'white' ?
-			key[1] === '1':
-			key[1] === '8';
-	}
+function predropCapaHouse(dropPiece: cg.Piece): cg.Key[] {
 
 	const color = dropPiece.color;
 	const role = dropPiece.role;
-	const allk : cg.Key[] = util.allKeys(cg.Geometry.dim10x8);
+	const geom = cg.Geometry.dim10x8;
 
-	return allk.filter(key => {
-		const p = pieces[key];
-		return (
-			(!p || p.color !== color) /*TODO: this is not 100% right because of en passant - i.e a same color piece can be taken but without the square to end up occupied by opps piece - other variants that have en passant maybe have same issue - leaving it like this, because too ugly to highlight whole board somehow and too sophisticated to detect possible en passants and allow such pawns as dests*/
-			&&
-			(role === 'p-piece' ? !lastRow(key, color) && !firstRow(key, color) : true)
-		);
+	return util.allKeys(geom).filter(key => {
+		return role === 'p-piece' ?
+			!isLastRank(key, color, geom, 0) && !isFirstRank(key, color, geom, 0) :
+			true;
 	});
 }
 
-
 /**
- * 10x8
  * TODO: i havent tested it - need to figure out how to enable it
  *       just copied same logic from predropCapaHouse - no idea if makes sense at all
  */
-function predropGothHouse(pieces: cg.Pieces, dropPiece: cg.Piece): cg.Key[] {
-	function lastRow(key: cg.Key, color: cg.Color): boolean {
-		return color === 'white' ?
-			key[1] === '8':
-			key[1] === '1';
-	}
-
-	function firstRow(key: cg.Key, color: cg.Color): boolean {
-		return color === 'white' ?
-			key[1] === '1':
-			key[1] === '8';
-	}
+function predropGothHouse(dropPiece: cg.Piece): cg.Key[] {
 
 	const color = dropPiece.color;
 	const role = dropPiece.role;
-	const allk : cg.Key[] = util.allKeys(cg.Geometry.dim10x8);
+	const geom = cg.Geometry.dim10x8;
 
-	return allk.filter(key => {
-		const p = pieces[key];
-		return (
-			(!p || p.color !== color) /*TODO: this is not 100% right because of en passant - i.e a same color piece can be taken but without the square to end up occupied by opps piece - other variants that have en passant maybe have same issue - leaving it like this, because too ugly to highlight whole board somehow and too sophisticated to detect possible en passants and allow such pawns as dests*/
-			&&
-			(role === 'p-piece' ? !lastRow(key, color) && !firstRow(key, color) : true)
-		);
+	return util.allKeys(geom).filter(key => {
+		return role === 'p-piece' ?
+			!isLastRank(key, color, geom, 0) && !isFirstRank(key, color, geom, 0) :
+			true;
 	});
 }
-
 
 /**
  * 8x8
  * r-piece on first rank only as far as i can tell
- * rest pieces can be pre-dropped on any empty square first 2 ranks and right-most 4 squares of the 3d rank
+ * rest of the pieces can be pre-dropped on any empty square first 2 ranks and right-most 4 squares of the 3d rank
  **/
 function predropSittuyin(pieces: cg.Pieces, dropPiece: cg.Piece): cg.Key[] {
 
-	function firstRow(key: cg.Key, color: cg.Color): boolean {
+	function isRightMostHalfRank(key: cg.Key, color: cg.Color): boolean {
 		return color === 'white' ?
-			key[1] === '1':
-			key[1] === '8';
-	}
-
-	function firstSecondRowOrThirdHalfRow(key: cg.Key, color: cg.Color): boolean {
-		return color === 'white' ?
-			key[1] === '1' || key[1] === '2' || (key[1] === '3' && "efgh".includes( key[0] ) ):
-			key[1] === '8' || key[1] === '7' || (key[1] === '6' && "abcd".includes( key[0] ) );
+			 "efgh".includes( key[0] ) :
+			 "abcd".includes( key[0] ) ;
 	}
 
 	const color = dropPiece.color;
 	const role = dropPiece.role;
-	const allk : cg.Key[] = util.allKeys(cg.Geometry.dim8x8);
+	const geom = cg.Geometry.dim8x8;
 
-	return allk.filter(key => {
+	return util.allKeys(geom).filter(key => {
 		const p = pieces[key];
-		return (
-			(!p || p.color !== color) /*TODO: this is not 100% right because of en passant - i.e a same color piece can be taken but without the square to end up occupied by opps piece - other variants that have en passant maybe have same issue - leaving it like this, because too ugly to highlight whole board somehow and too sophisticated to detect possible en passants and allow such pawns as dests*/
-			&&
-			( firstRow(key,color) ||
-				( role !== 'r-piece' && firstSecondRowOrThirdHalfRow(key, color) )
-			)
-		);
+		return !p && // square should be empty - unlike other variants - here drop phase is in the beginning and separate
+			         // from move phase that starts after all drops are made, so there is no way a square to be vacated
+			(isFirstRank(key,color, geom, 0) /*for r-piece*/ ||
+			   role !== 'r-piece' && (
+					isFirstRank(key, color, geom, 0) ||
+					isFirstRank(key, color, geom, 1) ||
+					(isFirstRank(key, color, geom, 2) && isRightMostHalfRank(key, color)) )
+			);
 	});
 }
 
 /**
  * 8x8
  * all pieces can be pre-dropped on any empty square the first rank only
- * this means we can take into account non-empty squares and exclude them as possible dests although maybe overkill
+ * this means we can take into account non-empty squares and exclude them as possible dests
  */
 function predropPlacement(pieces: cg.Pieces, dropPiece: cg.Piece): cg.Key[] {
-	function firstRow(key: cg.Key, color: cg.Color): boolean {
-		return color === 'white' ?
-			key[1] === '1' :
-			key[1] === '8' ;
-	}
 
 	const color = dropPiece.color;
-	// const role = dropPiece.role;
-	const allk : cg.Key[] = util.allKeys(cg.Geometry.dim8x8);
-
-	return allk.filter(key => {
+	const geom = cg.Geometry.dim8x8;
+	return util.allKeys(geom).filter(key => {
 		const p = pieces[key];
 		return (
-			(!p || p.color !== color) /*TODO: this is not 100% right because of en passant - i.e a same color piece can be taken but without the square to end up occupied by opps piece - other variants that have en passant maybe have same issue - leaving it like this, because too ugly to highlight whole board somehow and too sophisticated to detect possible en passants and allow such pawns as dests*/
+			(!p) // square should be empty - unlike other variants - here drop phase is in the beginning and separate
+			     // from move phase that starts after all drops are made, so there is no way a square to be vacated
 			&&
-			firstRow(key, color)
+			isFirstRank(key, color, geom, 0)
 		);
 	});
 }
@@ -400,36 +272,41 @@ function predropPlacement(pieces: cg.Pieces, dropPiece: cg.Piece): cg.Key[] {
  * 8x8
  * only on 5th rank
  */
-function predropSynochess(pieces: cg.Pieces, dropPiece: cg.Piece): cg.Key[] {
-
-	const color = dropPiece.color;
-	const allk : cg.Key[] = util.allKeys(cg.Geometry.dim8x8);
-
-	return allk.filter(key => {
-		const p = pieces[key];
-		return (
-			(!p || p.color !== color)
-			&&
-			key[1] === '5'
-		);
+function predropSynochess(): cg.Key[] {
+	return util.allKeys(cg.Geometry.dim8x8).filter(key => {
+		return key[1] === '5';
 	});
 }
 
 /**
  * 8x8
- * only on 1th-4th rank
+ * Only on 1th-4th rank. That is exactly those numbers of ranks only for one of the sides. The other side can't drop
  */
-function predropShinobi(pieces: cg.Pieces, dropPiece: cg.Piece): cg.Key[] {
+function predropShinobi(): cg.Key[] {
 
-	const color = dropPiece.color;
-	const allk : cg.Key[] = util.allKeys(cg.Geometry.dim8x8);
-
-	return allk.filter(key => {
-		const p = pieces[key];
+	return util.allKeys(cg.Geometry.dim8x8).filter(key => {
 		return (
-			(!p || p.color !== color)
-			&&
 			(key[1] === '1' || key[1] === '2' || key[1] === '3' || key[1] === '4')
 		);
 	});
+}
+
+// utils:
+
+/**
+ * @param idxBack	Should be zero to return true for LAST rank, 1 for next to last (penultimate) rank, etc.
+ * */
+function isLastRank(key: cg.Key, color: cg.Color, geom: cg.Geometry, idxBack: number): boolean {
+	const highestRowIdx = cg.ranks[cg.dimensions[geom].height-1-idxBack];
+	const lowestRowIdx = cg.ranks[0+idxBack];
+	return color === /*'sente'*/'white' ? key[1] === highestRowIdx : key[1] === lowestRowIdx;
+}
+
+/**
+ * @param idxBack	Should be zero to return true for FIRST rank, 1 for SECOND rank, etc.
+ * */
+function isFirstRank(key: cg.Key, color: cg.Color, geom: cg.Geometry, idx: number): boolean {
+	const highestRowIdx = cg.ranks[cg.dimensions[geom].height-1-idx];
+	const lowestRowIdx = cg.ranks[0+idx];
+	return color === /*'sente'*/'white' ? key[1] === lowestRowIdx : key[1] === highestRowIdx;
 }
