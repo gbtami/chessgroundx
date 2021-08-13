@@ -4,7 +4,7 @@ import * as board from './board'
 import * as util from './util'
 import { cancel as cancelDrag } from './drag'
 import predrop from "./predrop";
-import {callUserFunction} from "./board";
+import { callUserFunction } from "./board";
 
 export function setDropMode(s: State, piece?: cg.Piece): void {
   s.dropmode.active = true;

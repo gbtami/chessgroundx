@@ -236,7 +236,7 @@ function computeSquareClasses(s: State): SquareClasses {
     const piece = s.dropmode.active ? s.dropmode.piece : s.draggable.current?.piece;
 
     if (piece) {
-      //TODO:there was a function called isPredroppable that was used in drag.ts or drop.ts or both. Maybe use the same here to decide what to render
+      // TODO: there was a function called isPredroppable that was used in drag.ts or drop.ts or both. Maybe use the same here to decide what to render
       if (s.dropmode.showDropDests) {
         const dests = s.dropmode.dropDests?.get(piece.role);
         if (dests)

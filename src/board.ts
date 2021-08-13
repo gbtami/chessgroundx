@@ -3,7 +3,7 @@ import { pos2key, key2pos, opposite, containsX } from './util'
 import premove from './premove'
 import predrop from './predrop'
 import * as cg from './types'
-import {cancelDropMode} from "./drop";
+import { cancelDropMode } from "./drop";
 
 export type Callback = (...args: any[]) => void;
 
@@ -169,6 +169,13 @@ export function userMove(state: State, orig: cg.Key, dest: cg.Key): boolean {
   return false;
 }
 
+/**
+ * TODO: I believe this function is always called with orig=='a0'. Maybe consider changing that parameter to piece/role instead.
+ *       I think we currently artificially assign state.pieces[a0] to the current pocket piece being dragged/selected, but it is imho hackish
+ *       and we might little by little make existing code agnostic of that hack instead of tightly coupling it to it and making it depend
+ *       on having that there, with the eventual goal of making pocket dynamics more of a first class citizens rather than hacks on top of
+ *       regular chess movements dynamics
+ * */
 export function dropNewPiece(state: State, orig: cg.Key, dest: cg.Key, force?: boolean): void {
   if (canDrop(state, orig, dest) || force) {
     const piece = state.pieces[orig]!;
@@ -275,21 +282,20 @@ function canPremove(state: State, orig: cg.Key, dest: cg.Key): boolean {
   containsX(premove(state.pieces, orig, state.premovable.castle, state.geometry, state.variant), dest);
 }
 
-/**
- *       TODO: not sure if en-passant is or should be taken into account - currently we cannot predrop if square is occupied by our own piece, which makes sense in all cases except if we expect a pawn to be capture en passant which is the only case a piece disappears from board without an opp's piece in its place
+/*
+ * TODO: orig is probably always equal to a0 and only used for getting the piece - consider replacing that param with "piece" (see also dropNewPiece(...) )
  **/
 function canPredrop(state: State, orig: cg.Key, dest: cg.Key): boolean {
   const piece = state.pieces[orig];
   if (!piece){
     return false;
   }
-  const destPiece = state.pieces[dest];
   const isValidPredrop = containsX(predrop(state.pieces, piece, state.variant), dest);
   return dest &&
-  (!destPiece || destPiece.color !== state.movable.color) &&
-  state.predroppable.enabled && isValidPredrop &&
-  state.movable.color === piece.color &&
-    state.turnColor !== piece.color;
+         state.predroppable.enabled &&
+         isValidPredrop &&
+         state.movable.color === piece.color &&
+         state.turnColor !== piece.color;
 }
 
 export function isDraggable(state: State, orig: cg.Key): boolean {

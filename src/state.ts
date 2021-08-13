@@ -79,11 +79,11 @@ export interface State {
     deleteOnDropOff: boolean; // delete a piece when it is dropped off the board
     current?: DragCurrent;
   };
-  dropmode: {//used for pocket pieces drops. 
+  dropmode: { // used for pocket pieces drops.
     active: boolean;
     showDropDests: boolean;
     piece?: cg.Piece;
-    dropDests?: cg.DropDests;//Both in case of click-drop and drag-drop from pocket it stores the possible dests from highlighting (TODO:which is not great to use this for both cases imho)
+    dropDests?: cg.DropDests; // Both in case of click-drop and drag-drop from pocket it stores the possible dests from highlighting (TODO:which is not great to use this for both cases imho)
     events?: { cancel?: () => void; }
   }
   selectable: {

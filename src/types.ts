@@ -33,7 +33,7 @@ export interface Dests {
   [key: string]: Key[]
 }
 
-export type DropDests = Map<Role, Key[]>;//TODO:why is this map even needed? At any given time we only have one piece of interest whose possible destinations we care about - dont we?
+export type DropDests = Map<Role, Key[]>;
 
 export interface Elements {
   board: HTMLElement;
