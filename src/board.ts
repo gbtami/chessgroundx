@@ -58,7 +58,6 @@ export function unsetPremove(state: State): void {
 
 function setPredrop(state: State, role: cg.Role, key: cg.Key): void {
   unsetPremove(state);
-  // cancelDropMode(state);
   state.predroppable.current = { role, key };
   callUserFunction(state.predroppable.events.set, role, key);
 }

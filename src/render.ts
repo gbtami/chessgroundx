@@ -236,7 +236,10 @@ function computeSquareClasses(s: State): SquareClasses {
     const piece = s.dropmode.active ? s.dropmode.piece : s.draggable.current?.piece;
 
     if (piece) {
-      // TODO: there was a function called isPredroppable that was used in drag.ts or drop.ts or both. Maybe use the same here to decide what to render
+      // TODO: there was a function called isPredroppable that was used in drag.ts or drop.ts or both.
+      //       Maybe use the same here to decide what to render instead of potentially making it possible both
+      //       kinds of highlighting to happen if something was not cleared up in the state.
+      //       In other place (pocket.ts) this condition is used ot decide similar question: ctrl.mycolor === ctrl.turnColor
       if (s.dropmode.showDropDests) {
         const dests = s.dropmode.dropDests?.get(piece.role);
         if (dests)
