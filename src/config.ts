@@ -51,6 +51,12 @@ export interface Config {
   };
   predroppable?: {
     enabled?: boolean; // allow predrops for color that can not move
+    showDropDests?: boolean;
+    dropDests?: cg.Key[];
+    current?: { // See corresponding type in state.ts for more comments
+      role: cg.Role;
+      key: cg.Key;
+    };
     events?: {
       set?: (role: cg.Role, key: cg.Key) => void; // called after the predrop has been set
       unset?: () => void; // called after the predrop has been unset
@@ -77,6 +83,15 @@ export interface Config {
     select?: (key: cg.Key) => void; // called when a square is selected
     insert?: (elements: cg.Elements) => void; // when the board DOM has been (re)inserted
   };
+  dropmode?: {
+    active?: boolean;
+    piece?: cg.Piece;
+    showDropDests?: boolean; // whether to add the move-dest class on squares for drops
+    dropDests?: cg.DropDests; // see corresponding state.ts type for comments
+    events?: {
+      cancel?: () => void;// at least temporary - i need to refresh pocket on cancel of drop mode (mainly to clear the highlighting of the selected pocket piece) and pocket is currently outside chessgroundx so need to provide callback here
+    }
+  };
   drawable?: {
     enabled?: boolean; // can draw
     visible?: boolean; // can view
@@ -97,7 +112,8 @@ export function configure(state: State, config: Config) {
 
   // don't merge destinations. Just override.
   if (config.movable && config.movable.dests) state.movable.dests = undefined;
-
+  if (config.dropmode?.dropDests) state.dropmode.dropDests = undefined;
+  
   merge(state, config);
 
   if (config.geometry) state.dimensions = cg.dimensions[config.geometry];

@@ -460,7 +460,8 @@ export default function premove(pieces: cg.Pieces, key: cg.Key, canCastle: boole
       case 'a-piece': mobility = archbishop; break; // archbishop
       case 'k-piece': mobility = noCastlingKing; break; // king
     }
-
+    break;
+    
   case 'shako':
     switch (piece.role) {
       case 'p-piece': mobility = pawn(piece.color); break; // pawn

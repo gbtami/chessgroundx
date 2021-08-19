@@ -4,6 +4,7 @@ import * as util from './util'
 import { clear as drawClear } from './draw'
 import * as cg from './types'
 import { anim } from './anim'
+import predrop from "./predrop";
 
 export interface DragCurrent {
   orig: cg.Key; // orig key of dragging piece
@@ -133,6 +134,11 @@ export function dragNewPiece(s: State, piece: cg.Piece, e: cg.MouchEvent, force?
     newPiece: true,
     force: !!force
   };
+
+  if (piece && board.isPredroppable(s)) {
+    s.predroppable.dropDests = predrop(s.pieces, piece, s.geometry, s.variant);
+  }
+
   processDrag(s);
 }
 

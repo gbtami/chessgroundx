@@ -219,9 +219,7 @@ function computeSquareClasses(s: State): SquareClasses {
   }
   if (s.check && s.highlight.check) addSquare(squares, s.check, 'check');
   if (s.selected) {
-    if (s.selected != 'a0') {
-      addSquare(squares, s.selected, 'selected');
-    }
+    addSquare(squares, s.selected, 'selected');
     if (s.movable.showDests) {
       const dests = s.movable.dests && s.movable.dests[s.selected];
       if (dests) for (i in dests) {
@@ -232,6 +230,29 @@ function computeSquareClasses(s: State): SquareClasses {
       if (pDests) for (i in pDests) {
         k = pDests[i];
         addSquare(squares, k, 'premove-dest' + (s.pieces[k] ? ' oc' : ''));
+      }
+    }
+  } else if (s.dropmode.active || s.draggable.current?.orig === 'a0') {
+    const piece = s.dropmode.active ? s.dropmode.piece : s.draggable.current?.piece;
+
+    if (piece) {
+      // TODO: there was a function called isPredroppable that was used in drag.ts or drop.ts or both.
+      //       Maybe use the same here to decide what to render instead of potentially making it possible both
+      //       kinds of highlighting to happen if something was not cleared up in the state.
+      //       In other place (pocket.ts) this condition is used ot decide similar question: ctrl.mycolor === ctrl.turnColor
+      if (s.dropmode.showDropDests) {
+        const dests = s.dropmode.dropDests?.get(piece.role);
+        if (dests)
+          for (const k of dests) {
+            addSquare(squares, k, 'move-dest');
+          }
+      }
+      if (s.predroppable.showDropDests) {
+        const pDests = s.predroppable.dropDests;
+        if (pDests)
+          for (const k of pDests) {
+            addSquare(squares, k, 'premove-dest' + (s.pieces[k] ? ' oc' : ''));
+          }
       }
     }
   }

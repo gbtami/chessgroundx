@@ -1,4 +1,4 @@
-export type Variant = 'chess' | 'makruk' | 'cambodian' | 'sittuyin' | 'shogi' | 'minishogi' | 'kyotoshogi' | 'dobutsu' | 'gorogoro' | 'xiangqi' | 'minixiangqi' | 'capablanca' | 'seirawan' | 'capahouse' | 'shouse' | 'grand' | 'grandhouse' | 'gothic' | 'gothhouse' | 'shako' | 'shogun' | 'janggi' | 'makpong' | 'orda' | 'synochess' | 'manchu' | 'musketeer' | 'hoppelpoppel' | 'shinobi' | 'empire' | 'ordamirror' | undefined;
+export type Variant = 'chess' | 'crazyhouse' | 'makruk' | 'cambodian' | 'sittuyin' | 'placement' | 'shogi' | 'minishogi' | 'kyotoshogi' | 'dobutsu' | 'gorogoro' | 'xiangqi' | 'minixiangqi' | 'capablanca' | 'seirawan' | 'capahouse' | 'shouse' | 'grand' | 'grandhouse' | 'gothic' | 'gothhouse' | 'shako' | 'shogun' | 'janggi' | 'makpong' | 'orda' | 'synochess' | 'manchu' | 'musketeer' | 'hoppelpoppel' | 'shinobi' | 'empire' | 'ordamirror' | undefined;
 export type Color = 'white' | 'black';
 export type Letter = typeof letters[number];
 export type Role = `${Letter}-piece` | `p${Letter}-piece`;
@@ -32,6 +32,8 @@ export type NumberQuad = [number, number, number, number];
 export interface Dests {
   [key: string]: Key[]
 }
+
+export type DropDests = Map<Role, Key[]>;
 
 export interface Elements {
   board: HTMLElement;

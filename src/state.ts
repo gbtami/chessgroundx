@@ -52,7 +52,16 @@ export interface State {
   };
   predroppable: {
     enabled: boolean; // allow predrops for color that can not move
-    current?: { // current saved predrop {role: 'knight'; key: 'e4'}
+    showDropDests: boolean; // whether to add the premove-dest css class on dest squares. Maybe an overkill to have this showDest and showDrop dests in each and every place, but could make sense one day
+    dropDests?: cg.Key[]; // premove destinations for the currently "selected" piece for pre-dropping. Both in case of drag-drop or click-drop
+    current?: { // current saved predrop {role: 'knight'; key: 'e4'}.
+      // The story here is a bit messy so deserves some comments:
+      // Note that this only stores an actually performed predrop (thus key is non-null). If just a piece is selected for dropping during
+      // opponent's turn, but not yet dropped, then it is stored in "dropmode.piece" instead. Still its possible destinations
+      // (for the purpose of highlighting), when calculated, are still stored here in
+      // this "predroppable.dropDests and not in dropmode.dropDests - even if the piece is there, its dests are here
+      // Similarly when dragging of a pocket pieces starts while it is opponents turn, but has not yet been placed on the board (as an actual predrop)
+      // the piece that is being dragged is stored in "draggable".
       role: cg.Role;
       key: cg.Key
     };
@@ -70,9 +79,12 @@ export interface State {
     deleteOnDropOff: boolean; // delete a piece when it is dropped off the board
     current?: DragCurrent;
   };
-  dropmode: {
+  dropmode: { // used for pocket pieces drops.
     active: boolean;
+    showDropDests: boolean;
     piece?: cg.Piece;
+    dropDests?: cg.DropDests; // Both in case of click-drop and drag-drop from pocket it stores the possible dests from highlighting (TODO:which is not great to use this for both cases imho)
+    events?: { cancel?: () => void; }
   }
   selectable: {
     // disable to enforce dragging over click-click move
@@ -138,6 +150,7 @@ export function defaults(): Partial<State> {
     },
     predroppable: {
       enabled: false,
+      showDropDests: true,
       events: {}
     },
     draggable: {
@@ -149,7 +162,8 @@ export function defaults(): Partial<State> {
       deleteOnDropOff: false
     },
     dropmode: {
-      active: false
+      active: false,
+      showDropDests: true,
     },
     selectable: {
       enabled: true
