@@ -124,7 +124,8 @@ function renderShape(state: State, {shape, current, hash}: Shape, brushes: DrawB
     orient(key2pos(shape.orig), state.orientation, state.dimensions),
     shape.piece,
     bounds,
-    state.dimensions);
+    state.dimensions,
+    state.orientation);
   else {
     const orig = orient(key2pos(shape.orig), state.orientation, state.dimensions);
     if (shape.orig && shape.dest) {
@@ -182,16 +183,17 @@ function renderArrow(brush: DrawBrush, orig: cg.Pos, dest: cg.Pos, current: bool
   });
 }
 
-function renderPiece(baseUrl: string, pos: cg.Pos, piece: DrawShapePiece, bounds: ClientRect, bd: cg.BoardDimensions): SVGElement {
+function renderPiece(baseUrl: string, pos: cg.Pos, piece: DrawShapePiece, bounds: ClientRect, bd: cg.BoardDimensions, orientation: cg.Color): SVGElement {
   const o = pos2px(pos, bounds, bd),
   width = bounds.width / bd.width * (piece.scale || 1),
   height = bounds.height / bd.height * (piece.scale || 1),
   name = piece.color[0] + piece.role[0].toUpperCase();
-  // If baseUrl doesn't ends with '/' use it as full href
+  // If baseUrl doesn't end with '/' use it as full href
   // This is needed when drop piece suggestion .svg image file names are different than "name" produces
   const href = (baseUrl.endsWith('/') ? baseUrl + name + '.svg' : baseUrl);
+  const side = piece.color === orientation ? "ally" : "enemy";
   return setAttributes(createElement('image'), {
-    className: `${piece.role} ${piece.color}`,
+    className: `${piece.role} ${piece.color} ${side}`,
     x: o[0] - width / 2,
     y: o[1] - height / 2,
     width: width,
