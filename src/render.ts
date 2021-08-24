@@ -69,7 +69,7 @@ export default function render(s: State): void {
       if (pieceAtKey) {
         // continue animation if already animating and same piece
         // (otherwise it could animate a captured piece)
-        if (anim && el.cgAnimating && elPieceName === pieceNameOf(pieceAtKey)) {
+        if (anim && el.cgAnimating && elPieceName === pieceNameOf(pieceAtKey, s.orientation)) {
           const pos = key2pos(k);
           pos[0] += anim[2];
           pos[1] += anim[3];
@@ -82,12 +82,12 @@ export default function render(s: State): void {
           if (s.addPieceZIndex) el.style.zIndex = posZIndex(key2pos(k), asWhite);
         }
         // same piece: flag as same
-        if (elPieceName === pieceNameOf(pieceAtKey) && (!fading || !el.cgFading)) {
+        if (elPieceName === pieceNameOf(pieceAtKey, s.orientation) && (!fading || !el.cgFading)) {
           samePieces[k] = true;
         }
         // different piece: flag as moved unless it is a fading piece
         else {
-          if (fading && elPieceName === pieceNameOf(fading)) {
+          if (fading && elPieceName === pieceNameOf(fading, s.orientation)) {
             el.classList.add('fading');
             el.cgFading = true;
           } else {
@@ -138,7 +138,7 @@ export default function render(s: State): void {
     p = pieces[k]!;
     anim = anims[k];
     if (!samePieces[k]) {
-      pMvdset = movedPieces[pieceNameOf(p)];
+      pMvdset = movedPieces[pieceNameOf(p, s.orientation)];
       pMvd = pMvdset && pMvdset.pop();
       // a same piece was moved
       if (pMvd) {
@@ -162,7 +162,7 @@ export default function render(s: State): void {
       // assumes the new piece is not being dragged
       else {
 
-        const pieceName = pieceNameOf(p),
+        const pieceName = pieceNameOf(p, s.orientation),
         pieceNode = createEl('piece', pieceName) as cg.PieceNode,
         pos = key2pos(k);
 
@@ -204,9 +204,10 @@ function posZIndex(pos: cg.Pos, asWhite: boolean): string {
   return z + '';
 }
 
-function pieceNameOf(piece: cg.Piece): string {
+function pieceNameOf(piece: cg.Piece, orientation: cg.Color): string {
   const promoted = piece.promoted ? "promoted " : "";
-  return `${piece.color} ${promoted}${piece.role}`;
+  const side = piece.color === orientation ? "ally" : "enemy";
+  return `${piece.color} ${promoted}${piece.role} ${side}`;
 }
 
 function computeSquareClasses(s: State): SquareClasses {
