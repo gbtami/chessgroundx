@@ -32,7 +32,9 @@ export default function predrop(pieces: cg.Pieces, piece: cg.Piece, geom: cg.Geo
 	const color = piece.color;
 	const role = piece.role;
 
-	let mobility: DropMobility;
+    // Pieces can be dropped anywhere on the board by default.
+    // Mobility will be modified based on variant and piece to match the game rule.
+	let mobility: DropMobility = wholeBoard;
 
 	switch (variant) {
 		case 'crazyhouse':
@@ -41,7 +43,6 @@ export default function predrop(pieces: cg.Pieces, piece: cg.Piece, geom: cg.Geo
 		case 'gothhouse':
             switch (role) {
                 case 'p-piece': mobility = rankRange(2, -1, color, geom); break; // pawns can't be dropped on the first rank or last rank
-                default:        mobility = wholeBoard;
             }
 			break;
 
@@ -68,22 +69,27 @@ export default function predrop(pieces: cg.Pieces, piece: cg.Piece, geom: cg.Geo
 		case 'minishogi':
 		case 'gorogoro':
             switch (role) {
-                case "p-piece": // pawns and lances can't be dropped on the last rank
-                case "l-piece": mobility = rankRange(1, -1, color, geom); break;
-                case "n-piece": mobility = rankRange(1, -2, color, geom); break;// knights can't be dropped on the last two ranks
-                default: mobility = wholeBoard;
+                case 'p-piece': // pawns and lances can't be dropped on the last rank
+                case 'l-piece': mobility = rankRange(1, -1, color, geom); break;
+                case 'n-piece': mobility = rankRange(1, -2, color, geom); break;// knights can't be dropped on the last two ranks
             }
 			break;
 
+        // This code is unnecessary but is here anyway to be explicit
 		case 'kyotoshogi':
 		case 'dobutsu':
 			mobility = wholeBoard;
 			break;
 
+        case 'torishogi':
+            switch (role) {
+                case 's-piece': mobility = rankRange(1, -1, color, geom); break; // swallows can't be dropped on the last rank
+            }
+            break;
+
 		case 'grandhouse':
             switch (role) {
                 case 'p-piece': mobility = rankRange(2, 7, color, geom); break; // pawns can't be dropped on the 1st, or 8th to 10th ranks
-                default: mobility = wholeBoard;
             }
 			break;
 
@@ -100,8 +106,7 @@ export default function predrop(pieces: cg.Pieces, piece: cg.Piece, geom: cg.Geo
 			break;
 
 		default:
-			console.warn("Unknown drop variant:", variant);
-			mobility = wholeBoard;
+			console.warn("Unknown drop variant", variant);
 	}
 
 	return util.allKeys(geom).map(util.key2pos).filter(pos => {
