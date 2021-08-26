@@ -345,6 +345,7 @@ const musketeerSpider: Mobility = (x1, y1, x2, y2) => {
   );
 }
 
+// tori shogi goose (promoted swallow)
 function toriGoose(color: cg.Color): Mobility {
   return (x1, y1, x2, y2) => {
     const xd = diff(x1, x2);
@@ -356,6 +357,7 @@ function toriGoose(color: cg.Color): Mobility {
   }
 }
 
+// tori shogi left quail
 function toriLeftQuail(color: cg.Color): Mobility {
   return (x1, y1, x2, y2) => {
     const xd = diff(x1, x2);
@@ -368,6 +370,7 @@ function toriLeftQuail(color: cg.Color): Mobility {
   }
 }
 
+// tori shogi right quail
 function toriRightQuail(color: cg.Color): Mobility {
   return (x1, y1, x2, y2) => {
     const xd = diff(x1, x2);
@@ -380,6 +383,7 @@ function toriRightQuail(color: cg.Color): Mobility {
   }
 }
 
+// tori shogi pheasant
 function toriPheasant(color: cg.Color): Mobility {
   return (x1, y1, x2, y2) => {
     const xd = diff(x1, x2);
@@ -391,10 +395,12 @@ function toriPheasant(color: cg.Color): Mobility {
   }
 }
 
+// tori shogi crane
 const toriCrane: Mobility = (x1, y1, x2, y2) => {
   return noCastlingKing(x1, y1, x2, y2) && y2 !== y1;
 }
 
+// tori shogi falcon
 function toriFalcon(color: cg.Color): Mobility {
   return (x1, y1, x2, y2) => {
     return (color === 'white') ?
@@ -405,6 +411,7 @@ function toriFalcon(color: cg.Color): Mobility {
   }
 }
 
+// tori shogi eagle (promoted falcon)
 function toriEagle(color: cg.Color): Mobility {
   return (x1, y1, x2, y2) => {
     const xd = diff(x1, x2);
