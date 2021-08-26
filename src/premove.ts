@@ -226,8 +226,9 @@ const janggiElephant: Mobility = (x1, y1, x2, y2) => {
 function janggiPawn(color: cg.Color, geom: cg.Geometry): Mobility {
   const oppPalace = palaces[geom]![util.opposite(color)];
   return (x1, y1, x2, y2) => {
+    const palacePos = oppPalace.findIndex(point => point[0] === x1 && point[1] === y1)
     let additionalMobility: Mobility;
-    switch(oppPalace.findIndex(point => point[0] === x1 && point[1] === y1)) {
+    switch(palacePos) {
       case 0: additionalMobility = (x1, y1, x2, y2) => x2 === x1 + 1 && color === 'black' && y2 === y1 - 1; break;
       case 2: additionalMobility = (x1, y1, x2, y2) => x2 === x1 - 1 && color === 'black' && y2 === y1 - 1; break;
       case 4: additionalMobility = (x1, y1, x2, y2) => diff(x1, x2) === 1 && (color === 'white' ? y2 === y1 + 1 : y2 === y1 - 1); break;
@@ -246,22 +247,21 @@ function janggiRook(geom: cg.Geometry): Mobility {
   const wPalace = palaces[geom]!['white'];
   const bPalace = palaces[geom]!['black'];
   return (x1, y1, x2, y2) => {
-    let additionalMobility: boolean;
+    let additionalMobility: Mobility;
     const wPalacePos = wPalace.findIndex(point => point[0] === x1 && point[1] === y1);
     const bPalacePos = bPalace.findIndex(point => point[0] === x1 && point[1] === y1);
-    const xDiff = x2 - x1;
-    const xd = Math.abs(xDiff);
-    const yDiff = y2 - y1;
-    const yd = Math.abs(yDiff);
-    switch (wPalacePos !== -1 ? wPalacePos : bPalacePos) {
-      case 0: additionalMobility = xd === yd && xDiff > 0 && xDiff <= 2 && yDiff < 0 && yDiff >= -2; break;
-      case 2: additionalMobility = xd === yd && xDiff < 0 && xDiff >= -2 && yDiff < 0 && yDiff >= -2; break;
-      case 4: additionalMobility = ferz(x1, y1, x2, y2); break;
-      case 6: additionalMobility = xd === yd && xDiff > 0 && xDiff <= 2 && yDiff > 0 && yDiff <= 2; break;
-      case 8: additionalMobility = xd === yd && xDiff < 0 && xDiff >= -2 && yDiff > 0 && yDiff <= 2; break;
-      default: additionalMobility = false;
+    const palacePos = wPalacePos !== -1 ? wPalacePos : bPalacePos;
+    const xd = diff(x1, x2);
+    const yd = diff(y1, y2);
+    switch (palacePos) {
+      case 0: additionalMobility = (x1, y1, x2, y2) => xd === yd && x2 > x1 && x2 <= x1 + 2 && y2 < y1 && y2 >= y1 - 2; break;
+      case 2: additionalMobility = (x1, y1, x2, y2) => xd === yd && x2 < x1 && x2 >= x1 - 2 && y2 < y1 && y2 >= y1 - 2; break;
+      case 4: additionalMobility = ferz; break;
+      case 6: additionalMobility = (x1, y1, x2, y2) => xd === yd && x2 > x1 && x2 <= x1 + 2 && y2 > y1 && y2 <= y1 + 2; break;
+      case 8: additionalMobility = (x1, y1, x2, y2) => xd === yd && x2 < x1 && x2 >= x1 - 2 && y2 > y1 && y2 <= y1 + 2; break;
+      default: additionalMobility = () => false;
     }
-    return rook(x1, y1, x2, y2) || additionalMobility;
+    return rook(x1, y1, x2, y2) || additionalMobility(x1, y1, x2, y2);
   }
 }
 
@@ -269,8 +269,9 @@ function janggiRook(geom: cg.Geometry): Mobility {
 function janggiKing(color: cg.Color, geom: cg.Geometry): Mobility {
   const palace = palaces[geom]![color];
   return (x1, y1, x2, y2) => {
+    const palacePos = palace.findIndex(point => point[0] === x1 && point[1] === y1);
     let additionalMobility: Mobility;
-    switch(palace.findIndex(point => point[0] === x1 && point[1] === y1)) {
+    switch(palacePos) {
       case 0: additionalMobility = (x1, y1, x2, y2) => x2 === x1 + 1 && y2 === y1 - 1; break;
       case 2: additionalMobility = (x1, y1, x2, y2) => x2 === x1 - 1 && y2 === y1 - 1; break;
       case 4: additionalMobility = ferz; break;
@@ -344,46 +345,120 @@ const musketeerSpider: Mobility = (x1, y1, x2, y2) => {
   );
 }
 
+function toriGoose(color: cg.Color): Mobility {
+  return (x1, y1, x2, y2) => {
+    const xd = diff(x1, x2);
+    return (color === 'white') ?
+      (xd === 2 && y2 === y1 + 2) || (xd === 0 && y2 === y1 - 2)
+      :
+      (xd === 2 && y2 === y1 - 2) || (xd === 0 && y2 === y1 + 2)
+      ;
+  }
+}
+
+function toriLeftQuail(color: cg.Color): Mobility {
+  return (x1, y1, x2, y2) => {
+    const xd = diff(x1, x2);
+    const yd = diff(y1, y2);
+    return (color === 'white') ?
+      (x2 === x1 && y2 > y1) || (xd === yd && x2 > x1 && y2 < y1) || (x2 === x1 - 1 && y2 === y1 - 1)
+      :
+      (x2 === x1 && y2 < y1) || (xd === yd && x2 < x1 && y2 > y1) || (x2 === x1 + 1 && y2 === y1 + 1)
+      ;
+  }
+}
+
+function toriRightQuail(color: cg.Color): Mobility {
+  return (x1, y1, x2, y2) => {
+    const xd = diff(x1, x2);
+    const yd = diff(y1, y2);
+    return (color === 'white') ?
+      (x2 === x1 && y2 > y1) || (xd === yd && x2 < x1 && y2 < y1) || (x2 === x1 + 1 && y2 === y1 - 1)
+      :
+      (x2 === x1 && y2 < y1) || (xd === yd && x2 > x1 && y2 > y1) || (x2 === x1 - 1 && y2 === y1 + 1)
+      ;
+  }
+}
+
+function toriPheasant(color: cg.Color): Mobility {
+  return (x1, y1, x2, y2) => {
+    const xd = diff(x1, x2);
+    return (color === 'white') ?
+      (x2 === x1 && y2 === y1 + 2) || (xd === 1 && y2 === y1 - 1)
+      :
+      (x2 === x1 && y2 === y1 - 2) || (xd === 1 && y2 === y1 + 1)
+      ;
+  }
+}
+
+const toriCrane: Mobility = (x1, y1, x2, y2) => {
+  return noCastlingKing(x1, y1, x2, y2) && y2 !== y1;
+}
+
+function toriFalcon(color: cg.Color): Mobility {
+  return (x1, y1, x2, y2) => {
+    return (color === 'white') ?
+      noCastlingKing(x1, y1, x2, y2) && !(x2 === x1 && y2 === y1 - 1)
+      :
+      noCastlingKing(x1, y1, x2, y2) && !(x2 === x1 && y2 === y1 + 1)
+      ;
+  }
+}
+
+function toriEagle(color: cg.Color): Mobility {
+  return (x1, y1, x2, y2) => {
+    const xd = diff(x1, x2);
+    const yd = diff(y1, y2);
+    return (color === 'white') ?
+      noCastlingKing(x1, y1, x2, y2) || (xd === yd && (y2 > y1 || (y2 < y1 && yd <= 2))) || (x2 === x1 && y2 < y1)
+      :
+      noCastlingKing(x1, y1, x2, y2) || (xd === yd && (y2 < y1 || (y2 > y1 && yd <= 2))) || (x2 === x1 && y2 > y1)
+      ;
+  }
+}
+
 export default function premove(pieces: cg.Pieces, key: cg.Key, canCastle: boolean, geom: cg.Geometry, variant: cg.Variant): cg.Key[] {
-  const piece = pieces[key]!,
-  pos = util.key2pos(key);
+  const piece = pieces[key]!;
+  const role = piece.role;
+  const color = piece.color;
+  const pos = util.key2pos(key);
   let mobility: Mobility;
 
   switch (variant) {
 
     case 'xiangqi':
     case 'manchu':
-      switch (piece.role) {
-        case 'p-piece': mobility = xiangqiPawn(piece.color); break; // pawn
+      switch (role) {
+        case 'p-piece': mobility = xiangqiPawn(color); break; // pawn
         case 'c-piece': // cannon
         case 'r-piece': mobility = rook; break; // rook
         case 'n-piece': mobility = knight; break; // horse
-        case 'b-piece': mobility = xiangqiElephant(piece.color); break; // elephant
-        case 'a-piece': mobility = xiangqiAdvisor(piece.color, geom); break; // advisor
-        case 'k-piece': mobility = xiangqiKing(piece.color, geom); break; // king
+        case 'b-piece': mobility = xiangqiElephant(color); break; // elephant
+        case 'a-piece': mobility = xiangqiAdvisor(color, geom); break; // advisor
+        case 'k-piece': mobility = xiangqiKing(color, geom); break; // king
         case 'm-piece': mobility = chancellor; break; // banner
       }
       break;
 
     case 'janggi':
       switch (piece.role) {
-        case 'p-piece': mobility = janggiPawn(piece.color, geom); break; // pawn
+        case 'p-piece': mobility = janggiPawn(color, geom); break; // pawn
         case 'c-piece': // cannon
         case 'r-piece': mobility = janggiRook(geom); break; // rook
         case 'n-piece': mobility = knight; break; // horse
         case 'b-piece': mobility = janggiElephant; break; // elephant
         case 'a-piece': // advisor
-        case 'k-piece': mobility = janggiKing(piece.color, geom); break; // king
+        case 'k-piece': mobility = janggiKing(color, geom); break; // king
       }
       break;
 
     case 'minixiangqi': {
       switch (piece.role) {
-        case 'p-piece': mobility = minixiangqiPawn(piece.color); break; // pawn
+        case 'p-piece': mobility = minixiangqiPawn(color); break; // pawn
         case 'c-piece': // cannon
         case 'r-piece': mobility = rook; break; // rook
         case 'n-piece': mobility = knight; break; // horse
-        case 'k-piece': mobility = xiangqiKing(piece.color, geom); break; // king
+        case 'k-piece': mobility = xiangqiKing(color, geom); break; // king
       }
     }
     break;
@@ -392,16 +467,16 @@ export default function premove(pieces: cg.Pieces, key: cg.Key, canCastle: boole
   case 'minishogi':
   case 'gorogoro':
     switch (piece.role) {
-      case 'p-piece': mobility = shogiPawn(piece.color); break; // pawn
-      case 'l-piece': mobility = shogiLance(piece.color); break; // lance
-      case 'n-piece': mobility = shogiKnight(piece.color); break; // knight
+      case 'p-piece': mobility = shogiPawn(color); break; // pawn
+      case 'l-piece': mobility = shogiLance(color); break; // lance
+      case 'n-piece': mobility = shogiKnight(color); break; // knight
       case 'k-piece': mobility = noCastlingKing; break; // king
-      case 's-piece': mobility = shogiSilver(piece.color); break; // silver
+      case 's-piece': mobility = shogiSilver(color); break; // silver
       case 'pp-piece': // tokin
       case 'pl-piece': // promoted lance
       case 'pn-piece': // promoted knight
       case 'ps-piece': // promoted silver
-      case 'g-piece': mobility = shogiGold(piece.color); break; // gold
+      case 'g-piece': mobility = shogiGold(color); break; // gold
       case 'b-piece': mobility = bishop; break; // bishop
       case 'r-piece': mobility = rook; break; // rook
       case 'pr-piece': mobility = shogiDragon; break; // dragon
@@ -411,13 +486,13 @@ export default function premove(pieces: cg.Pieces, key: cg.Key, canCastle: boole
 
   case 'kyotoshogi':
     switch (piece.role) {
-      case 'l-piece': mobility = shogiLance(piece.color); break; // kyoto - lance-tokin
-      case 'pl-piece': mobility = shogiGold(piece.color); break;
-      case 's-piece': mobility = shogiSilver(piece.color); break; // ginkaku - silver-bishop
+      case 'l-piece': mobility = shogiLance(color); break; // kyoto - lance-tokin
+      case 'pl-piece': mobility = shogiGold(color); break;
+      case 's-piece': mobility = shogiSilver(color); break; // ginkaku - silver-bishop
       case 'ps-piece': mobility = bishop; break;
-      case 'n-piece': mobility = shogiKnight(piece.color); break; // kinkei - gold-knight
-      case 'pn-piece': mobility = shogiGold(piece.color); break;
-      case 'p-piece': mobility = shogiPawn(piece.color); break; // hifu - rook-pawn
+      case 'n-piece': mobility = shogiKnight(color); break; // kinkei - gold-knight
+      case 'pn-piece': mobility = shogiGold(color); break;
+      case 'p-piece': mobility = shogiPawn(color); break; // hifu - rook-pawn
       case 'pp-piece': mobility = rook; break;
       case 'k-piece': mobility = noCastlingKing; break; // king
     };
@@ -425,11 +500,25 @@ export default function premove(pieces: cg.Pieces, key: cg.Key, canCastle: boole
 
   case 'dobutsu':
     switch (piece.role) {
-      case 'c-piece': mobility = shogiPawn(piece.color); break; // chick
+      case 'c-piece': mobility = shogiPawn(color); break; // chick
       case 'e-piece': mobility = ferz; break; // elephant
       case 'g-piece': mobility = wazir; break; // giraffe
       case 'l-piece': mobility = noCastlingKing; break; // lion
-      case 'pc-piece': mobility = shogiGold(piece.color); break; // hen
+      case 'pc-piece': mobility = shogiGold(color); break; // hen
+    }
+    break;
+
+  case 'torishogi':
+    switch (role) {
+      case 's-piece': mobility = shogiPawn(color); break; // swallow
+      case 'ps-piece': mobility = toriGoose(color); break; // goose
+      case 'l-piece': mobility = toriLeftQuail(color); break; // left quail
+      case 'r-piece': mobility = toriRightQuail(color); break; // right quail
+      case 'p-piece': mobility = toriPheasant(color); break; // pheasant
+      case 'c-piece': mobility = toriCrane; break; // crane
+      case 'f-piece': mobility = toriFalcon(color); break; // falcon
+      case 'pf-piece': mobility = toriEagle(color); break; // eagle
+      case 'k-piece': mobility = noCastlingKing; break; // phoenix
     }
     break;
 
@@ -437,11 +526,11 @@ export default function premove(pieces: cg.Pieces, key: cg.Key, canCastle: boole
   case 'makpong':
   case 'sittuyin':
   case 'cambodian':
-    switch (piece.role) {
-      case 'p-piece': mobility = pawn(piece.color); break; // pawn
+    switch (role) {
+      case 'p-piece': mobility = pawn(color); break; // pawn
       case 'r-piece': mobility = rook; break; // rook
       case 'n-piece': mobility = knight; break; // knight
-      case 's-piece': mobility = shogiSilver(piece.color); break; // khon
+      case 's-piece': mobility = shogiSilver(color); break; // khon
       case 'f-piece': // Sittuyin ferz
       case 'm-piece': mobility = ferz; break; // met
       case 'k-piece': mobility = noCastlingKing; break; // king
@@ -451,7 +540,7 @@ export default function premove(pieces: cg.Pieces, key: cg.Key, canCastle: boole
   case 'grand':
   case 'grandhouse':
     switch (piece.role) {
-      case 'p-piece': mobility = grandPawn(piece.color); break; // pawn
+      case 'p-piece': mobility = grandPawn(color); break; // pawn
       case 'r-piece': mobility = rook; break; // rook
       case 'n-piece': mobility = knight; break; // knight
       case 'b-piece': mobility = bishop; break; // bishop
@@ -464,20 +553,20 @@ export default function premove(pieces: cg.Pieces, key: cg.Key, canCastle: boole
     
   case 'shako':
     switch (piece.role) {
-      case 'p-piece': mobility = pawn(piece.color); break; // pawn
+      case 'p-piece': mobility = pawn(color); break; // pawn
       case 'c-piece': // cannon
       case 'r-piece': mobility = rook; break; // rook
       case 'n-piece': mobility = knight; break; // knight
       case 'b-piece': mobility = bishop; break; // bishop
       case 'q-piece': mobility = queen; break; // queen
       case 'e-piece': mobility = shakoElephant; break; // elephant
-      case 'k-piece': mobility = king(piece.color, rookFilesOf(pieces, piece.color), canCastle); break; // king
+      case 'k-piece': mobility = king(color, rookFilesOf(pieces, color), canCastle); break; // king
     }
     break;
 
   case 'shogun':
     switch (piece.role) {
-      case 'p-piece': mobility = pawn(piece.color); break; // pawn
+      case 'p-piece': mobility = pawn(color); break; // pawn
       case 'pp-piece': mobility = noCastlingKing; break; // captain
       case 'r-piece': mobility = rook; break; // rook
       case 'pr-piece': mobility = chancellor; break; // mortar
@@ -487,14 +576,14 @@ export default function premove(pieces: cg.Pieces, key: cg.Key, canCastle: boole
       case 'pb-piece': mobility = archbishop; break;// archbishop
       case 'f-piece': mobility = ferz; break; // duchess
       case 'pf-piece': mobility = queen; break; // queen
-      case 'k-piece': mobility = king(piece.color, rookFilesOf(pieces, piece.color), canCastle); break; // king
+      case 'k-piece': mobility = king(color, rookFilesOf(pieces, color), canCastle); break; // king
     }
     break;
 
   case 'orda':
   case 'ordamirror':
     switch (piece.role) {
-      case 'p-piece': mobility = pawn(piece.color); break; // pawn
+      case 'p-piece': mobility = pawn(color); break; // pawn
       case 'r-piece': mobility = rook; break; // rook
       case 'n-piece': mobility = knight; break; // knight
       case 'b-piece': mobility = bishop; break; // bishop
@@ -502,30 +591,30 @@ export default function premove(pieces: cg.Pieces, key: cg.Key, canCastle: boole
       case 'l-piece': mobility = chancellor; break; // lancer
       case 'h-piece': mobility = centaur; break; // kheshig
       case 'a-piece': mobility = archbishop; break; // archer
-      case 'y-piece': mobility = shogiSilver(piece.color); break; // yurt
+      case 'y-piece': mobility = shogiSilver(color); break; // yurt
       case 'f-piece': mobility = amazon; break; // falcon
-      case 'k-piece': mobility = king(piece.color, rookFilesOf(pieces, piece.color), canCastle); break; // king
+      case 'k-piece': mobility = king(color, rookFilesOf(pieces, color), canCastle); break; // king
     }
     break;
 
   case 'synochess':
     switch (piece.role) {
-      case 'p-piece': mobility = pawn(piece.color); break; // pawn
+      case 'p-piece': mobility = pawn(color); break; // pawn
       case 'c-piece': // cannon
       case 'r-piece': mobility = rook; break; // rook
       case 'n-piece': mobility = knight; break; // knight
       case 'b-piece': mobility = bishop; break; // bishop
       case 'q-piece': mobility = queen; break; // queen
-      case 's-piece': mobility = minixiangqiPawn(piece.color); break; // soldier
+      case 's-piece': mobility = minixiangqiPawn(color); break; // soldier
       case 'e-piece': mobility = shakoElephant; break; // elephant
       case 'a-piece': mobility = noCastlingKing; break; // advisor
-      case 'k-piece': mobility = king(piece.color, rookFilesOf(pieces, piece.color), canCastle); break; // king
+      case 'k-piece': mobility = king(color, rookFilesOf(pieces, color), canCastle); break; // king
     }
     break;
 
   case 'musketeer':
     switch (piece.role) {
-      case 'p-piece': mobility = pawn(piece.color); break; // pawn
+      case 'p-piece': mobility = pawn(color); break; // pawn
       case 'r-piece': mobility = rook; break; // rook
       case 'n-piece': mobility = knight; break; // knight
       case 'b-piece': mobility = bishop; break; // bishop
@@ -540,24 +629,24 @@ export default function premove(pieces: cg.Pieces, key: cg.Key, canCastle: boole
       case 'h-piece': mobility = musketeerHawk; // hawk
       case 'f-piece': mobility = musketeerFortress; // fortress
       case 's-piece': mobility = musketeerSpider; // spider
-      case 'k-piece': mobility = king(piece.color, rookFilesOf(pieces, piece.color), canCastle); break; // king
+      case 'k-piece': mobility = king(color, rookFilesOf(pieces, color), canCastle); break; // king
     }
     break;
 
   case 'hoppelpoppel':
     switch (piece.role) {
-      case 'p-piece': mobility = pawn(piece.color); break; // pawn
+      case 'p-piece': mobility = pawn(color); break; // pawn
       case 'r-piece': mobility = rook; break; // rook
       case 'n-piece': // knight (takes like bishop)
       case 'b-piece': mobility = archbishop; break; // bishop (takes like knight)
       case 'q-piece': mobility = queen; break; // queen
-      case 'k-piece': mobility = king(piece.color, rookFilesOf(pieces, piece.color), canCastle); break; // king
+      case 'k-piece': mobility = king(color, rookFilesOf(pieces, color), canCastle); break; // king
     }
     break;
 
   case 'shinobi':
     switch (piece.role) {
-      case 'p-piece': mobility = pawn(piece.color); break; // pawn
+      case 'p-piece': mobility = pawn(color); break; // pawn
       case 'pl-piece':
       case 'r-piece': mobility = rook; break; // rook
       case 'ph-piece':
@@ -567,19 +656,19 @@ export default function premove(pieces: cg.Pieces, key: cg.Key, canCastle: boole
       case 'q-piece': mobility = queen; break; // queen
       case 'pp-piece':
       case 'c-piece': mobility = noCastlingKing; break; // captain
-      case 'l-piece': mobility = shogiLance(piece.color); break; // lance
-      case 'h-piece': mobility = shogiKnight(piece.color); break; // horse
+      case 'l-piece': mobility = shogiLance(color); break; // lance
+      case 'h-piece': mobility = shogiKnight(color); break; // horse
       case 'm-piece': mobility = ferz; break; // monk
       case 'd-piece': mobility = shogiDragon; break; // dragon
       case 'j-piece': mobility = archbishop; break; // ninja
-      case 'k-piece': mobility = king(piece.color, rookFilesOf(pieces, piece.color), canCastle); break; // king
+      case 'k-piece': mobility = king(color, rookFilesOf(pieces, color), canCastle); break; // king
     }
     break;
 
   case 'empire':
     switch (piece.role) {
-      case 'p-piece': mobility = pawn(piece.color); break; // pawn
-      case 's-piece': mobility = minixiangqiPawn(piece.color); break; // soldier
+      case 'p-piece': mobility = pawn(color); break; // pawn
+      case 's-piece': mobility = minixiangqiPawn(color); break; // soldier
       case 'r-piece': mobility = rook; break; // rook
       case 'n-piece': mobility = knight; break; // knight
       case 'b-piece': mobility = bishop; break; // bishop
@@ -588,14 +677,14 @@ export default function premove(pieces: cg.Pieces, key: cg.Key, canCastle: boole
       case 'c-piece': // cardinal
       case 'q-piece': mobility = queen; break; // queen
       case 'e-piece': mobility = amazon; break; // aegle
-      case 'k-piece': mobility = king(piece.color, rookFilesOf(pieces, piece.color), canCastle); break; // king
+      case 'k-piece': mobility = king(color, rookFilesOf(pieces, color), canCastle); break; // king
     }
     break;
 
   // Variants using standard pieces and additional fairy pieces like S-chess, Capablanca, etc.
   default:
     switch (piece.role) {
-      case 'p-piece': mobility = pawn(piece.color); break; // pawn
+      case 'p-piece': mobility = pawn(color); break; // pawn
       case 'r-piece': mobility = rook; break; // rook
       case 'n-piece': mobility = knight; break; // knight
       case 'b-piece': mobility = bishop; break; // bishop
@@ -604,7 +693,7 @@ export default function premove(pieces: cg.Pieces, key: cg.Key, canCastle: boole
       case 'c-piece': mobility = chancellor; break; // chancellor
       case 'h-piece': // S-chess hawk
       case 'a-piece': mobility = archbishop; break; // archbishop
-      case 'k-piece': mobility = king(piece.color, rookFilesOf(pieces, piece.color), canCastle); break; // king
+      case 'k-piece': mobility = king(color, rookFilesOf(pieces, color), canCastle); break; // king
     }
 
   }
