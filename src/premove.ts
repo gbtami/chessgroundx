@@ -36,19 +36,27 @@ const queen: Mobility = (x1, y1, x2, y2) => {
   return bishop(x1, y1, x2, y2) || rook(x1, y1, x2, y2);
 }
 
-function king(color: cg.Color, rookFiles: number[], canCastle: boolean): Mobility {
+function castlingRank(color : cg.Color, board10x10 : boolean) {
+  if (board10x10) return color === 'white' ? 2 : 9;
+  return color === 'white' ? 1 : 8;
+}
+
+type CastlingMode = '960' | 'capablanca' | 'shako' | 'standard';
+
+function king(color: cg.Color, rookFiles: number[], canCastle: boolean, castlingMode : CastlingMode = 'standard'): Mobility {
   return (x1, y1, x2, y2)  => (
     diff(x1, x2) < 2 && diff(y1, y2) < 2
   ) || (
-    canCastle && y1 === y2 && y1 === (color === 'white' ? 1 : 8) && (
-      (x1 === 5 && ((util.containsX(rookFiles, 1) && x2 === 3) || (util.containsX(rookFiles, 8) && x2 === 7))) ||
-      util.containsX(rookFiles, x2)
+    canCastle && y1 === y2 && y1 === castlingRank(color, castlingMode == 'shako') && (
+      castlingMode == '960' ? util.containsX(rookFiles, x2) :
+      castlingMode == 'capablanca' ? (x1 == 6 && ((x2 == 9 && util.containsX(rookFiles, 10)) || (x2 == 3 && util.containsX(rookFiles, 1)))) : 
+      castlingMode == 'shako' ? (x1 == 6 && ((x2 == 8 && util.containsX(rookFiles, 9)) || (x2 == 4 && util.containsX(rookFiles, 2)))) : 
+        (x1 == 5 && ((x2 == 7 && util.containsX(rookFiles, 8)) || (x2 == 3 && util.containsX(rookFiles, 1))))
     )
   );
 }
-
-function rookFilesOf(pieces: cg.Pieces, color: cg.Color) {
-  const backrank = color == 'white' ? '1' : '8';
+function rookFilesOf(pieces: cg.Pieces, color: cg.Color, board10x10: boolean = false) {
+  const backrank = castlingRank(color, board10x10).toString();
   return Object.keys(pieces).filter(key => {
     const piece = pieces[key];
     return key[1] === backrank && piece && piece.color === color && piece.role === 'r-piece';
@@ -424,7 +432,7 @@ function toriEagle(color: cg.Color): Mobility {
   }
 }
 
-export default function premove(pieces: cg.Pieces, key: cg.Key, canCastle: boolean, geom: cg.Geometry, variant: cg.Variant): cg.Key[] {
+export default function premove(pieces: cg.Pieces, key: cg.Key, canCastle: boolean, geom: cg.Geometry, variant: cg.Variant, chess960: Boolean): cg.Key[] {
   const piece = pieces[key]!;
   const role = piece.role;
   const color = piece.color;
@@ -560,14 +568,14 @@ export default function premove(pieces: cg.Pieces, key: cg.Key, canCastle: boole
     
   case 'shako':
     switch (piece.role) {
-      case 'p-piece': mobility = pawn(color); break; // pawn
+      case 'p-piece': mobility = grandPawn(color); break; // pawn
       case 'c-piece': // cannon
       case 'r-piece': mobility = rook; break; // rook
       case 'n-piece': mobility = knight; break; // knight
       case 'b-piece': mobility = bishop; break; // bishop
       case 'q-piece': mobility = queen; break; // queen
       case 'e-piece': mobility = shakoElephant; break; // elephant
-      case 'k-piece': mobility = king(color, rookFilesOf(pieces, color), canCastle); break; // king
+      case 'k-piece': mobility = king(color, rookFilesOf(pieces, color, true), canCastle, 'shako'); break; // king
     }
     break;
 
@@ -615,7 +623,7 @@ export default function premove(pieces: cg.Pieces, key: cg.Key, canCastle: boole
       case 's-piece': mobility = minixiangqiPawn(color); break; // soldier
       case 'e-piece': mobility = shakoElephant; break; // elephant
       case 'a-piece': mobility = noCastlingKing; break; // advisor
-      case 'k-piece': mobility = king(color, rookFilesOf(pieces, color), canCastle); break; // king
+      case 'k-piece': mobility = king(color, rookFilesOf(pieces, color), canCastle && color === 'white'); break; // king
     }
     break;
 
@@ -690,6 +698,7 @@ export default function premove(pieces: cg.Pieces, key: cg.Key, canCastle: boole
 
   // Variants using standard pieces and additional fairy pieces like S-chess, Capablanca, etc.
   default:
+    var castlingMode : CastlingMode = chess960 ? '960' : variant!.startsWith('capa') ? 'capablanca' : 'standard';
     switch (piece.role) {
       case 'p-piece': mobility = pawn(color); break; // pawn
       case 'r-piece': mobility = rook; break; // rook
@@ -700,7 +709,7 @@ export default function premove(pieces: cg.Pieces, key: cg.Key, canCastle: boole
       case 'c-piece': mobility = chancellor; break; // chancellor
       case 'h-piece': // S-chess hawk
       case 'a-piece': mobility = archbishop; break; // archbishop
-      case 'k-piece': mobility = king(color, rookFilesOf(pieces, color), canCastle); break; // king
+      case 'k-piece': mobility = king(color, rookFilesOf(pieces, color), canCastle, castlingMode); break; // king
     }
 
   }
