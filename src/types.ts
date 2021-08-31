@@ -109,4 +109,4 @@ export const enum Notation {DEFAULT, SAN, LAN, SHOGI_HOSKING, SHOGI_HODGES, SHOG
 
 export const dimensions: BoardDimensions[] = [{width: 8, height: 8}, {width: 9, height: 9}, {width: 10, height: 8}, {width: 9, height: 10}, {width: 10, height: 10}, {width: 5, height: 5}, {width: 7, height: 7}, {width: 3, height: 4}, {width: 5, height: 6}];
 
-export const shogiVariants: Variant[] = ['shogi', 'minishogi', 'kyotoshogi','dobutsu', 'gorogoro'];
+export const shogiVariants: Variant[] = ['shogi', 'minishogi', 'kyotoshogi','dobutsu', 'gorogoro', 'torishogi'];
