@@ -1,10 +1,13 @@
 export type Variant = 'chess' | 'crazyhouse' | 'makruk' | 'cambodian' | 'sittuyin' | 'placement' | 'shogi' | 'minishogi' | 'kyotoshogi' | 'dobutsu' | 'gorogoro' | 'torishogi' | 'xiangqi' | 'minixiangqi' | 'capablanca' | 'seirawan' | 'capahouse' | 'shouse' | 'grand' | 'grandhouse' | 'gothic' | 'gothhouse' | 'shako' | 'shogun' | 'janggi' | 'makpong' | 'orda' | 'synochess' | 'manchu' | 'musketeer' | 'hoppelpoppel' | 'shinobi' | 'empire' | 'ordamirror' | undefined;
-export type Color = 'white' | 'black';
-export type Letter = typeof letters[number];
-export type Role = `${Letter}-piece` | `p${Letter}-piece`;
+export type Color = typeof colors[number];
+export type PieceSide = typeof pieceSides[number];
+type RawLetter = typeof letters[number];
+export type Letter = `${''|'+'}${RawLetter}`;
+export type Role = `${''|'p'}${RawLetter}-piece`;
 export type File = typeof files[number];
 export type Rank = typeof ranks[number];
 export type Key =  'a0' | `${File}${Rank}`;
+
 export type FEN = string;
 export type Pos = [number, number];
 export interface Piece {
@@ -16,12 +19,8 @@ export interface Drop {
   role: Role;
   key: Key;
 }
-export interface Pieces {
-  [key: string]: Piece | undefined;
-}
-export interface PiecesDiff {
-  [key: string]: Piece | undefined;
-}
+export type Pieces = Map<Key, Piece>;
+export type PiecesDiff = Map<Key, Piece | undefined>;
 
 export type KeyPair = [Key, Key];
 
@@ -29,30 +28,35 @@ export type NumberPair = [number, number];
 
 export type NumberQuad = [number, number, number, number];
 
-export interface Dests {
-  [key: string]: Key[]
+export interface Rect {
+  left: number;
+  top: number;
+  width: number;
+  height: number;
 }
 
 export type DropDests = Map<Role, Key[]>;
+export type Dests = Map<Key, Key[]>;
 
 export interface Elements {
   board: HTMLElement;
+  wrap: HTMLElement;
   container: HTMLElement;
   ghost?: HTMLElement;
   svg?: SVGElement;
+  customSvg?: SVGElement;
 }
 export interface Dom {
-  elements: Elements,
+  elements: Elements;
   bounds: Memo<ClientRect>;
   redraw: () => void;
   redrawNow: (skipSvg?: boolean) => void;
   unbind?: Unbind;
   destroyed?: boolean;
-  relative?: boolean; // don't compute bounds, use relative % to place pieces
 }
 export interface Exploding {
   stage: number;
-  keys: Key[];
+  keys: readonly Key[];
 }
 
 export interface MoveMetadata {
@@ -66,22 +70,26 @@ export interface SetPremoveMetadata {
   ctrlKey?: boolean;
 }
 
-export type WindowEvent = 'onscroll' | 'onresize';
-
-export type MouchEvent = MouseEvent & TouchEvent;
+export type MouchEvent = Event & Partial<MouseEvent & TouchEvent>;
 
 export interface KeyedNode extends HTMLElement {
   cgKey: Key;
 }
 export interface PieceNode extends KeyedNode {
+  tagName: 'PIECE';
   cgPiece: string;
   cgAnimating?: boolean;
   cgFading?: boolean;
   cgDragging?: boolean;
 }
-export interface SquareNode extends KeyedNode { }
+export interface SquareNode extends KeyedNode {
+  tagName: 'SQUARE';
+}
 
-export interface Memo<A> { (): A; clear: () => void; }
+export interface Memo<A> {
+  (): A;
+  clear: () => void;
+}
 
 export interface Timer {
   start: () => void;
@@ -94,6 +102,8 @@ export type Unbind = () => void;
 export type Milliseconds = number;
 export type KHz = number;
 
+export const colors = ['white', 'black'] as const;
+export const pieceSides = ['ally', 'enemy'] as const;
 export const files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j'] as const;
 export const ranks = ['1', '2', '3', '4', '5', '6', '7', '8', '9', ':'] as const;
 export const ranks10 = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'] as const;

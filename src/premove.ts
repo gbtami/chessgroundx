@@ -1,57 +1,61 @@
-import * as util from './util'
-import * as cg from './types'
+import * as util from './util';
+import * as cg from './types';
 
-type Mobility = (x1:number, y1:number, x2:number, y2:number) => boolean;
+type Mobility = (x1: number, y1: number, x2: number, y2: number) => boolean;
 
-function diff(a: number, b:number):number {
+function diff(a: number, b: number): number {
   return Math.abs(a - b);
 }
 
 function pawn(color: cg.Color): Mobility {
-  return (x1, y1, x2, y2) => diff(x1, x2) < 2 && (
-    color === 'white' ? (
-      // allow 2 squares from 1 and 8, for horde
-      y2 === y1 + 1 || (y1 <= 2 && y2 === (y1 + 2) && x1 === x2)
-    ) : (
-      y2 === y1 - 1 || (y1 >= 7 && y2 === (y1 - 2) && x1 === x2)
-    )
-  );
+  return (x1, y1, x2, y2) =>
+    diff(x1, x2) < 2 &&
+    (color === 'white'
+      ? // allow 2 squares from first two ranks, for horde
+        y2 === y1 + 1 || (y1 <= 1 && y2 === y1 + 2 && x1 === x2)
+      : y2 === y1 - 1 || (y1 >= 6 && y2 === y1 - 2 && x1 === x2));
 }
 
-const knight: Mobility = (x1, y1, x2, y2) => {
+export const knight: Mobility = (x1, y1, x2, y2) => {
   const xd = diff(x1, x2);
   const yd = diff(y1, y2);
   return (xd === 1 && yd === 2) || (xd === 2 && yd === 1);
-}
+};
 
 const bishop: Mobility = (x1, y1, x2, y2) => {
   return diff(x1, x2) === diff(y1, y2);
-}
+};
 
 const rook: Mobility = (x1, y1, x2, y2) => {
   return x1 === x2 || y1 === y2;
-}
+};
 
-const queen: Mobility = (x1, y1, x2, y2) => {
+export const queen: Mobility = (x1, y1, x2, y2) => {
   return bishop(x1, y1, x2, y2) || rook(x1, y1, x2, y2);
-}
+};
 
 function king(color: cg.Color, rookFiles: number[], canCastle: boolean): Mobility {
-  return (x1, y1, x2, y2)  => (
-    diff(x1, x2) < 2 && diff(y1, y2) < 2
-  ) || (
-    canCastle && y1 === y2 && y1 === (color === 'white' ? 1 : 8) && (
-      (x1 === 5 && ((util.containsX(rookFiles, 1) && x2 === 3) || (util.containsX(rookFiles, 8) && x2 === 7))) ||
-      util.containsX(rookFiles, x2)
-    )
-  );
+  return (x1, y1, x2, y2) =>
+    (diff(x1, x2) < 2 && diff(y1, y2) < 2) ||
+    (canCastle &&
+      y1 === y2 &&
+      y1 === (color === 'white' ? 0 : 7) &&
+      ((x1 === 4 && ((x2 === 2 && rookFiles.includes(0)) || (x2 === 6 && rookFiles.includes(7)))) ||
+        rookFiles.includes(x2)));
 }
 function rookFilesOf(pieces: cg.Pieces, color: cg.Color) {
   const backrank = color === 'white' ? '1' : '8';
-  return Object.keys(pieces).filter(key => {
-    const piece = pieces[key];
-    return key[1] === backrank && piece && piece.color === color && piece.role === 'r-piece';
-  }).map((key: string ) => util.key2pos(key as cg.Key)[0]);
+  const files = [];
+  for (const [key, piece] of pieces) {
+    if (key[1] === backrank && piece.color === color && piece.role === 'r-piece') {
+      files.push(util.key2pos(key)[0]);
+    }
+  }
+  return files;
+}
+
+function backrank(color: cg.Color): number {
+  return color === 'white' ? 0 : 7;
 }
 
 // king without castling
@@ -64,7 +68,7 @@ function king960(color: cg.Color, rookFiles: number[], canCastle: boolean): Mobi
   return (x1, y1, x2, y2) => (
     kingNoCastling(x1, y1, x2, y2)
   ) || (
-    canCastle && y1 === y2 && y1 === (color === 'white' ? 1 : 8) && util.containsX(rookFiles, x2)
+    canCastle && y1 === y2 && y1 === backrank(color) && rookFiles.includes(x2)
   );
 }
 
@@ -73,7 +77,7 @@ function kingCapa(color: cg.Color, rookFiles: number[], canCastle: boolean): Mob
   return (x1, y1, x2, y2) => (
     kingNoCastling(x1, y1, x2, y2)
   ) || (
-    canCastle && y1 === y2 && y1 === (color === 'white' ? 1 : 8) && (x1 == 6 && ((x2 == 9 && util.containsX(rookFiles, 10)) || (x2 == 3 && util.containsX(rookFiles, 1))))
+    canCastle && y1 === y2 && y1 === backrank(color) && (x1 == 5 && ((x2 == 8 && rookFiles.includes(9)) || (x2 == 2 && rookFiles.includes(0))))
   );
 }
 
@@ -82,15 +86,18 @@ function kingShako(color: cg.Color, rookFiles: number[], canCastle: boolean): Mo
   return (x1, y1, x2, y2) => (
     kingNoCastling(x1, y1, x2, y2)
   ) || (
-    canCastle && y1 === y2 && y1 === (color === 'white' ? 2 : 9) && (x1 == 6 && ((x2 == 8 && util.containsX(rookFiles, 9)) || (x2 == 4 && util.containsX(rookFiles, 2))))
+    canCastle && y1 === y2 && y1 === (color === 'white' ? 1 : 8) && (x1 == 5 && ((x2 == 7 && rookFiles.includes(8)) || (x2 == 3 && rookFiles.includes(1))))
   );
 }
 function rookFilesOfShako(pieces: cg.Pieces, color: cg.Color) {
   const backrank = color === 'white' ? '2' : '9';
-  return Object.keys(pieces).filter(key => {
-    const piece = pieces[key];
-    return key[1] === backrank && piece && piece.color === color && piece.role === 'r-piece';
-  }).map((key: string ) => util.key2pos(key as cg.Key)[0]);
+  const files = [];
+  for (const [key, piece] of pieces) {
+    if (key[1] === backrank && piece.color === color && piece.role === 'r-piece') {
+      files.push(util.key2pos(key)[0]);
+    }
+  }
+  return files;
 }
 
 // wazir
@@ -131,12 +138,12 @@ const centaur: Mobility = (x1, y1, x2, y2) => {
 }
 
 // grand pawn (10x10 board, can move two squares on third row)
-function grandPawn(color: cg.Color): Mobility {
+function pawnGrand(color: cg.Color): Mobility {
   return (x1, y1, x2, y2) => diff(x1, x2) < 2 && (
     color === 'white' ? (
-      y2 === y1 + 1 || (y1 <= 3 && y2 === (y1 + 2) && x1 === x2)
+      y2 === y1 + 1 || (y1 <= 2 && y2 === (y1 + 2) && x1 === x2)
     ) : (
-      y2 === y1 - 1 || (y1 >= 8 && y2 === (y1 - 2) && x1 === x2)
+      y2 === y1 - 1 || (y1 >= 7 && y2 === (y1 - 2) && x1 === x2)
     )
   );
 }
@@ -189,8 +196,8 @@ type Palace = cg.Pos[];
 
 function palace(geom: cg.Geometry, color: cg.Color): Palace {
   const bd = cg.dimensions[geom];
-  const middleFile = Math.floor((bd.width + 1) / 2);
-  const startingRank = (color === "white") ? 1 : bd.height - 2;
+  const middleFile = Math.floor(bd.width / 2);
+  const startingRank = (color === "white") ? 0 : bd.height - 3;
 
   return [
     [middleFile - 1, startingRank + 2], [middleFile, startingRank + 2], [middleFile + 1, startingRank + 2],
@@ -214,7 +221,7 @@ const palaces: { [geom in cg.Geometry]? : { [color in cg.Color]: Palace } } = {
 function xiangqiPawn(color: cg.Color): Mobility {
   return (x1, y1, x2, y2) => (
     (x2 === x1 && (color === 'white' ? y2 === y1 + 1 : y2 === y1 - 1)) ||
-    (y2 === y1 && diff(x1, x2) < 2 && (color === 'white' ? y1 > 5 : y1 < 6))
+    (y2 === y1 && diff(x1, x2) < 2 && (color === 'white' ? y1 > 4 : y1 < 5))
     );
 }
 
@@ -228,7 +235,7 @@ function minixiangqiPawn(color: cg.Color): Mobility {
 
 // xiangqi elephant
 function xiangqiElephant(color: cg.Color): Mobility {
-  return (x1, y1, x2, y2) => elephant(x1, y1, x2, y2) && (color === 'white' ? y2 < 6 : y2 > 5)
+  return (x1, y1, x2, y2) => elephant(x1, y1, x2, y2) && (color === 'white' ? y2 < 5 : y2 > 4)
 }
 
 // xiangqi advisor
@@ -457,8 +464,8 @@ function toriEagle(color: cg.Color): Mobility {
   }
 }
 
-export default function premove(pieces: cg.Pieces, key: cg.Key, canCastle: boolean, geom: cg.Geometry, variant: cg.Variant, chess960: Boolean): cg.Key[] {
-  const piece = pieces[key]!;
+export function premove(pieces: cg.Pieces, key: cg.Key, canCastle: boolean, geom: cg.Geometry, variant: cg.Variant, chess960: Boolean): cg.Key[] {
+  const piece = pieces.get(key)!;
   const role = piece.role;
   const color = piece.color;
   const pos = util.key2pos(key);
@@ -580,7 +587,7 @@ export default function premove(pieces: cg.Pieces, key: cg.Key, canCastle: boole
   case 'grand':
   case 'grandhouse':
     switch (role) {
-      case 'p-piece': mobility = grandPawn(color); break; // pawn
+      case 'p-piece': mobility = pawnGrand(color); break; // pawn
       case 'r-piece': mobility = rook; break; // rook
       case 'n-piece': mobility = knight; break; // knight
       case 'b-piece': mobility = bishop; break; // bishop
@@ -593,7 +600,7 @@ export default function premove(pieces: cg.Pieces, key: cg.Key, canCastle: boole
     
   case 'shako':
     switch (role) {
-      case 'p-piece': mobility = grandPawn(color); break; // pawn
+      case 'p-piece': mobility = pawnGrand(color); break; // pawn
       case 'c-piece': // cannon
       case 'r-piece': mobility = rook; break; // rook
       case 'n-piece': mobility = knight; break; // knight
@@ -752,7 +759,7 @@ export default function premove(pieces: cg.Pieces, key: cg.Key, canCastle: boole
 
   }
 
-  return util.allKeys(geom).map(util.key2pos).filter(pos2 => {
-    return (pos[0] !== pos2[0] || pos[1] !== pos2[1]) && mobility(pos[0], pos[1], pos2[0], pos2[1]);
-  }).map(util.pos2key);
+  return util.allPos(geom)
+    .filter(pos2 => (pos[0] !== pos2[0] || pos[1] !== pos2[1]) && mobility(pos[0], pos[1], pos2[0], pos2[1]))
+    .map(util.pos2key);
 }

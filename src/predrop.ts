@@ -1,14 +1,14 @@
-import * as util from './util'
-import * as cg from './types'
+import * as util from './util';
+import * as cg from './types';
 
 type DropMobility = (x: number, y: number) => boolean;
 
-const wholeBoard = (_x: number, _y: number) => true;
+const wholeBoard = () => true;
 
 /**
  *
- * @param from	1-based index from given color's PoV
- * @param to	1-based index from given color's PoV
+ * @param from	0-based index from given color's PoV, inclusive
+ * @param to	0-based index from given color's PoV, exclusive
  * @param color The piece's color
  * @param geom  The board's geometry
  *
@@ -19,18 +19,17 @@ const wholeBoard = (_x: number, _y: number) => true;
  * */
 function rankRange(from: number, to: number, color: cg.Color, geom: cg.Geometry): DropMobility {
     const height = cg.dimensions[geom].height;
-    if (from < 1) from += height;
-    if (to < 1) to += height;
+    if (from < 0) from += height;
+    if (to < 0) to += height;
     return (_x, y) => {
-        if (color === 'black') y = height - y + 1;
-        return from <= y && y <= to;
+        if (color === 'black') y = height - 1 - y;
+        return from <= y && y < to;
     };
 }
 
-export default function predrop(pieces: cg.Pieces, piece: cg.Piece, geom: cg.Geometry, variant: cg.Variant): cg.Key[] {
-
-	const color = piece.color;
+export function predrop(pieces: cg.Pieces, piece: cg.Piece, geom: cg.Geometry, variant: cg.Variant): cg.Key[] {
 	const role = piece.role;
+	const color = piece.color;
 
     // Pieces can be dropped anywhere on the board by default.
     // Mobility will be modified based on variant and piece to match the game rule.
@@ -42,25 +41,24 @@ export default function predrop(pieces: cg.Pieces, piece: cg.Piece, geom: cg.Geo
 		case 'capahouse':
 		case 'gothhouse':
             switch (role) {
-                case 'p-piece': mobility = rankRange(2, -1, color, geom); break; // pawns can't be dropped on the first rank or last rank
+                case 'p-piece': mobility = rankRange(1, -1, color, geom); break; // pawns can't be dropped on the first rank or last rank
             }
 			break;
 
 		case 'placement':
-            mobility = rankRange(1, 1, color, geom); // the "drop" is the placement phase where pieces can only be placed on the first rank
+            mobility = rankRange(0, 1, color, geom); // the "drop" is the placement phase where pieces can only be placed on the first rank
 			break;
 
         case 'sittuyin':
             switch (role) {
-                case 'r-piece': mobility = rankRange(1, 1, color, geom); break; // rooks can only be placed on the first rank
+                case 'r-piece': mobility = rankRange(0, 1, color, geom); break; // rooks can only be placed on the first rank
                 default: mobility = (x, y) => { // the "drop" is the placement phase where pieces can be placed on its player's half of the board
-                    const width = cg.dimensions[geom].width;
-                    const height = cg.dimensions[geom].height;
+                    const bd = cg.dimensions[geom];
                     if (color === 'black') {
-                        x = width - x + 1;
-                        y = height - y + 1;
+                        x = bd.width - 1 - x;
+                        y = bd.height - 1 - y;
                     }
-                    return y < 3 || (y === 3 && x > 4);
+                    return y < 2 || (x > 3 && y === 2);
                 };
             }
             break;
@@ -70,8 +68,8 @@ export default function predrop(pieces: cg.Pieces, piece: cg.Piece, geom: cg.Geo
 		case 'gorogoro':
             switch (role) {
                 case 'p-piece': // pawns and lances can't be dropped on the last rank
-                case 'l-piece': mobility = rankRange(1, -1, color, geom); break;
-                case 'n-piece': mobility = rankRange(1, -2, color, geom); break;// knights can't be dropped on the last two ranks
+                case 'l-piece': mobility = rankRange(0, -1, color, geom); break;
+                case 'n-piece': mobility = rankRange(0, -2, color, geom); break;// knights can't be dropped on the last two ranks
             }
 			break;
 
@@ -83,34 +81,33 @@ export default function predrop(pieces: cg.Pieces, piece: cg.Piece, geom: cg.Geo
 
         case 'torishogi':
             switch (role) {
-                case 's-piece': mobility = rankRange(1, -1, color, geom); break; // swallows can't be dropped on the last rank
+                case 's-piece': mobility = rankRange(0, -1, color, geom); break; // swallows can't be dropped on the last rank
             }
             break;
 
 		case 'grandhouse':
             switch (role) {
-                case 'p-piece': mobility = rankRange(2, 7, color, geom); break; // pawns can't be dropped on the 1st, or 8th to 10th ranks
+                case 'p-piece': mobility = rankRange(1, 7, color, geom); break; // pawns can't be dropped on the 1st, or 8th to 10th ranks
             }
 			break;
 
 		case 'shogun':
-            mobility = rankRange(1, 5, color, geom); // shogun only permits drops on ranks 1-5 for all pieces
+            mobility = rankRange(0, 5, color, geom); // shogun only permits drops on ranks 1-5 for all pieces
 			break;
 
 		case 'synochess':
-            mobility = (_x, y) => y === 5; // Only black can drop, and the only droppable rank is the literal rank five.
+            mobility = (_x, y) => y === 4; // Only black can drop, and the only droppable rank is the literal rank five.
 			break;
 
 		case 'shinobi':
-            mobility = (_x, y) => y <= 4; // Only white can drop, and only on their own half of the board
+            mobility = (_x, y) => y <= 3; // Only white can drop, and only on their own half of the board
 			break;
 
 		default:
 			console.warn("Unknown drop variant", variant);
 	}
 
-	return util.allKeys(geom).map(util.key2pos).filter(pos => {
-        return pieces[util.pos2key(pos)]?.color !== color && mobility(pos[0], pos[1]);
-    }).map(util.pos2key);
-
+	return util.allPos(geom)
+        .filter(pos => pieces.get(util.pos2key(pos))?.color !== color && mobility(pos[0], pos[1]))
+        .map(util.pos2key);
 }
