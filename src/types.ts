@@ -1,12 +1,14 @@
 export type Variant = 'chess' | 'crazyhouse' | 'makruk' | 'cambodian' | 'sittuyin' | 'placement' | 'shogi' | 'minishogi' | 'kyotoshogi' | 'dobutsu' | 'gorogoro' | 'torishogi' | 'xiangqi' | 'minixiangqi' | 'capablanca' | 'seirawan' | 'capahouse' | 'shouse' | 'grand' | 'grandhouse' | 'gothic' | 'gothhouse' | 'shako' | 'shogun' | 'janggi' | 'makpong' | 'orda' | 'synochess' | 'manchu' | 'musketeer' | 'hoppelpoppel' | 'shinobi' | 'empire' | 'ordamirror' | undefined;
 export type Color = typeof colors[number];
 export type PieceSide = typeof pieceSides[number];
-type RawLetter = typeof letters[number];
-export type Letter = `${''|'+'}${RawLetter}`;
-export type Role = `${''|'p'}${RawLetter}-piece`;
+export type Letter = typeof letters[number];
+export type PieceLetter = `${''|'+'}${Letter|Uppercase<Letter>}`;
+export type Role = `${''|'p'}${Letter}-piece`;
 export type File = typeof files[number];
 export type Rank = typeof ranks[number];
 export type Key =  'a0' | `${File}${Rank}`;
+export type DropOrig = `${PieceLetter}@`;
+export type Orig = DropOrig | Key;
 
 export type FEN = string;
 export type Pos = [number, number];
@@ -36,7 +38,7 @@ export interface Rect {
 }
 
 export type DropDests = Map<Role, Key[]>;
-export type Dests = Map<Key, Key[]>;
+export type Dests = Map<Orig, Key[]>;
 
 export interface Elements {
   board: HTMLElement;

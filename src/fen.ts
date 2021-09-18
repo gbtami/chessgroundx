@@ -1,16 +1,7 @@
-import { pos2key, invRanks } from './util';
+import { pos2key, invRanks, roleOf, letterOf } from './util';
 import * as cg from './types';
 
 export const initial: cg.FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR';
-
-function roles(letter: cg.Letter): cg.Role {
-  return (letter.replace("+", "p") + "-piece") as cg.Role;
-}
-
-function letters(role: cg.Role): cg.Letter {
-  const letterPart = role.slice(0, role.indexOf('-'));
-  return ((letterPart.length > 1) ? letterPart.replace('p', '+') : letterPart) as cg.Letter;
-}
 
 export function read(fen: cg.FEN): cg.Pieces {
   if (fen === 'start') fen = initial;
@@ -48,9 +39,9 @@ export function read(fen: cg.FEN): cg.Pieces {
         } else {
           col += num;
           num = 0;
-          const letter = c.toLowerCase() as cg.Letter;
+          const letter = c.toLowerCase() as cg.PieceLetter;
           let piece = {
-            role: roles(letter),
+            role: roleOf(letter),
             color: (c === letter ? 'black' : 'white') as cg.Color
           } as cg.Piece;
           if (promoted) {
@@ -75,8 +66,9 @@ export function write(pieces: cg.Pieces, geom: cg.Geometry): cg.FEN {
         .map(x => {
           const piece = pieces.get((x + y) as cg.Key);
           if (piece) {
-            const letter: string = letters(piece.role) + ((piece.promoted && (letters(piece.role).charAt(0) !== '+')) ? '~' : '');
-            return (piece.color === 'white') ? letter.toUpperCase() : letter;
+            let pieceLetter = letterOf(piece.role, piece.color === 'white');
+            if (piece.promoted && (pieceLetter.charAt(0) !== '+')) pieceLetter += '~';
+            return pieceLetter;
           } else return '1';
         })
         .join('')

@@ -25,6 +25,16 @@ export function allPos(geom: cg.Geometry): cg.Pos[] {
 export const pos2key = (pos: cg.Pos): cg.Key => cg.files[pos[0]] + cg.ranks[pos[1]] as cg.Key;
 export const key2pos = (k: cg.Key): cg.Pos => [k.charCodeAt(0) - 97, k.charCodeAt(1) - 49];
 
+export function roleOf(letter: cg.PieceLetter): cg.Role {
+  return (letter.replace("+", "p").toLowerCase() + "-piece") as cg.Role;
+}
+
+export function letterOf(role: cg.Role, uppercase: boolean = false): cg.PieceLetter {
+  const letterPart = role.slice(0, role.indexOf('-'));
+  const letter = (letterPart.length > 1) ? letterPart.replace('p', '+') : letterPart;
+  return (uppercase ? letter.toUpperCase() : letter) as cg.PieceLetter;
+}
+
 export function memo<A>(f: () => A): cg.Memo<A> {
   let v: A | undefined;
   const ret = (): A => {
