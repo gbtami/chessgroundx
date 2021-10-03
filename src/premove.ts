@@ -566,11 +566,14 @@ export default function premove(pieces: cg.Pieces, key: cg.Key, canCastle: boole
   case 'makpong':
   case 'sittuyin':
   case 'cambodian':
+  case 'asean':
     switch (role) {
       case 'p-piece': mobility = pawn(color); break; // pawn
       case 'r-piece': mobility = rook; break; // rook
       case 'n-piece': mobility = knight; break; // knight
+      case 'b-piece': // ASEAN bishop
       case 's-piece': mobility = shogiSilver(color); break; // khon
+      case 'q-piece': // ASEAN queen
       case 'f-piece': // Sittuyin ferz
       case 'm-piece': mobility = ferz; break; // met
       case 'k-piece': mobility = kingNoCastling; break; // king
