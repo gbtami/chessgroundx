@@ -12,7 +12,7 @@ describe('premove() test',
 
             console.log(state.variant, state.pieces);
             const expected = ['a1', 'c1', 'd1', 'd2', 'e2', 'f2', 'f1', 'g1', 'h1'];
-            const premoves = premove(state.pieces, 'e1', state.premovable.castle, state.geometry, state.variant);
+            const premoves = premove(state.pieces, 'e1', state.premovable.castle, state.geometry, state.variant, state.chess960);
             expect(premoves).to.have.members(expected); 
     }); 
 });
@@ -25,7 +25,7 @@ describe('premove() test',
 
             console.log(state.variant, state.pieces);
             const expected = ['d1', 'd2', 'd3', 'e1', 'e3', 'f1', 'f2', 'f3'];
-            const premoves = premove(state.pieces, 'e2', state.premovable.castle, state.geometry, state.variant);
+            const premoves = premove(state.pieces, 'e2', state.premovable.castle, state.geometry, state.variant, state.chess960);
             expect(premoves).to.have.members(expected); 
     }); 
 });
@@ -38,7 +38,7 @@ describe('premove() test',
 
             console.log(state.variant, state.pieces);
             const expected = ['d1', 'd2', 'e1', 'f1', 'f2'];
-            const premoves = premove(state.pieces, 'e2', state.premovable.castle, state.geometry, state.variant);
+            const premoves = premove(state.pieces, 'e2', state.premovable.castle, state.geometry, state.variant, state.chess960);
             expect(premoves).to.have.members(expected); 
     }); 
 });
@@ -51,7 +51,7 @@ describe('premove() test',
 
             console.log(state.variant, state.pieces);
             const expected = ['a3', 'b3', 'c3', 'd1', 'd3', 'e2', 'e3', 'f1', 'f2', 'f4', 'f5', 'f6', 'f7', 'f8', 'f9', 'f:', 'g3', 'h3', 'i3'];
-            const premoves = premove(state.pieces, 'f3', state.premovable.castle, state.geometry, state.variant);
+            const premoves = premove(state.pieces, 'f3', state.premovable.castle, state.geometry, state.variant, state.chess960);
             expect(premoves).to.have.members(expected); 
     }); 
 });
