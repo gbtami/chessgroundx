@@ -1,7 +1,7 @@
 import { Geometry } from '../src/types'
 import { configure } from '../src/config'
 import { State, defaults } from '../src/state';
-import premove from '../src/premove';
+import { premove } from '../src/premove';
 import { expect } from 'chai';
 
 describe('premove() test', 
