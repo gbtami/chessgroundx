@@ -35,6 +35,10 @@ export function letterOf(role: cg.Role, uppercase: boolean = false): cg.PieceLet
   return (uppercase ? letter.toUpperCase() : letter) as cg.PieceLetter;
 }
 
+export function dropOrigOf(role: cg.Role): cg.DropOrig {
+  return letterOf(role, true) + '@' as cg.DropOrig;
+}
+
 export function memo<A>(f: () => A): cg.Memo<A> {
   let v: A | undefined;
   const ret = (): A => {
@@ -113,7 +117,7 @@ export function computeSquareCenter(key: cg.Key, asWhite: boolean, bounds: Clien
     pos[1] = bd.height - 1 - pos[1];
   }
   return [
-    bounds.left + (bounds.width * pos[0]) / bd.width + bounds.width / (2 * bd.width),
-    bounds.top + (bounds.height * (bd.height - 1 - pos[1])) / bd.height + bounds.height / (2 * bd.height),
+    bounds.left + (bounds.width * (pos[0] + 0.5)) / bd.width,
+    bounds.top + (bounds.height * (bd.height - pos[1] - 0.5)) / bd.height,
   ];
 }

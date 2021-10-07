@@ -333,11 +333,11 @@ function makeCustomBrush(base: DrawBrush, modifiers: DrawModifiers): DrawBrush {
 }
 
 function circleWidth(): [number, number] {
-  return [3 / 64, 4 / 64]; // TODO this might actually depend on boardDimensions
+  return [3 / 64, 4 / 64];
 }
 
 function lineWidth(brush: DrawBrush, current: boolean): number {
-  return ((brush.lineWidth || 10) * (current ? 0.85 : 1)) / 64; // TODO this might actually depend on boardDimensions
+  return ((brush.lineWidth || 10) * (current ? 0.85 : 1)) / 64;
 }
 
 function opacity(brush: DrawBrush, current: boolean): number {
@@ -345,11 +345,11 @@ function opacity(brush: DrawBrush, current: boolean): number {
 }
 
 function arrowMargin(shorten: boolean): number {
-  return (shorten ? 20 : 10) / 64; // TODO this might actually depend on boardDimensions
+  return (shorten ? 20 : 10) / 64;
 }
 
 function pos2user(pos: cg.Pos, bounds: ClientRect, bd: cg.BoardDimensions): cg.NumberPair {
-  const xScale = Math.min(1, bounds.width / bounds.height);
-  const yScale = Math.min(1, bounds.height / bounds.width);
+  const xScale = Math.min(1, bounds.width / bounds.height) * Math.max(1, bd.height / bd.width);
+  const yScale = Math.min(1, bounds.height / bounds.width) * Math.max(1, bd.width / bd.height);
   return [(pos[0] - (bd.width - 1) / 2) * xScale, ((bd.height - 1) / 2 - pos[1]) * yScale];
 }

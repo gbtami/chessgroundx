@@ -6,7 +6,7 @@ export const initial: cg.FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR';
 export function read(fen: cg.FEN): cg.Pieces {
   if (fen === 'start') fen = initial;
 
-  // We will need to read the pocket too when the pocket is incorporated into chessgroundx
+  // TODO We will need to read the pocket too when the pocket is incorporated into chessgroundx
   if (fen.includes('[')) fen = fen.slice(0, fen.indexOf('['));
   const pieces: cg.Pieces = new Map();
   let row: number = fen.split("/").length - 1;
