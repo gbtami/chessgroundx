@@ -29,7 +29,7 @@ export function roleOf(letter: cg.PieceLetter): cg.Role {
   return (letter.replace('+', 'p').toLowerCase() + '-piece') as cg.Role;
 }
 
-export function letterOf(role: cg.Role, uppercase: boolean = false): cg.PieceLetter {
+export function letterOf(role: cg.Role, uppercase = false): cg.PieceLetter {
   const letterPart = role.slice(0, role.indexOf('-'));
   const letter = letterPart.length > 1 ? letterPart.replace('p', '+') : letterPart;
   return (uppercase ? letter.toUpperCase() : letter) as cg.PieceLetter;
