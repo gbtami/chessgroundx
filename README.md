@@ -2,11 +2,10 @@
 
 [![npm](https://img.shields.io/npm/v/chessgroundx)](https://www.npmjs.com/package/chessgroundx)
 
-
 ![Chessground Xiangqi and Shogi](/screenshot/chessgroundx.png)
 ![Chessground in 2D and 3D](/screenshot/twin.jpg)
 
-*Chessground* is a free/libre open source chess UI developed for
+_Chessground_ is a free/libre open source chess UI developed for
 [lichess.org](https://lichess.org).
 It targets modern browsers, as well as mobile development using Cordova.
 
@@ -34,8 +33,9 @@ Chessground is designed to fulfill all lichess.org web and mobile apps needs, so
 
 - Well typed with TypeScript
 - Fast. Uses a custom DOM diff algorithm to reduce DOM writes to the absolute minimum.
-- Small footprint: 10K gzipped (30K unzipped). No dependencies.
-- SVG drawing of circles and arrows on the board
+- Small footprint: 10K gzipped (31K unzipped). No dependencies.
+- SVG drawing of circles, arrows, and custom user shapes on the board
+- Arrows snap to valid moves. Freehand arrows can be drawn by dragging the mouse off the board and back while drawing an arrow.
 - Entirely configurable and reconfigurable at any time
 - Styling with CSS only: board and pieces can be changed by simply switching a class
 - Fluid layout: board can be resized at any time
@@ -64,8 +64,9 @@ npm install --save chessgroundx
 ### Usage
 
 ```js
-const Chessground = require("chessgroundx").Chessground;
+import { Chessground } from 'chessgroundx';
 
+const config = {};
 const ground = Chessground(document.body, config);
 ```
 
@@ -73,7 +74,9 @@ const ground = Chessground(document.body, config);
 
 - React: [ruilisi/react-chessground](https://github.com/ruilisi/react-chessground)
 - Vue.js: [vitogit/vue-chessboard](https://github.com/vitogit/vue-chessboard)
-- More? Please make a pull request to include it here.
+- Angular: [topce/ngx-chessground](https://github.com/topce/ngx-chessground)
+
+More? Please make a pull request to include it here.
 
 ## Documentation
 
@@ -86,18 +89,19 @@ const ground = Chessground(document.body, config);
 ## Development
 
 Install build dependencies:
+
 ```sh
 yarn install
 ```
 
 To build the node module:
+
 ```sh
-tsc -watch
+yarn run compile -- --watch
 ```
 
 To build the standalone:
+
 ```sh
-gulp dev  # build once
-gulp      # build and watch
-gulp prod # build minified
+yarn run dist -- --watch
 ```

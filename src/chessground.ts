@@ -1,48 +1,51 @@
-import { Api, start } from './api'
-import { Config, configure } from './config'
-import { State, defaults } from './state'
+import { Api, start } from './api';
+import { Config, configure } from './config';
+import { HeadlessState, State, defaults } from './state';
 
-import renderWrap from './wrap';
-import * as events from './events'
-import render from './render';
+import { renderWrap } from './wrap';
+import * as events from './events';
+import { render, renderResized, updateBounds } from './render';
 import * as svg from './svg';
 import * as util from './util';
 
 export function Chessground(element: HTMLElement, config?: Config): Api {
+  const maybeState: State | HeadlessState = defaults();
 
-  const state = defaults() as State;
+  configure(maybeState, config || {});
 
-  configure(state, config || {});
-
-  function redrawAll() {
-    let prevUnbind = state.dom && state.dom.unbind;
+  function redrawAll(): State {
+    const prevUnbind = 'dom' in maybeState ? maybeState.dom.unbind : undefined;
     // compute bounds from existing board element if possible
     // this allows non-square boards from CSS to be handled (for 3D)
-    const relative = state.viewOnly && !state.drawable.visible,
-    elements = renderWrap(element, state, relative),
-    bounds = util.memo(() => elements.board.getBoundingClientRect()),
-    redrawNow = (skipSvg?: boolean) => {
-      render(state);
-      if (!skipSvg && elements.svg) svg.renderSvg(state, elements.svg);
-    };
+    const elements = renderWrap(element, maybeState),
+      bounds = util.memo(() => elements.board.getBoundingClientRect()),
+      redrawNow = (skipSvg?: boolean): void => {
+        render(state);
+        if (!skipSvg && elements.svg) svg.renderSvg(state, elements.svg, elements.customSvg!);
+      },
+      onResize = (): void => {
+        updateBounds(state);
+        renderResized(state);
+      };
+    const state = maybeState as State;
     state.dom = {
       elements,
       bounds,
       redraw: debounceRedraw(redrawNow),
       redrawNow,
       unbind: prevUnbind,
-      relative
     };
     state.drawable.prevSvgHash = '';
+    updateBounds(state);
     redrawNow(false);
-    events.bindBoard(state);
-    if (!prevUnbind) state.dom.unbind = events.bindDocument(state, redrawAll);
+    events.bindBoard(state, onResize);
+    if (!prevUnbind) state.dom.unbind = events.bindDocument(state, onResize);
     state.events.insert && state.events.insert(elements);
+    return state;
   }
-  redrawAll();
 
-  return start(state, redrawAll);
-};
+  return start(redrawAll(), redrawAll);
+}
 
 function debounceRedraw(redrawNow: (skipSvg?: boolean) => void): () => void {
   let redrawing = false;
