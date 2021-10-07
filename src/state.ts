@@ -106,7 +106,7 @@ export interface HeadlessState {
   dimensions: cg.BoardDimensions; // number of lines and ranks of the board {width: 10, height: 8}
   geometry: cg.Geometry; // dim8x8 | dim9x9 | dim10x8 | dim9x10
   variant: cg.Variant;
-  chess960: Boolean;
+  chess960: boolean;
   notation: cg.Notation;
 }
 

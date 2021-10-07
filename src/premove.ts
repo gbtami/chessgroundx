@@ -76,8 +76,8 @@ function kingCapa(color: cg.Color, rookFiles: number[], canCastle: boolean): Mob
     (canCastle &&
       y1 === y2 &&
       y1 === backrank(color) &&
-      x1 == 5 &&
-      ((x2 == 8 && rookFiles.includes(9)) || (x2 == 2 && rookFiles.includes(0))));
+      x1 === 5 &&
+      ((x2 === 8 && rookFiles.includes(9)) || (x2 === 2 && rookFiles.includes(0))));
 }
 
 // shako king (different castling files and ranks from standard chess king)
@@ -87,8 +87,8 @@ function kingShako(color: cg.Color, rookFiles: number[], canCastle: boolean): Mo
     (canCastle &&
       y1 === y2 &&
       y1 === (color === 'white' ? 1 : 8) &&
-      x1 == 5 &&
-      ((x2 == 7 && rookFiles.includes(8)) || (x2 == 3 && rookFiles.includes(1))));
+      x1 === 5 &&
+      ((x2 === 7 && rookFiles.includes(8)) || (x2 === 3 && rookFiles.includes(1))));
 }
 function rookFilesOfShako(pieces: cg.Pieces, color: cg.Color) {
   const backrank = color === 'white' ? '2' : '9';
@@ -482,7 +482,7 @@ export function premove(
   canCastle: boolean,
   geom: cg.Geometry,
   variant: cg.Variant,
-  chess960: Boolean
+  chess960: boolean
 ): cg.Key[] {
   const piece = pieces.get(key)!;
   const role = piece.role;
@@ -923,10 +923,13 @@ export function premove(
           break; // elephant
         case 'h-piece':
           mobility = musketeerHawk; // hawk
+          break;
         case 'f-piece':
           mobility = musketeerFortress; // fortress
+          break;
         case 's-piece':
           mobility = musketeerSpider; // spider
+          break;
         case 'k-piece':
           mobility = king(color, rookFilesOf(pieces, color), canCastle);
           break; // king

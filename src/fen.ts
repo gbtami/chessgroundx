@@ -9,10 +9,10 @@ export function read(fen: cg.FEN): cg.Pieces {
   // TODO We will need to read the pocket too when the pocket is incorporated into chessgroundx
   if (fen.includes('[')) fen = fen.slice(0, fen.indexOf('['));
   const pieces: cg.Pieces = new Map();
-  let row: number = fen.split('/').length - 1;
-  let col: number = 0;
-  let promoted: boolean = false;
-  let num: number = 0;
+  let row = fen.split('/').length - 1;
+  let col = 0;
+  let promoted = false;
+  let num = 0;
 
   for (const c of fen) {
     switch (c) {
@@ -40,7 +40,7 @@ export function read(fen: cg.FEN): cg.Pieces {
           col += num;
           num = 0;
           const letter = c.toLowerCase() as cg.PieceLetter;
-          let piece = {
+          const piece = {
             role: roleOf(letter),
             color: (c === letter ? 'black' : 'white') as cg.Color,
           } as cg.Piece;
