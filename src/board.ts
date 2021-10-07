@@ -3,7 +3,7 @@ import { pos2key, key2pos, opposite, distanceSq, allPos, computeSquareCenter } f
 import { premove, queen, knight } from './premove';
 import { predrop } from './predrop';
 import * as cg from './types';
-import { cancelDropMode } from "./drop";
+import { cancelDropMode } from './drop';
 
 export function callUserFunction<T extends (...args: any[]) => void>(f: T | undefined, ...args: Parameters<T>): void {
   if (f) setTimeout(() => f(...args), 1);
@@ -215,9 +215,15 @@ export function selectSquare(state: HeadlessState, key: cg.Key, force?: boolean)
 export function setSelected(state: HeadlessState, key: cg.Key): void {
   state.selected = key;
   if (isPremovable(state, key)) {
-    state.premovable.dests = premove(state.pieces, key, state.premovable.castle, state.geometry, state.variant, state.chess960);
-  }
-  else {
+    state.premovable.dests = premove(
+      state.pieces,
+      key,
+      state.premovable.castle,
+      state.geometry,
+      state.variant,
+      state.chess960
+    );
+  } else {
     state.premovable.dests = undefined;
     state.predroppable.dropDests = undefined;
   }
@@ -352,7 +358,12 @@ export function stop(state: HeadlessState): void {
   cancelMove(state);
 }
 
-export function getKeyAtDomPos(pos: cg.NumberPair, asWhite: boolean, bounds: ClientRect, geom: cg.Geometry): cg.Key | undefined {
+export function getKeyAtDomPos(
+  pos: cg.NumberPair,
+  asWhite: boolean,
+  bounds: ClientRect,
+  geom: cg.Geometry
+): cg.Key | undefined {
   const bd = cg.dimensions[geom];
   let file = Math.floor((bd.width * (pos[0] - bounds.left)) / bounds.width);
   if (!asWhite) file = bd.width - 1 - file;
@@ -370,9 +381,8 @@ export function getSnappedKeyAtDomPos(
 ): cg.Key | undefined {
   const origPos = key2pos(orig);
   const validSnapPos = allPos(geom).filter(pos2 => {
-    return queen(origPos[0], origPos[1], pos2[0], pos2[1]) ||
-      knight(origPos[0], origPos[1], pos2[0], pos2[1]);
-      // TODO Add janggi elephant
+    return queen(origPos[0], origPos[1], pos2[0], pos2[1]) || knight(origPos[0], origPos[1], pos2[0], pos2[1]);
+    // TODO Add janggi elephant
   });
   const bd = cg.dimensions[geom];
   const validSnapCenters = validSnapPos.map(pos2 => computeSquareCenter(pos2key(pos2), asWhite, bounds, bd));

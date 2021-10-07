@@ -9,7 +9,7 @@ export function read(fen: cg.FEN): cg.Pieces {
   // TODO We will need to read the pocket too when the pocket is incorporated into chessgroundx
   if (fen.includes('[')) fen = fen.slice(0, fen.indexOf('['));
   const pieces: cg.Pieces = new Map();
-  let row: number = fen.split("/").length - 1;
+  let row: number = fen.split('/').length - 1;
   let col: number = 0;
   let promoted: boolean = false;
   let num: number = 0;
@@ -42,13 +42,13 @@ export function read(fen: cg.FEN): cg.Pieces {
           const letter = c.toLowerCase() as cg.PieceLetter;
           let piece = {
             role: roleOf(letter),
-            color: (c === letter ? 'black' : 'white') as cg.Color
+            color: (c === letter ? 'black' : 'white') as cg.Color,
           } as cg.Piece;
           if (promoted) {
             piece.role = ('p' + piece.role) as cg.Role;
             piece.promoted = true;
             promoted = false;
-          };
+          }
           pieces.set(pos2key([col, row]), piece);
           ++col;
         }
@@ -60,14 +60,16 @@ export function read(fen: cg.FEN): cg.Pieces {
 
 export function write(pieces: cg.Pieces, geom: cg.Geometry): cg.FEN {
   const bd = cg.dimensions[geom];
-  return invRanks.slice(-bd.height)
+  return invRanks
+    .slice(-bd.height)
     .map(y =>
-      cg.files.slice(0, bd.width)
+      cg.files
+        .slice(0, bd.width)
         .map(x => {
           const piece = pieces.get((x + y) as cg.Key);
           if (piece) {
             let pieceLetter = letterOf(piece.role, piece.color === 'white');
-            if (piece.promoted && (pieceLetter.charAt(0) !== '+')) pieceLetter += '~';
+            if (piece.promoted && pieceLetter.charAt(0) !== '+') pieceLetter += '~';
             return pieceLetter;
           } else return '1';
         })

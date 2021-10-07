@@ -15,28 +15,28 @@ function ranks(n: number) {
 
 export function allKeys(geom: cg.Geometry): cg.Key[] {
   const bd = cg.dimensions[geom];
-  return Array.prototype.concat(...files(bd.width).map(c => ranks(bd.height).map(r => c+r)));
+  return Array.prototype.concat(...files(bd.width).map(c => ranks(bd.height).map(r => c + r)));
 }
 
 export function allPos(geom: cg.Geometry): cg.Pos[] {
   return allKeys(geom).map(key2pos);
 }
 
-export const pos2key = (pos: cg.Pos): cg.Key => cg.files[pos[0]] + cg.ranks[pos[1]] as cg.Key;
+export const pos2key = (pos: cg.Pos): cg.Key => (cg.files[pos[0]] + cg.ranks[pos[1]]) as cg.Key;
 export const key2pos = (k: cg.Key): cg.Pos => [k.charCodeAt(0) - 97, k.charCodeAt(1) - 49];
 
 export function roleOf(letter: cg.PieceLetter): cg.Role {
-  return (letter.replace("+", "p").toLowerCase() + "-piece") as cg.Role;
+  return (letter.replace('+', 'p').toLowerCase() + '-piece') as cg.Role;
 }
 
 export function letterOf(role: cg.Role, uppercase: boolean = false): cg.PieceLetter {
   const letterPart = role.slice(0, role.indexOf('-'));
-  const letter = (letterPart.length > 1) ? letterPart.replace('p', '+') : letterPart;
+  const letter = letterPart.length > 1 ? letterPart.replace('p', '+') : letterPart;
   return (uppercase ? letter.toUpperCase() : letter) as cg.PieceLetter;
 }
 
 export function dropOrigOf(role: cg.Role): cg.DropOrig {
-  return letterOf(role, true) + '@' as cg.DropOrig;
+  return (letterOf(role, true) + '@') as cg.DropOrig;
 }
 
 export function memo<A>(f: () => A): cg.Memo<A> {
@@ -71,11 +71,13 @@ export const timer = (): cg.Timer => {
 
 export const opposite = (c: cg.Color): cg.Color => (c === 'white' ? 'black' : 'white');
 
-export const samePiece = (p1: cg.Piece, p2: cg.Piece): boolean => p1.role === p2.role && p1.color === p2.color && p1.promoted === p2.promoted;
+export const samePiece = (p1: cg.Piece, p2: cg.Piece): boolean =>
+  p1.role === p2.role && p1.color === p2.color && p1.promoted === p2.promoted;
 
-export const pieceSide = (p: cg.Piece, o: cg.Color): cg.PieceSide => p.color === o ? 'ally' : 'enemy';
+export const pieceSide = (p: cg.Piece, o: cg.Color): cg.PieceSide => (p.color === o ? 'ally' : 'enemy');
 
-export const pieceClasses = (p: cg.Piece, o: cg.Color): string => `${p.color} ${pieceSide(p, o)} ${p.promoted ? 'promoted ' : ''}${p.role}`;
+export const pieceClasses = (p: cg.Piece, o: cg.Color): string =>
+  `${p.color} ${pieceSide(p, o)} ${p.promoted ? 'promoted ' : ''}${p.role}`;
 
 export const distanceSq = (pos1: cg.Pos, pos2: cg.Pos): number => {
   const dx = pos1[0] - pos2[0],
@@ -86,7 +88,10 @@ export const distanceSq = (pos1: cg.Pos, pos2: cg.Pos): number => {
 export const posToTranslate =
   (bounds: ClientRect, bd: cg.BoardDimensions): ((pos: cg.Pos, asWhite: boolean) => cg.NumberPair) =>
   (pos, asWhite) =>
-    [((asWhite ? pos[0] : bd.width - 1 - pos[0]) * bounds.width) / bd.width, ((asWhite ? bd.height - 1 - pos[1] : pos[1]) * bounds.height) / bd.height];
+    [
+      ((asWhite ? pos[0] : bd.width - 1 - pos[0]) * bounds.width) / bd.width,
+      ((asWhite ? bd.height - 1 - pos[1] : pos[1]) * bounds.height) / bd.height,
+    ];
 
 export const translate = (el: HTMLElement, pos: cg.NumberPair): void => {
   el.style.transform = `translate(${pos[0]}px,${pos[1]}px)`;
@@ -110,7 +115,12 @@ export const createEl = (tagName: string, className?: string): HTMLElement => {
   return el;
 };
 
-export function computeSquareCenter(key: cg.Key, asWhite: boolean, bounds: ClientRect, bd: cg.BoardDimensions): cg.NumberPair {
+export function computeSquareCenter(
+  key: cg.Key,
+  asWhite: boolean,
+  bounds: ClientRect,
+  bd: cg.BoardDimensions
+): cg.NumberPair {
   const pos = key2pos(key);
   if (!asWhite) {
     pos[0] = bd.width - 1 - pos[0];

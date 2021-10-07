@@ -1,10 +1,10 @@
-import { State } from './state'
-import * as drag from './drag'
-import * as draw from './draw'
-import { cancelDropMode, drop } from './drop'
-import { eventPosition, isRightButton } from './util'
+import { State } from './state';
+import * as drag from './drag';
+import * as draw from './draw';
+import { cancelDropMode, drop } from './drop';
+import { eventPosition, isRightButton } from './util';
 import { getKeyAtDomPos, whitePov } from './board';
-import * as cg from './types'
+import * as cg from './types';
 
 type MouchBind = (e: cg.MouchEvent) => void;
 type StateMouchBind = (d: State, e: cg.MouchEvent) => void;
@@ -71,11 +71,14 @@ function startDragOrDraw(s: State): MouchBind {
     else if (e.shiftKey || isRightButton(e)) {
       if (s.drawable.enabled) draw.start(s, e);
     } else if (!s.viewOnly) {
-      if (s.dropmode.active && (squareOccupied(s, e) === undefined || (s.movable.color !== s.turnColor && squareOccupied(s, e)?.color === s.turnColor))) {
+      if (
+        s.dropmode.active &&
+        (squareOccupied(s, e) === undefined ||
+          (s.movable.color !== s.turnColor && squareOccupied(s, e)?.color === s.turnColor))
+      ) {
         // only apply drop if the dest square is empty or predropping on an opponent's piece
         drop(s, e);
-      }
-      else {
+      } else {
         cancelDropMode(s);
         drag.start(s, e);
       }

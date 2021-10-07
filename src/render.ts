@@ -1,5 +1,11 @@
 import { State } from './state';
-import { key2pos, pieceClasses as pieceNameOf, createEl, posToTranslate as posToTranslateFromBounds, translate } from './util';
+import {
+  key2pos,
+  pieceClasses as pieceNameOf,
+  createEl,
+  posToTranslate as posToTranslateFromBounds,
+  translate,
+} from './util';
 import { whitePov } from './board';
 import { AnimCurrent, AnimVectors, AnimVector, AnimFadings } from './anim';
 import { DragCurrent } from './drag';
@@ -186,7 +192,9 @@ export function updateBounds(s: State): void {
   const bounds = s.dom.elements.wrap.getBoundingClientRect();
   const container = s.dom.elements.container;
   const ratio = bounds.height / bounds.width;
-  const width = (Math.floor((bounds.width * window.devicePixelRatio) / s.dimensions.width) * s.dimensions.width) / window.devicePixelRatio;
+  const width =
+    (Math.floor((bounds.width * window.devicePixelRatio) / s.dimensions.width) * s.dimensions.width) /
+    window.devicePixelRatio;
   const height = width * ratio;
   container.style.width = width + 'px';
   container.style.height = height + 'px';
@@ -219,8 +227,7 @@ function computeSquareClasses(s: State): SquareClasses {
   const squares: SquareClasses = new Map();
   if (s.lastMove && s.highlight.lastMove)
     for (const k of s.lastMove) {
-      if (k !== 'a0')
-        addSquare(squares, k, 'last-move');
+      if (k !== 'a0') addSquare(squares, k, 'last-move');
     }
   if (s.check && s.highlight.check) addSquare(squares, s.check, 'check');
   if (s.selected) {

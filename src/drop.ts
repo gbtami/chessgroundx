@@ -3,8 +3,8 @@ import * as cg from './types';
 import * as board from './board';
 import * as util from './util';
 import { cancel as dragCancel } from './drag';
-import { predrop } from "./predrop";
-import { callUserFunction } from "./board";
+import { predrop } from './predrop';
+import { callUserFunction } from './board';
 
 export function setDropMode(s: State, piece?: cg.Piece): void {
   s.dropmode.active = true;
@@ -17,7 +17,6 @@ export function setDropMode(s: State, piece?: cg.Piece): void {
   if (piece && board.isPredroppable(s)) {
     s.predroppable.dropDests = predrop(s.pieces, piece, s.geometry, s.variant);
   }
-
 }
 
 export function cancelDropMode(s: HeadlessState): void {

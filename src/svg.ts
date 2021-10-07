@@ -231,7 +231,13 @@ function renderCustomSvg(customSvg: string, pos: cg.Pos, bounds: ClientRect, bd:
   return g;
 }
 
-function renderCircle(brush: DrawBrush, pos: cg.Pos, current: boolean, bounds: ClientRect, bd: cg.BoardDimensions): SVGElement {
+function renderCircle(
+  brush: DrawBrush,
+  pos: cg.Pos,
+  current: boolean,
+  bounds: ClientRect,
+  bd: cg.BoardDimensions
+): SVGElement {
   const o = pos2user(pos, bounds, bd),
     widths = circleWidth(),
     radius = (bounds.width + bounds.height) / (4 * Math.max(bounds.width, bounds.height));
@@ -276,12 +282,19 @@ function renderArrow(
   });
 }
 
-function renderPiece(baseUrl: string, pos: cg.Pos, piece: DrawShapePiece, bounds: ClientRect, bd: cg.BoardDimensions, orientation: cg.Color): SVGElement {
+function renderPiece(
+  baseUrl: string,
+  pos: cg.Pos,
+  piece: DrawShapePiece,
+  bounds: ClientRect,
+  bd: cg.BoardDimensions,
+  orientation: cg.Color
+): SVGElement {
   const o = pos2user(pos, bounds, bd),
     name = piece.color[0] + piece.role[0].toUpperCase();
   // If baseUrl doesn't end with '/' use it as full href
   // This is needed when drop piece suggestion .svg image file names are different than "name" produces
-  const href = (baseUrl.endsWith('/') ? baseUrl + name + '.svg' : baseUrl);
+  const href = baseUrl.endsWith('/') ? baseUrl + name + '.svg' : baseUrl;
 
   return setAttributes(createElement('image'), {
     className: pieceClasses(piece, orientation),
