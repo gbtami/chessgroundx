@@ -71,20 +71,16 @@ function startDragOrDraw(s: State): MouchBind {
     else if (e.shiftKey || isRightButton(e)) {
       if (s.drawable.enabled) draw.start(s, e);
     } else if (!s.viewOnly) {
-      if (
-        s.dropmode.active &&
-        (squareOccupied(s, e) === undefined ||
-          (s.movable.color !== s.turnColor && squareOccupied(s, e)?.color === s.turnColor))
-      ) {
-        // only apply drop if the dest square is empty or predropping on an opponent's piece
-        drop(s, e);
-      } else {
-        cancelDropMode(s);
-        drag.start(s, e);
-      }
-
-      if (s.dropmode.active) drop(s, e);
-      else drag.start(s, e);
+        if (s.dropmode.active &&
+            (squareOccupied(s, e) === undefined ||
+                (s.movable.color !== s.turnColor && squareOccupied(s, e)?.color === s.turnColor))
+        ) {
+            // only apply drop if the dest square is empty or predropping on an opponent's piece
+            drop(s, e);
+        } else {
+            cancelDropMode(s);
+            drag.start(s, e);
+        }
     }
   };
 }
