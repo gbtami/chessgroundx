@@ -78,6 +78,8 @@ export type Dests = Map<Orig, Key[]>;
 
 export interface Elements {
   board: HTMLElement;
+  pocketTop?: HTMLElement;
+  pocketBottom?: HTMLElement;
   wrap: HTMLElement;
   container: HTMLElement;
   ghost?: HTMLElement;

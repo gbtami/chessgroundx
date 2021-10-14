@@ -7,11 +7,15 @@ import * as events from './events';
 import { render, renderResized, updateBounds } from './render';
 import * as svg from './svg';
 import * as util from './util';
+import {pocketView, refreshPockets} from "./pocket";
+import { initPockets } from "./pockTempStuff";
 
-export function Chessground(element: HTMLElement, config?: Config): Api {
+export function Chessground(element: HTMLElement, pocket0?: HTMLElement, pocket1?: HTMLElement, config?: Config): Api {
   const maybeState: State | HeadlessState = defaults();
-
+  maybeState.pockets.pocketRoles=config!.pocketRoles!;//todo;niki:see also state.dom
+  maybeState.pockets.fen=config!.fen;
   configure(maybeState, config || {});
+  initPockets(maybeState);
 
   function redrawAll(): State {
     const prevUnbind = 'dom' in maybeState ? maybeState.dom.unbind : undefined;
@@ -22,11 +26,21 @@ export function Chessground(element: HTMLElement, config?: Config): Api {
       redrawNow = (skipSvg?: boolean): void => {
         render(state);
         if (!skipSvg && elements.svg) svg.renderSvg(state, elements.svg, elements.customSvg!);
+        refreshPockets(state);
       },
       onResize = (): void => {
         updateBounds(state);
         renderResized(state);
       };
+    if (pocket0) {
+      elements.pocketTop = pocketView(maybeState as State,"top");
+      pocket0.replaceWith(elements.pocketTop);//todo:niki:maybe better to use existing/given pocket0 element instead of replacing it - that is what they do in renderWrap for the chess board
+    }
+    if (pocket1) {
+      elements.pocketBottom = pocketView(maybeState as State, "bottom");
+      pocket1.replaceWith(elements.pocketBottom);
+    }
+
     const state = maybeState as State;
     state.dom = {
       elements,
@@ -44,7 +58,9 @@ export function Chessground(element: HTMLElement, config?: Config): Api {
     return state;
   }
 
-  return start(redrawAll(), redrawAll);
+  const api = start(redrawAll(), redrawAll);
+
+  return api;
 }
 
 function debounceRedraw(redrawNow: (skipSvg?: boolean) => void): () => void {

@@ -1,9 +1,10 @@
 import { HeadlessState } from './state';
-import { pos2key, key2pos, opposite, distanceSq, allPos, computeSquareCenter } from './util';
+import {pos2key, key2pos, opposite, distanceSq, allPos, computeSquareCenter, letterOf} from './util';
 import { premove, queen, knight } from './premove';
 import { predrop } from './predrop';
 import * as cg from './types';
 import { cancelDropMode } from './drop';
+import {handleCapture, handleDrop} from "./pockTempStuff";
 
 export function callUserFunction<T extends (...args: any[]) => void>(f: T | undefined, ...args: Parameters<T>): void {
   if (f) setTimeout(() => f(...args), 1);
@@ -108,6 +109,7 @@ export function baseMove(state: HeadlessState, orig: cg.Key, dest: cg.Key): cg.P
   }
   state.lastMove = [orig, dest];
   state.check = undefined;
+  if (captured) handleCapture(state, captured);
   callUserFunction(state.events.change);
   return captured || true;
 }
@@ -117,6 +119,7 @@ export function baseNewPiece(state: HeadlessState, piece: cg.Piece, key: cg.Key,
     if (force) state.pieces.delete(key);
     else return false;
   }
+  handleDrop(piece, state);
   callUserFunction(state.events.dropNewPiece, piece, key);
   state.pieces.set(key, piece);
   state.lastMove = [key];
@@ -252,11 +255,15 @@ export function canMove(state: HeadlessState, orig: cg.Key, dest: cg.Key): boole
 
 function canDrop(state: HeadlessState, orig: cg.Key, dest: cg.Key): boolean {
   const piece = state.pieces.get(orig);
-  return (
+  return !!piece &&
+      !!state.movable.dests &&
+      !!state.movable.dests.get(letterOf(piece.role, true)+'@' as cg.Orig) &&
+      state.movable.dests.get(letterOf(piece.role, true)+'@' as cg.Orig)!.includes(dest);
+  /*return (
     !!piece &&
     (orig === dest || !state.pieces.has(dest)) &&
     (state.movable.color === 'both' || (state.movable.color === piece.color && state.turnColor === piece.color))
-  );
+  );*/
 }
 
 function isPremovable(state: HeadlessState, orig: cg.Key): boolean {
@@ -336,6 +343,7 @@ export function playPredrop(state: HeadlessState, validate: (drop: cg.Drop) => b
       color: state.movable.color,
     } as cg.Piece;
     if (baseNewPiece(state, piece, drop.key)) {
+      //todo:niki:i dont understand why validation if delegate instead of directly calling canDrop as in normal drops
       callUserFunction(state.movable.events.afterNewPiece, drop.role, drop.key, {
         premove: false,
         predrop: true,

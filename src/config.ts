@@ -3,8 +3,11 @@ import { setCheck, setSelected } from './board';
 import { read as fenRead } from './fen';
 import { DrawShape, DrawBrushes } from './draw';
 import * as cg from './types';
+import {handleTurnChange, updatePocks} from "./pockTempStuff";
 
 export interface Config {
+  pocketRoles?: (color: cg.Color) => string[] | undefined; // what pieces have slots in the pocket for each color
+
   fen?: cg.FEN; // chess position in Forsyth notation
   orientation?: cg.Color; // board orientation. white | black
   turnColor?: cg.Color; // turn to play. white | black
@@ -126,18 +129,34 @@ export function configure(state: HeadlessState, config: Config): void {
   if (config.dropmode?.dropDests) state.dropmode.dropDests = undefined;
   if (config.drawable?.autoShapes) state.drawable.autoShapes = [];
 
+  const fullfen = config.fen;
+  if (fullfen) {
+      //this is full fen - lets split it here for old chessground
+      const parts = fullfen.split(" ");
+      config.fen= parts[0];
+  }
+
   deepMerge(state, config);
 
   if (config.geometry) state.dimensions = cg.dimensions[config.geometry];
 
   // if a fen was provided, replace the pieces
   if (config.fen) {
+
+    if (fullfen) {
+        updatePocks(fullfen, state);
+        handleTurnChange(state);//todo:niki:not sure if right place
+    }
+
+
     const pieces = fenRead(config.fen);
     // prevent calling cancel() if piece drag is already started from pocket!
     const draggedPiece = state.pieces.get('a0');
     if (draggedPiece !== undefined) pieces.set('a0', draggedPiece);
     state.pieces = pieces;
     state.drawable.shapes = [];
+
+
   }
 
   // apply config values that could be undefined yet meaningful

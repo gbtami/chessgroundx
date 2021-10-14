@@ -92,7 +92,7 @@ export function start(state: State, redrawAll: cg.Redraw): Api {
 
     state,
 
-    getFen: () => fenWrite(state.pieces, state.geometry),
+    getFen: () => fenWrite(state.pieces, state.geometry, state.pockets.pockets!),
 
     toggleOrientation,
 
