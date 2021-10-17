@@ -4,7 +4,7 @@ import { premove, queen, knight } from './premove';
 import { predrop } from './predrop';
 import * as cg from './types';
 import { cancelDropMode } from './drop';
-import {handleCapture, handleDrop} from "./pockTempStuff";
+import { handleCapture, handleDrop } from "./pocket";
 
 export function callUserFunction<T extends (...args: any[]) => void>(f: T | undefined, ...args: Parameters<T>): void {
   if (f) setTimeout(() => f(...args), 1);

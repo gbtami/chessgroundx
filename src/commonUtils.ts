@@ -1,3 +1,6 @@
+// place for util functions either coming from pychess and/or also useful in pychess or just
+// not part of original chessground and put here instead of in ./utils.ts to minimize merge conflicts
+
 /**
  * Count given letter occurences in a string
  * @param str

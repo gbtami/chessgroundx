@@ -4,16 +4,9 @@ import { DragCurrent } from './drag';
 import { Drawable } from './draw';
 import { timer } from './util';
 import * as cg from './types';
-import {Pockets} from "./pocket";
+import {PocketRoles, Pockets} from "./pocket";
 
 export interface HeadlessState {
-
-  pockets: {
-    pockets: Pockets | undefined;
-    pocketRoles: (color: cg.Color) => string[] | undefined;
-    fen?: cg.FEN;
-  }
-
   pieces: cg.Pieces;
   orientation: cg.Color; // board orientation. white | black
   turnColor: cg.Color; // turn to play. white | black
@@ -116,6 +109,9 @@ export interface HeadlessState {
   variant: cg.Variant;
   chess960: boolean;
   notation: cg.Notation;
+
+  pockets?: Pockets; // undefinied for non-pocket variants. State of pockets for each color
+  pocketRoles?: PocketRoles; // undefinied for non-pocket variants. Possible pieces that a pocket can hold for each color
 }
 
 export interface State extends HeadlessState {
@@ -124,11 +120,6 @@ export interface State extends HeadlessState {
 
 export function defaults(): HeadlessState {
   return {
-    pockets: {
-      pockets: {white:{}, black:{}},
-      pocketRoles: () => {  return []; },
-      fen: fen.initial
-    },
     pieces: fen.read(fen.initial),
     orientation: 'white',
     turnColor: 'white',

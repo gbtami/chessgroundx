@@ -59,7 +59,7 @@ export function read(fen: cg.FEN): cg.Pieces {
   return pieces;
 }
 
-export function write(pieces: cg.Pieces, geom: cg.Geometry, pockets: Pockets): cg.FEN {
+export function write(pieces: cg.Pieces, geom: cg.Geometry, pockets?: Pockets): cg.FEN {
   const bd = cg.dimensions[geom];
   const fen = invRanks
     .slice(-bd.height)

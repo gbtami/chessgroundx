@@ -3,11 +3,9 @@ import { setCheck, setSelected } from './board';
 import { read as fenRead } from './fen';
 import { DrawShape, DrawBrushes } from './draw';
 import * as cg from './types';
-import {handleTurnChange, updatePocks} from "./pockTempStuff";
+import { handleTurnChange, PocketRoles, readPockets } from "./pocket";
 
 export interface Config {
-  pocketRoles?: (color: cg.Color) => string[] | undefined; // what pieces have slots in the pocket for each color
-
   fen?: cg.FEN; // chess position in Forsyth notation
   orientation?: cg.Color; // board orientation. white | black
   turnColor?: cg.Color; // turn to play. white | black
@@ -113,6 +111,7 @@ export interface Config {
   variant?: cg.Variant;
   chess960?: boolean;
   notation?: cg.Notation;
+  pocketRoles?: PocketRoles; // what pieces have slots in the pocket for each color
 }
 
 export function applyAnimation(state: HeadlessState, config: Config): void {
@@ -129,26 +128,12 @@ export function configure(state: HeadlessState, config: Config): void {
   if (config.dropmode?.dropDests) state.dropmode.dropDests = undefined;
   if (config.drawable?.autoShapes) state.drawable.autoShapes = [];
 
-  const fullfen = config.fen;
-  if (fullfen) {
-      //this is full fen - lets split it here for old chessground
-      const parts = fullfen.split(" ");
-      config.fen= parts[0];
-  }
-
   deepMerge(state, config);
 
   if (config.geometry) state.dimensions = cg.dimensions[config.geometry];
 
   // if a fen was provided, replace the pieces
   if (config.fen) {
-
-    if (fullfen) {
-        updatePocks(fullfen, state);
-        handleTurnChange(state);//todo:niki:not sure if right place
-    }
-
-
     const pieces = fenRead(config.fen);
     // prevent calling cancel() if piece drag is already started from pocket!
     const draggedPiece = state.pieces.get('a0');
@@ -156,7 +141,10 @@ export function configure(state: HeadlessState, config: Config): void {
     state.pieces = pieces;
     state.drawable.shapes = [];
 
-
+    if (state.pocketRoles) {
+        state.pockets = readPockets(config.fen, state.pocketRoles);
+        handleTurnChange(state);//todo:niki:not sure if right place. maybe instead should be on setting of movable.dests? it depends on it after all. or together with below setSelected call?
+    }
   }
 
   // apply config values that could be undefined yet meaningful

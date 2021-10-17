@@ -3,21 +3,24 @@ import * as util from './util';
 import { dragNewPiece } from './drag';
 import { setDropMode, cancelDropMode } from './drop';
 
-import {createEl, letterOf, opposite, pieceClasses as pieceNameOf} from "./util";
+import { createEl, letterOf, opposite, pieceClasses as pieceNameOf, roleOf } from "./util";
 import { HeadlessState, State } from "./state";
-import { PieceNode } from "./types";
+import {Elements, PieceNode} from "./types";
+import { lc } from "./commonUtils";
+import { predrop } from "./predrop";
 
+//probably below types logically belong to ./types.ts, but lets keep them here to have less conflicts merging from upstream chessground
 type Position = 'top' | 'bottom';
-
 export type Pocket = Partial<Record<cg.Role, number>>;
 export type Pockets = Partial<Record<cg.Color, Pocket>>;
+export type PocketRoles = (color: cg.Color) => string[] | undefined;
 
 export const eventsDragging = ['mousedown', 'touchmove'];
 export const eventsClicking = ['click'];
-export const eventsDropping = ['mouseup', 'touchend']; // relevant for editor
+export const eventsDropping = ['mouseup', 'touchend']; // relevant for editor. todo:niki: maybe should be handled from outside
 
-export function createPocketEl(state: HeadlessState, position: Position){
-    const pocket = state.pockets.pockets![position === 'top' ? opposite(state.orientation) : state.orientation];
+export function createPocketEl(state: HeadlessState, position: Position) {
+    const pocket = state.pockets![position === 'top' ? opposite(state.orientation) : state.orientation];
     const roles = Object.keys(pocket!); //todo;niki;handle undefinied where - what was that variant with only 1 pocket? how was it handled before // contains the list of possible pieces/roles (i.e. for crazyhouse p-piece, n-piece, b-piece, r-piece, q-piece) in the order they will be displayed in the pocket
 
     const pl = String(roles!.length);
@@ -33,7 +36,7 @@ export function createPocketEl(state: HeadlessState, position: Position){
 export function pocketView(state: HeadlessState, position: Position) {
     // const chessground = pockStateStuff.chessground;
     const color = position === 'top' ? opposite(state.orientation) : state.orientation;
-    const pocket = state.pockets!.pockets![color];
+    const pocket = state.pockets![color];
     const roles = Object.keys(pocket!); // contains the list of possible pieces/roles (i.e. for crazyhouse p-piece, n-piece, b-piece, r-piece, q-piece) in the order they will be displayed in the pocket
 
     const pocketEl = createPocketEl(state, position);
@@ -81,9 +84,18 @@ export function pocketView(state: HeadlessState, position: Position) {
     return pocketEl;
 }
 
-export function click(state: HeadlessState/*ctrl: EditorController | RoundController | AnalysisController*/, e: cg.MouchEvent): void {
-    // const chessground = pockStateStuff.chessground;
+export function renderPocketsInitial(state: HeadlessState, elements: Elements, pocketTop?: HTMLElement, pocketBottom?: HTMLElement){
+    if (pocketTop) {
+      elements.pocketTop = pocketView(state,"top");
+      pocketTop.replaceWith(elements.pocketTop);//todo:niki:maybe better to use existing/given pocket0 element instead of replacing it - that is what they do in renderWrap for the chess board
+    }
+    if (pocketBottom) {
+      elements.pocketBottom = pocketView(state, "bottom");
+      pocketBottom.replaceWith(elements.pocketBottom);
+    }
+}
 
+export function click(state: HeadlessState, e: cg.MouchEvent): void {
     if (e.button !== undefined && e.button !== 0) return; // only touch or left click
 
     const el = e.target as HTMLElement,
@@ -114,12 +126,10 @@ export function click(state: HeadlessState/*ctrl: EditorController | RoundContro
     }
     e.stopPropagation();
     e.preventDefault();
-    refreshPockets(state as State);
+    renderPockets(state as State);
 }
 
-export function drag(state: HeadlessState/*pockStateStuff: PockStateStuff*//*EditorController | RoundController | AnalysisController*/, e: cg.MouchEvent): void {
-    // const chessground = pockStateStuff.chessground;
-
+export function drag(state: HeadlessState, e: cg.MouchEvent): void {
     if (e.button !== undefined && e.button !== 0) return; // only touch or left click
     // if (ctrl instanceof RoundController && ctrl.spectator) return;TODO:niki:move to the canDragFromIt boolean
     const el = e.target as HTMLElement,
@@ -145,6 +155,9 @@ export function drag(state: HeadlessState/*pockStateStuff: PockStateStuff*//*Edi
     }
 
     //TODO:niki: hmm? is this even a good idea? does drag always result in deleting no matter what? maybe this should go in some event listener?
+    //           ok i get it now - i misunderstood when i wrote above comment. it is just that there is not subsequent event to decrease the count so we decrease it here on start of drag
+    //           if drag ends back in pocket it will increase it again so negate the effect and all is normal
+    //
     // if (ctrl instanceof EditorController) { // immediately decrease piece count for editor
     //     let index = color === 'white' ? 1 : 0;
     //     if (ctrl.flip) index = 1 - index;
@@ -175,30 +188,73 @@ export function drop(state: HeadlessState, e: cg.MouchEvent): void {
         const color = el.getAttribute('data-color') as cg.Color;
         // let index = color === 'white' ? 1 : 0;
         // if (isFlipped(state)) index = 1 - index;
-        const pocket = state.pockets.pockets![color];
+        const pocket = state.pockets![color];
         console.log(role);
         console.log(color);
         // console.log(index);
         console.log(pocket);
         if (role in pocket!) {
             pocket![role]!++;
-            refreshPockets(state as State);
+            renderPockets(state as State);
             // ctrl.onChange();//TODO:niki:what to do with this - call somehow via chessground
         }
     }
 }
 
-export function refreshPockets(state: State) : void {
+/**
+ * Just refreshes each pieces number based on state
+ * */
+export function renderPockets(state: State) : void {
     let el: cg.PieceNode = state.dom.elements.pocketTop!.firstChild as PieceNode;
     while (el){
         const role = el.getAttribute("data-role") as string;//cgPiece
-        el.setAttribute("data-nb", ''+(state.pockets.pockets![opposite(state.orientation)]![role as cg.Role] ?? 0));
+        el.setAttribute("data-nb", ''+(state.pockets![opposite(state.orientation)]![role as cg.Role] ?? 0));
+
+        // todo:niki: this repeated below and also in renderPocketInitial
+        const color = el.getAttribute("data-color");
+        const dropMode = state.dropmode;
+        const dropPiece = state.dropmode.piece;
+        const selectedSquare = dropMode?.active && dropPiece?.role === role && dropPiece?.color === color;
+        const preDropRole = state.predroppable.current?.role;//ctrl.predrop?.role;TODO:niki:test this! not sure about it
+        const activeColor = color === state.movable.color;//ctrl.turnColor;
+
+        if (activeColor && preDropRole === role) {
+            el.classList.add('premove');
+        } else {
+            el.classList.remove('premove');
+        }
+        if (selectedSquare) {
+            el.classList.add('selected-square');
+        } else {
+            el.classList.remove('selected-square');
+        }
+
         el = el.nextSibling as PieceNode;
     }
     el = state.dom.elements.pocketBottom!.firstChild as PieceNode;
     while (el){
         const role = el.getAttribute("data-role") as string;//cgPiece
-        el.setAttribute("data-nb", ''+(state.pockets.pockets![state.orientation]![role as cg.Role] ?? 0));
+        el.setAttribute("data-nb", ''+(state.pockets![state.orientation]![role as cg.Role] ?? 0));
+
+        // todo:niki: this repeated above and also in renderPocketInitial
+        const color = el.getAttribute("data-color");
+        const dropMode = state.dropmode;
+        const dropPiece = state.dropmode.piece;
+        const selectedSquare = dropMode?.active && dropPiece?.role === role && dropPiece?.color === color;
+        const preDropRole = state.predroppable.current?.role;//ctrl.predrop?.role;TODO:niki:test this! not sure about it
+        const activeColor = color === state.movable.color;//ctrl.turnColor;
+
+        if (activeColor && preDropRole === role) {
+            el.classList.add('premove');
+        } else {
+            el.classList.remove('premove');
+        }
+        if (selectedSquare) {
+            el.classList.add('selected-square');
+        } else {
+            el.classList.remove('selected-square');
+        }
+
         el = el.nextSibling as PieceNode;
     }
 }
@@ -212,5 +268,60 @@ function pocket2str(pocket: Pocket) {//todo:niki:was this used - where? why alwa
 }
 
 export function pockets2str(pockets: Pockets) {
-    return '[' + pocket2str(pockets['white']!) + pocket2str(pockets['black']!).toLowerCase() + ']';
+    return '[' + pocket2str(pockets['white']!) + pocket2str(pockets['black']!).toLowerCase() + ']';//todo;check undefinied for non-symetric variants
+}
+
+/**
+ * Analogous to fen.ts->read(...), but for pocket part of FEN
+ * TODO: See todo in that read function as well. Not sure if pocket parsing belongs there unless return
+ *       type is extended to contain pocket state. Also not putting this function in that file
+ *       to reduce chances of conflicts when merging from upsteam
+ * */
+export function readPockets(fen: cg.FEN, pocketRoles: PocketRoles): Pockets | undefined {
+    const placement = fen.split(" ")[0];
+
+    const bracketPos = placement.indexOf("[");
+    const pocketsFenPart = bracketPos !== -1 ? placement.slice(bracketPos): undefined;
+
+    if (pocketsFenPart) {
+        const rWhite = pocketRoles('white') ?? [];
+        const rBlack = pocketRoles('black') ?? [];
+        const pWhite: Pocket = {};
+        const pBlack: Pocket = {};
+        rWhite.forEach(r => pWhite[roleOf(r as cg.PieceLetter)] = lc(pocketsFenPart, r, true));
+        rBlack.forEach(r => pBlack[roleOf(r as cg.PieceLetter)] = lc(pocketsFenPart, r, false));
+        return {white: pWhite, black: pBlack};
+    }
+    return undefined;
+}
+
+export function handleDrop(piece: cg.Piece, state: HeadlessState): void {
+    state.pockets![piece.color]![piece.role]! --;
+}
+
+export function handleCapture(state: HeadlessState, capturedPiece: cg.Piece): void {
+    state.pockets![opposite(capturedPiece.color)]![capturedPiece.role]! ++;
+}
+
+export function handleTurnChange(state: HeadlessState): void {
+    const piece : cg.Piece | undefined =
+    state.dropmode.active ? // TODO: Sometimes dropmode.piece is not cleaned-up so best check if active==true. Maybe clean it in drop.cancelDropMode() together with everything else there?
+    state.dropmode.piece :
+    state.draggable.current?.piece ?? undefined;
+
+    if (piece){
+        // some piece is currently being dragged or selected from pocket (as the changes - which would mean opponent has moved or a premove has executed)
+        if (piece.color == state.turnColor) {
+          // the active piece is same color as current turn - means we set drop dests
+          if (state.movable.dests) {
+              const dropDests = new Map([[piece.role, state.movable.dests.get(util.letterOf(piece.role, true) + "@" as cg.Orig)!]]);
+              state.dropmode.dropDests = dropDests;
+              state.predroppable.dropDests = undefined;
+          }
+        } else {
+            //it is opponents turn, but we are dragging a pocket piece at the same time (click-drop should not be possible i think)
+            const dropDests = predrop(state.pieces, piece, state.geometry, state.variant);
+            state.predroppable.dropDests = dropDests;
+        }
+    }
 }
