@@ -4,7 +4,6 @@ import * as board from './board';
 import * as util from './util';
 import { cancel as dragCancel } from './drag';
 import { predrop } from './predrop';
-import { callUserFunction } from './board';
 
 export function setDropMode(s: State, piece?: cg.Piece): void {
   s.dropmode.active = true;
@@ -21,7 +20,6 @@ export function setDropMode(s: State, piece?: cg.Piece): void {
 
 export function cancelDropMode(s: HeadlessState): void {
   s.dropmode.active = false;
-  callUserFunction(s.dropmode.events?.cancel);
 }
 
 export function drop(s: State, e: cg.MouchEvent): void {

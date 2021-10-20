@@ -88,9 +88,6 @@ export interface Config {
     piece?: cg.Piece;
     showDropDests?: boolean; // whether to add the move-dest class on squares for drops
     dropDests?: cg.DropDests; // see corresponding state.ts type for comments
-    events?: {
-      cancel?: () => void; // at least temporary - i need to refresh pocket on cancel of drop mode (mainly to clear the highlighting of the selected pocket piece) and pocket is currently outside chessgroundx so need to provide callback here
-    };
   };
   drawable?: {
     enabled?: boolean; // can draw

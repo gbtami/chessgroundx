@@ -80,7 +80,6 @@ export interface HeadlessState {
     showDropDests: boolean;
     piece?: cg.Piece;
     dropDests?: cg.DropDests; // Both in case of click-drop and drag-drop from pocket it stores the possible dests from highlighting (TODO:which is not great to use this for both cases imho)
-    events?: { cancel?: () => void };
   };
   selectable: {
     // disable to enforce dragging over click-click move

@@ -119,7 +119,7 @@ export function baseNewPiece(state: HeadlessState, piece: cg.Piece, key: cg.Key,
     if (force) state.pieces.delete(key);
     else return false;
   }
-  handleDrop(piece, state);
+  if (!force) handleDrop(piece, state); // force is true for editor. Not aware for other usecases. Will assume if any, they would also not want to decrease pocket counts
   callUserFunction(state.events.dropNewPiece, piece, key);
   state.pieces.set(key, piece);
   state.lastMove = [key];
@@ -254,6 +254,10 @@ export function canMove(state: HeadlessState, orig: cg.Key, dest: cg.Key): boole
 }
 
 function canDrop(state: HeadlessState, orig: cg.Key, dest: cg.Key): boolean {
+  if (state.movable.free) return true; // todo:niki: i don't know - not bad to understand what is happening in canMove and isMovable to get some grasp on what kind of logic is involved there
+                                       //            also below stuff surely can be re-written with less checks somehow
+                                       //            also using orig and dest is just confusing especially being certain orig is always a0.
+                                       //            BUT THEN, what is the purpose of "force" if we have "free". Currently decided to use force for dragging from editor palette and then know not to decrease pocket numbers. but that is not intuitive
   const piece = state.pieces.get(orig);
   return !!piece &&
       !!state.movable.dests &&
