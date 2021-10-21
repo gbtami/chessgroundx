@@ -1,5 +1,5 @@
 import { HeadlessState } from './state';
-import {pos2key, key2pos, opposite, distanceSq, allPos, computeSquareCenter, letterOf} from './util';
+import { pos2key, key2pos, opposite, distanceSq, allPos, computeSquareCenter, letterOf } from './util';
 import { premove, queen, knight } from './premove';
 import { predrop } from './predrop';
 import * as cg from './types';
@@ -251,20 +251,10 @@ export function canMove(state: HeadlessState, orig: cg.Key, dest: cg.Key): boole
 }
 
 function canDrop(state: HeadlessState, orig: cg.Key, dest: cg.Key): boolean {
-  if (state.movable.free) return true; // todo:niki: i don't know - not bad to understand what is happening in canMove and isMovable to get some grasp on what kind of logic is involved there
-                                       //            also below stuff surely can be re-written with less checks somehow
-                                       //            also using orig and dest is just confusing especially being certain orig is always a0.
-                                       //            BUT THEN, what is the purpose of "force" if we have "free". Currently decided to use force for dragging from editor palette and then know not to decrease pocket numbers. but that is not intuitive
+  if (state.movable.free) return true;
   const piece = state.pieces.get(orig);
   return !!piece &&
-      !!state.movable.dests &&
-      !!state.movable.dests.get(letterOf(piece.role, true)+'@' as cg.Orig) &&
-      state.movable.dests.get(letterOf(piece.role, true)+'@' as cg.Orig)!.includes(dest);
-  /*return (
-    !!piece &&
-    (orig === dest || !state.pieces.has(dest)) &&
-    (state.movable.color === 'both' || (state.movable.color === piece.color && state.turnColor === piece.color))
-  );*/
+      !!state.movable.dests?.get(letterOf(piece.role, true)+'@' as cg.Orig)?.includes(dest);
 }
 
 function isPremovable(state: HeadlessState, orig: cg.Key): boolean {
@@ -344,7 +334,6 @@ export function playPredrop(state: HeadlessState, validate: (drop: cg.Drop) => b
       color: state.movable.color,
     } as cg.Piece;
     if (baseNewPiece(state, piece, drop.key)) {
-      //todo:niki:i dont understand why validation if delegate instead of directly calling canDrop as in normal drops
       callUserFunction(state.movable.events.afterNewPiece, drop.role, drop.key, {
         premove: false,
         predrop: true,

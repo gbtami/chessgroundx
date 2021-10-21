@@ -180,13 +180,7 @@ export function end(s: State, e: cg.MouchEvent): void {
       if (board.userMove(s, cur.orig, dest)) s.stats.dragged = true;
     }
   } else if (cur.newPiece) {
-    if (s.draggable.deleteOnDropOff) {
-      // todo:niki:how to do this for pocket pieces?
-      // here is actual removing of original piece that is in the pocket
-      // board.callUserFunction(s.events.dropNewPiece, cur.piece, undefined);
-    }
-    s.pieces.delete(cur.orig); // this is artificial piece that is added on start of drag and must always be
-                               // removed no matter what. The other place this happens is in board.dropNewPiece()
+    s.pieces.delete(cur.orig);
   } else if (s.draggable.deleteOnDropOff && !dest) {
     s.pieces.delete(cur.orig);
     board.callUserFunction(s.events.change);

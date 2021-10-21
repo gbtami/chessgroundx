@@ -3,7 +3,7 @@ import { setCheck, setSelected } from './board';
 import { read as fenRead } from './fen';
 import { DrawShape, DrawBrushes } from './draw';
 import * as cg from './types';
-import { handleTurnChange, PocketRoles, readPockets } from "./pocket";
+import { onTurnChangeWhileDraggingOrSelectedPocketPiece, PocketRoles, readPockets } from "./pocket";
 
 export interface Config {
   fen?: cg.FEN; // chess position in Forsyth notation
@@ -140,7 +140,18 @@ export function configure(state: HeadlessState, config: Config): void {
 
     if (state.pocketRoles) {
         state.pockets = readPockets(config.fen, state.pocketRoles);
-        handleTurnChange(state);//todo:niki:not sure if right place. maybe instead should be on setting of movable.dests? it depends on it after all. or together with below setSelected call?
+        onTurnChangeWhileDraggingOrSelectedPocketPiece(state); // todo: Not exactly the right place. Maybe instead
+                               // should be on setting of movable.dests or on turn change or something like that.
+                               // However...
+                               // For the moment here is ok, because fen is always set on turn change so this works,
+                               // as long as this approach with always re-setting fen doesn't change.
+                               // Long term proper solution really is probably to implement setSelected() to work for
+                               // pocket pieces as well. More precisely:
+                               // - dropmode.dropDests is just obsolete even now and movable.dests is enough and can be
+                               //   used directly in render() if dropmode.active. Ideally state.selected maybe should
+                               //   be used instead of dropmode.active even. This covers drop dests.
+                               // - predroppable.dropDests can be set in setSelected similarly to how premovable.dests
+                               //   is currently set as well.
     }
   }
 

@@ -10,11 +10,17 @@ export function setDropMode(s: State, piece?: cg.Piece): void {
   s.dropmode.piece = piece;
 
   dragCancel(s);
-
   board.unselect(s);
-
-  if (piece && board.isPredroppable(s)) {
-    s.predroppable.dropDests = predrop(s.pieces, piece, s.geometry, s.variant);
+  if (piece) {
+    if (board.isPredroppable(s)) {
+      s.predroppable.dropDests = predrop(s.pieces, piece, s.geometry, s.variant);
+    } else {
+      if (s.movable.dests/*very first move with white might be undef*/) {
+        const dropDests = new Map([[piece.role, s.movable.dests.get(util.letterOf(piece.role, true) + "@" as cg.Orig)!]]);
+        s.dropmode.active = true;
+        s.dropmode.dropDests = dropDests;
+      }
+    }
   }
 }
 

@@ -4,7 +4,7 @@ import { DragCurrent } from './drag';
 import { Drawable } from './draw';
 import { timer } from './util';
 import * as cg from './types';
-import {PocketRoles, Pockets} from "./pocket";
+import { PocketRoles, Pockets } from "./pocket";
 
 export interface HeadlessState {
   pieces: cg.Pieces;
@@ -108,7 +108,6 @@ export interface HeadlessState {
   variant: cg.Variant;
   chess960: boolean;
   notation: cg.Notation;
-
   pockets?: Pockets; // undefinied for non-pocket variants. State of pockets for each color
   pocketRoles?: PocketRoles; // undefinied for non-pocket variants. Possible pieces that a pocket can hold for each color
 }
