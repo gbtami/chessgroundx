@@ -216,3 +216,5 @@ export const dimensions: BoardDimensions[] = [
 ];
 
 export const shogiVariants: Variant[] = ['shogi', 'minishogi', 'kyotoshogi', 'dobutsu', 'gorogoro', 'torishogi'];
+
+export const xiangqiVariants: Variant[] = ['xiangqi', 'minixiangqi', 'manchu'];
