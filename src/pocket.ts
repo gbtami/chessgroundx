@@ -5,7 +5,7 @@ import { setDropMode, cancelDropMode } from './drop';
 
 import { createEl, letterOf, opposite, pieceClasses as pieceNameOf, roleOf } from "./util";
 import { HeadlessState, State } from "./state";
-import {Elements, PieceNode} from "./types";
+import { Elements, PieceNode } from "./types";
 import { lc } from "./commonUtils";
 import { predrop } from "./predrop";
 
@@ -17,7 +17,6 @@ export type PocketRoles = (color: cg.Color) => string[] | undefined;
 
 export const eventsDragging = ['mousedown', 'touchmove'];
 export const eventsClicking = ['click'];
-export const eventsDropping = ['mouseup', 'touchend']; // relevant for editor. todo:niki: maybe should be handled from outside
 
 export function createPocketEl(state: HeadlessState, position: Position): HTMLElement {
     const pocket = state.pockets![position === 'top' ? opposite(state.orientation) : state.orientation];
@@ -68,11 +67,6 @@ export function pocketView(state: HeadlessState, position: Position): HTMLElemen
         eventsDragging.forEach(name =>
             p.addEventListener(name, (e: cg.MouchEvent) => {
                 if (state.movable.free || state.movable.color === color) drag(state, e);
-            })
-        );
-        eventsDropping.forEach(name =>//todo:niki:maybe this belongs outside CG? not really part of the board mechanics
-            p.addEventListener(name, (e: cg.MouchEvent) => {
-                if (state.movable.free) drop(state, e);
             })
         );
         eventsClicking.forEach(name =>
@@ -181,29 +175,6 @@ export function drag(state: HeadlessState, e: cg.MouchEvent): void {
     dragNewPiece(state as State, { color, role }, e);
 }
 
-export function drop(state: HeadlessState, e: cg.MouchEvent): void {
-    console.log("pocket drop()");
-    const el = e.target as HTMLElement;
-    const piece = state.draggable.current?.piece;
-    console.log(piece);
-    if (piece) {
-        const role = piece.role;//TODO:niki:unpromotedRole(/*pockStateStuff.variant TODO:niki:what about this?*/VARIANTS.chess, piece);
-        const color = el.getAttribute('data-color') as cg.Color;
-        // let index = color === 'white' ? 1 : 0;
-        // if (isFlipped(state)) index = 1 - index;
-        const pocket = state.pockets![color];
-        console.log(role);
-        console.log(color);
-        // console.log(index);
-        console.log(pocket);
-        if (role in pocket!) {
-            pocket![role]!++;
-            renderPockets(state as State);
-            // ctrl.onChange();//TODO:niki:what to do with this - call somehow via chessground
-        }
-    }
-}
-
 /**
  * Just refreshes each pieces number based on state
  * */
@@ -296,22 +267,6 @@ export function readPockets(fen: cg.FEN, pocketRoles: PocketRoles): Pockets | un
         return {white: pWhite, black: pBlack};
     }
     return undefined;
-}
-
-// todo:niki: maybe rename to "decreasePocketCount" or something like that, because used also when not actual drop on board, but drop off board happens idk
-export function handleDrop(piece: cg.Piece, state: HeadlessState): void {
-    state.pockets![piece.color]![piece.role]! --;
-}
-
-export function handleCapture(state: HeadlessState, capturedPiece: cg.Piece): void {
-    if (state.movable.free) return; // when in editor capturing is not real capturing and pockets should be increase
-    const pocket = state.pockets ? state.pockets[opposite(capturedPiece.color)] : undefined;
-    if (pocket) {
-        const nb = pocket[capturedPiece.role];
-        if (nb !=undefined) { // if there is no slot for this role, we should not add one here
-            pocket[capturedPiece.role]=nb+1;
-        }
-    }
 }
 
 export function handleTurnChange(state: HeadlessState): void {

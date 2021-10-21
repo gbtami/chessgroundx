@@ -4,7 +4,6 @@ import { premove, queen, knight } from './premove';
 import { predrop } from './predrop';
 import * as cg from './types';
 import { cancelDropMode } from './drop';
-import { handleCapture, handleDrop } from "./pocket";
 
 export function callUserFunction<T extends (...args: any[]) => void>(f: T | undefined, ...args: Parameters<T>): void {
   if (f) setTimeout(() => f(...args), 1);
@@ -109,7 +108,6 @@ export function baseMove(state: HeadlessState, orig: cg.Key, dest: cg.Key): cg.P
   }
   state.lastMove = [orig, dest];
   state.check = undefined;
-  if (captured) handleCapture(state, captured);
   callUserFunction(state.events.change);
   return captured || true;
 }
@@ -119,7 +117,6 @@ export function baseNewPiece(state: HeadlessState, piece: cg.Piece, key: cg.Key,
     if (force) state.pieces.delete(key);
     else return false;
   }
-  if (!force) handleDrop(piece, state); // force is true for editor. Not aware for other usecases. Will assume if any, they would also not want to decrease pocket counts
   callUserFunction(state.events.dropNewPiece, piece, key);
   state.pieces.set(key, piece);
   state.lastMove = [key];

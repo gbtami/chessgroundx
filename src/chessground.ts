@@ -22,7 +22,7 @@ export function Chessground(element: HTMLElement, pocketTop?: HTMLElement, pocke
       redrawNow = (skipSvg?: boolean): void => {
         render(state);
         if (!skipSvg && elements.svg) svg.renderSvg(state, elements.svg, elements.customSvg!);
-        renderPockets(state);
+        renderPockets(state);//todo:niki:now that i have moved all update to pocket model outside cg more or less, i have the feeling this is often useless and maybe best remove it. have to debug to be sure, but seems to me it has to be called manually anyway if change of cg model happens in those event handlers
       },
       onResize = (): void => {
         updateBounds(state);

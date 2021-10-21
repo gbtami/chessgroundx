@@ -5,7 +5,6 @@ import { clear as drawClear } from './draw';
 import * as cg from './types';
 import { anim } from './anim';
 import { predrop } from './predrop';
-import {handleDrop} from "./pocket";
 
 export interface DragCurrent {
   orig: cg.Key; // orig key of dragging piece
@@ -182,8 +181,9 @@ export function end(s: State, e: cg.MouchEvent): void {
     }
   } else if (cur.newPiece) {
     if (s.draggable.deleteOnDropOff) {
+      // todo:niki:how to do this for pocket pieces?
       // here is actual removing of original piece that is in the pocket
-      handleDrop(s.pieces.get(cur.orig)!, s);//todo: how to detect editor's paletter so not to decrease? make this logic pluggable somehow? somehow per pocket ?
+      // board.callUserFunction(s.events.dropNewPiece, cur.piece, undefined);
     }
     s.pieces.delete(cur.orig); // this is artificial piece that is added on start of drag and must always be
                                // removed no matter what. The other place this happens is in board.dropNewPiece()
