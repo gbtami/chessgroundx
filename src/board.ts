@@ -177,6 +177,7 @@ export function dropNewPiece(state: HeadlessState, orig: cg.Key, dest: cg.Key, f
   if (piece && (canDrop(state, orig, dest) || force)) {
     state.pieces.delete(orig);
     baseNewPiece(state, piece, dest, force);
+    state.dropmode.active = false;
     callUserFunction(state.movable.events.afterNewPiece, piece.role, dest, {
       premove: false,
       predrop: false,
@@ -212,17 +213,21 @@ export function selectSquare(state: HeadlessState, key: cg.Key, force?: boolean)
   }
 }
 
-export function setSelected(state: HeadlessState, key: cg.Key): void {
+export function setSelected(state: HeadlessState, key: cg.Key, pocketPiece?: cg.Piece): void {
   state.selected = key;
   if (isPremovable(state, key)) {
-    state.premovable.dests = premove(
-      state.pieces,
-      key,
-      state.premovable.castle,
-      state.geometry,
-      state.variant,
-      state.chess960
-    );
+    if (pocketPiece /* && key==='a0' should always be the case*/) {// todo:niki: finish or rollback
+      state.predroppable.dropDests = predrop(state.pieces, pocketPiece, state.geometry, state.variant);
+    } else {
+      state.premovable.dests = premove(
+        state.pieces,
+        key,
+        state.premovable.castle,
+        state.geometry,
+        state.variant,
+        state.chess960
+      );
+    }
   } else {
     state.premovable.dests = undefined;
     state.predroppable.dropDests = undefined;

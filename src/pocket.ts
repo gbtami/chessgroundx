@@ -7,9 +7,9 @@ import { createEl, letterOf, opposite, pieceClasses as pieceNameOf, roleOf } fro
 import { HeadlessState, State } from "./state";
 import { Elements, PieceNode } from "./types";
 import { lc } from "./commonUtils";
-import { predrop } from "./predrop";
+import {predrop} from "./predrop";
 
-// Logically belong to ./types.ts, but put here to avoid merge conflicts from upsteam
+// These types maybe belong to ./types.ts, but put here to avoid merge conflicts from upsteam
 type Position = 'top' | 'bottom';
 export type Pocket = Partial<Record<cg.Role, number>>;
 export type Pockets = Partial<Record<cg.Color, Pocket>>;
@@ -42,77 +42,75 @@ export function readPockets(fen: cg.FEN, pocketRoles: PocketRoles): Pockets | un
     return undefined;
 }
 
-export function createPocketEl(state: HeadlessState, position: Position): HTMLElement {
-    const pocket = state.pockets![position === 'top' ? opposite(state.orientation) : state.orientation];
-    const roles = Object.keys(pocket!); //todo;niki;handle undefinied where - what was that variant with only 1 pocket? how was it handled before // contains the list of possible pieces/roles (i.e. for crazyhouse p-piece, n-piece, b-piece, r-piece, q-piece) in the order they will be displayed in the pocket
+export function renderPocketsInitial(state: HeadlessState, elements: Elements, pocketTop?: HTMLElement, pocketBottom?: HTMLElement) {
 
-    const pl = String(roles!.length);
-    const files = String(state.dimensions.width);
-    const ranks = String(state.dimensions.height);
-    const pocketEl = createEl('div','pocket ' + position + ' usable');
-    pocketEl.setAttribute('style', `--pocketLength: ${pl}; --files: ${files}; --ranks: ${ranks}`);
-    return pocketEl;
-}
+    function pocketView(position: Position): HTMLElement | undefined {
 
-/*
-* */
-export function pocketView(state: HeadlessState, position: Position): HTMLElement | undefined {
-    if (!state.pockets) return undefined;
+        function createPocketEl(): HTMLElement {
+            const pl = String(roles!.length);
+            const files = String(state.dimensions.width);
+            const ranks = String(state.dimensions.height);
+            const pocketEl = createEl('div','pocket ' + position + ' usable');
+            pocketEl.setAttribute('style', `--pocketLength: ${pl}; --files: ${files}; --ranks: ${ranks}`);
+            return pocketEl;
+        }
 
-    const color = position === 'top' ? opposite(state.orientation) : state.orientation;
-    const pocket = state.pockets[color];
-    if (!pocket) return undefined;
+        if (!state.pockets) return undefined;
 
-    const roles = Object.keys(pocket); // contains the list of possible pieces/roles (i.e. for crazyhouse p-piece, n-piece, b-piece, r-piece, q-piece) in the order they will be displayed in the pocket
+        const color = position === 'top' ? opposite(state.orientation) : state.orientation;
+        const pocket = state.pockets[color];
+        if (!pocket) return undefined;
 
-    const pocketEl = createPocketEl(state, position);
-    roles.forEach( (role: /*cg.Role*/string) => {
-        const nb = pocket[role as cg.Role] || 0;
+        const roles = Object.keys(pocket); // contains the list of possible pieces/roles (i.e. for crazyhouse p-piece, n-piece, b-piece, r-piece, q-piece) in the order they will be displayed in the pocket
 
-        const dropMode = state.dropmode;
-        const dropPiece = state.dropmode.piece;
-        const selectedSquare = dropMode?.active && dropPiece?.role === role && dropPiece?.color === color;
+        const pocketEl = createPocketEl();
+        roles.forEach( (role: string) => {
+            const nb = pocket[role as cg.Role] || 0;
 
-        // if (ctrl instanceof RoundController) { TODO:niki:in what cases is this check really needed ? can this code actually run and something appear as predrop without actually having to?
-        const preDropRole = state.predroppable.current?.role;//ctrl.predrop?.role;TODO:niki:test this! not sure about it
-        const activeColor = color === state.movable.color;//ctrl.turnColor;
+            const dropMode = state.dropmode;
+            const dropPiece = state.dropmode.piece;
+            const selectedSquare = dropMode?.active && dropPiece?.role === role && dropPiece?.color === color;
 
-        const pieceName = pieceNameOf( {role: role, color: color, promoted: false} as cg.Piece, state.orientation);
-        const p = createEl('piece', pieceName);
-        p.setAttribute('data-nb', '' + nb);
-        p.setAttribute('test', 'test');
-        p.setAttribute('data-color', color);//todo;niki:redundant? see also what the story is with that PieceNode/KeyedNode stuff?
-        p.setAttribute('data-role', role);//todo;niki:redundant?
+            const preDropRole = state.predroppable.current?.role;//ctrl.predrop?.role;TODO:niki:test this! not sure about it
+            const activeColor = color === state.movable.color;//ctrl.turnColor;
 
-        if (activeColor && preDropRole === role) p.classList.add('premove');
-        if (selectedSquare) p.classList.add('selected-square');
+            const pieceName = pieceNameOf( {role: role, color: color, promoted: false} as cg.Piece, state.orientation);
+            const p = createEl('piece', pieceName);
+            p.setAttribute('data-nb', '' + nb);
+            p.setAttribute('data-color', color);//todo;niki:redundant? see also what the story is with that PieceNode/KeyedNode stuff?
+            p.setAttribute('data-role', role);//todo;niki:redundant?
 
-        // todo: i wonder if events.ts->bindBoard() or something similar is a better place for this for some reason?
-        eventsDragging.forEach(name =>
-            p.addEventListener(name, (e: cg.MouchEvent) => {
-                if (state.movable.free || state.movable.color === color) drag(state, e);
-            })
-        );
-        eventsClicking.forEach(name =>
-            p.addEventListener(name, (e: cg.MouchEvent) => {
-                // movable.free is synonymous with editor mode, and right now click-drop not supported for pocket pieces
-                if (/*state.movable.free ||*/ state.movable.color === color) click(state, e);
-            })
-        );
+            if (activeColor && preDropRole === role){
+                p.classList.add('premove');
+            } else if (selectedSquare) {
+                // after click-drop for predrop, predroppable.current is initialized, but dropmode is not cleared (todo maybe it should - then no need for "else"?)
+                p.classList.add('selected-square');
+            }
 
-        pocketEl.appendChild(p);
+            // todo: i wonder if events.ts->bindBoard() or something similar is a better place for this for some reason?
+            eventsDragging.forEach(name =>
+                p.addEventListener(name, (e: cg.MouchEvent) => {
+                    if (state.movable.free || state.movable.color === color) drag(state, e);
+                })
+            );
+            eventsClicking.forEach(name =>
+                p.addEventListener(name, (e: cg.MouchEvent) => {
+                    // movable.free is synonymous with editor mode, and right now click-drop not supported for pocket pieces
+                    if (/*state.movable.free ||*/ state.movable.color === color) click(state, e);
+                })
+            );
+            pocketEl.appendChild(p);
+        } ) ;
+        return pocketEl;
+    }
 
-    } ) ;
-    return pocketEl;
-}
-
-export function renderPocketsInitial(state: HeadlessState, elements: Elements, pocketTop?: HTMLElement, pocketBottom?: HTMLElement){
+    //
     if (pocketTop) {
-      elements.pocketTop = pocketView(state,"top");
+      elements.pocketTop = pocketView("top");
       if (elements.pocketTop) pocketTop.replaceWith(elements.pocketTop);//todo:niki:maybe better to use existing/given pocket0 element instead of replacing it - that is what they do in renderWrap for the chess board
     }
     if (pocketBottom) {
-      elements.pocketBottom = pocketView(state, "bottom");
+      elements.pocketBottom = pocketView( "bottom");
       if (elements.pocketBottom) pocketBottom.replaceWith(elements.pocketBottom);
     }
 }
@@ -138,7 +136,7 @@ export function click(state: HeadlessState, e: cg.MouchEvent): void {
     }
     e.stopPropagation();
     e.preventDefault();
-    renderPockets(state as State);
+    // renderPockets(state as State);
 }
 
 export function drag(state: HeadlessState, e: cg.MouchEvent): void {
@@ -165,18 +163,6 @@ export function drag(state: HeadlessState, e: cg.MouchEvent): void {
             el.setAttribute("canceledDropMode", "true");
         }
     }
-
-    //TODO:niki: hmm? is this even a good idea? does drag always result in deleting no matter what? maybe this should go in some event listener?
-    //           ok i get it now - i misunderstood when i wrote above comment. it is just that there is not subsequent event to decrease the count so we decrease it here on start of drag
-    //           if drag ends back in pocket it will increase it again so negate the effect and all is normal
-    //
-    // if (ctrl instanceof EditorController) { // immediately decrease piece count for editor
-    //     let index = color === 'white' ? 1 : 0;
-    //     if (ctrl.flip) index = 1 - index;
-    //     ctrl.pockStateStuff.pockets[index][role]!--;
-    //     refreshPockets(ctrl.pockStateStuff);
-    //     ctrl.onChange();
-    // }
 
     if (state.movable.dests) {
         const dropDests = new Map([[role, state.movable.dests.get(util.letterOf(role, true) + "@" as cg.Orig)!]]);
@@ -274,7 +260,7 @@ export function onTurnChangeWhileDraggingOrSelectedPocketPiece(state: HeadlessSt
               state.dropmode.dropDests = dropDests;
               state.predroppable.dropDests = undefined;
           }
-        } else {
+        } else if (state.draggable.current/*only if currently dragging - otherwise should not show those because selecting should not live between turns in case of predrop*/) {
             //it is opponents turn, but we are dragging a pocket piece at the same time (click-drop should not be possible i think)
             const dropDests = predrop(state.pieces, piece, state.geometry, state.variant);
             state.predroppable.dropDests = dropDests;
