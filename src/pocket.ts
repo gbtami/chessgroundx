@@ -94,6 +94,11 @@ export function renderPocketsInitial(state: HeadlessState, elements: Elements, p
       renderPiece(p, state);
 
       // todo: i wonder if events.ts->bindBoard() or something similar is a better place for this for some reason?
+      // todo: in spectators mode movable.color is never set (except in goPly to undefined). Simultaneously
+      //       state.ts->default is "both" and here as well. Effect is that dragging and clicking is disabled, which is
+      //       great, but feels more like an accidental side effect than intention (effectively 'both' means 'none').
+      //       Maybe state.movable.color should be set to undef in roundCtrl ALWAYS when in spectotor mode instead of
+      //       left unset (and with its default). Then below we can handle 'both' properly for sake of clarity
       eventsDragging.forEach(name =>
         p.addEventListener(name, (e: cg.MouchEvent) => {
           if (state.movable.free || state.movable.color === color) drag(state, e);
@@ -145,7 +150,6 @@ export function click(state: HeadlessState, e: cg.MouchEvent): void {
 
 export function drag(state: HeadlessState, e: cg.MouchEvent): void {
   if (e.button !== undefined && e.button !== 0) return; // only touch or left click
-  // if (ctrl instanceof RoundController && ctrl.spectator) return;TODO:niki:move to the canDragFromIt boolean
   const el = e.target as HTMLElement,
     role = el.getAttribute('data-role') as cg.Role,
     color = el.getAttribute('data-color') as cg.Color,
@@ -193,7 +197,7 @@ export function renderPockets(state: State): void {
   renderPocket(state.dom.elements.pocketTop);
 }
 
-function pocket2str(pocket: Pocket) {//todo:niki:was this used - where? why always uppercase?
+function pocket2str(pocket: Pocket) {
   const letters: string[] = [];
   for (const role in pocket) {
     letters.push(letterOf(role as cg.Role, true).repeat(pocket[role as cg.Role] || 0));
@@ -202,29 +206,24 @@ function pocket2str(pocket: Pocket) {//todo:niki:was this used - where? why alwa
 }
 
 export function pockets2str(pockets: Pockets) {
-  return '[' + pocket2str(pockets['white']!) + pocket2str(pockets['black']!).toLowerCase() + ']';//todo;check undefinied for non-symetric variants
+  return '[' + pocket2str(pockets['white']!) + pocket2str(pockets['black']!).toLowerCase() + ']';
 }
 
-export function onTurnChangeWhileDraggingOrSelectedPocketPiece(state: HeadlessState): void {
-  const piece: cg.Piece | undefined =
-    state.dropmode.active ? // TODO: Sometimes dropmode.piece is not cleaned-up (not sure) so best check if active==true
-      //       Maybe clean it in drop.cancelDropMode() together with everything else there?
-      state.dropmode.piece :
-      state.draggable.current?.piece ?? undefined;
-
-  if (piece) {
-    // some piece is currently being dragged or selected from pocket (as the changes - which would mean opponent has moved or a premove has executed)
-    if (piece.color == state.turnColor) {
-      // the active piece is same color as current turn - means we set drop dests
-      if (state.movable.dests) {
-        const dropDests = new Map([[piece.role, state.movable.dests.get(util.letterOf(piece.role, true) + "@" as cg.Orig)!]]);
-        state.dropmode.dropDests = dropDests;
-        state.predroppable.dropDests = undefined;
-      }
-    } else if (state.draggable.current/*only if currently dragging - otherwise should not show those because selecting should not live between turns in case of predrop*/) {
-      //it is opponents turn, but we are dragging a pocket piece at the same time (click-drop should not be possible i think)
+/**
+ * todo: Ideally this whole method should disappear. It is legacy solution from when pocket was outside CG for the case
+ *       when dragging started while another premove/predrop was set. After that premove/drop executes and turn is again
+ *       opp's, we are again in predrop state and need to set those again
+ *       Maybe predroppable should be initialized in board.ts->setSelected() and implemented similarly as premove dests
+ *       Could happen together with further refactoring to make pocket more of a first class citizen and enable other
+ *       stuff like highlighting last move etc. maybe.
+ *       Even if not made part of the setSelected infrastructure, i am pretty sure this is not needed if we track and
+ *       check better what is dragged/clicked and with proper combination of if-s in render.ts and clean-up-to-undef logic
+ * */
+export function setPredropDests(state: HeadlessState): void {
+  const piece = state.draggable.current?.piece;
+  if (piece && piece.color !== state.turnColor) {
+      //it is opponents turn, but we are dragging a pocket piece at the same time
       const dropDests = predrop(state.pieces, piece, state.geometry, state.variant);
       state.predroppable.dropDests = dropDests;
-    }
   }
 }

@@ -213,21 +213,17 @@ export function selectSquare(state: HeadlessState, key: cg.Key, force?: boolean)
   }
 }
 
-export function setSelected(state: HeadlessState, key: cg.Key, pocketPiece?: cg.Piece): void {
+export function setSelected(state: HeadlessState, key: cg.Key): void {
   state.selected = key;
   if (isPremovable(state, key)) {
-    if (pocketPiece /* && key==='a0' should always be the case*/) {// todo:niki: finish or rollback
-      state.predroppable.dropDests = predrop(state.pieces, pocketPiece, state.geometry, state.variant);
-    } else {
-      state.premovable.dests = premove(
-        state.pieces,
-        key,
-        state.premovable.castle,
-        state.geometry,
-        state.variant,
-        state.chess960
-      );
-    }
+    state.premovable.dests = premove(
+      state.pieces,
+      key,
+      state.premovable.castle,
+      state.geometry,
+      state.variant,
+      state.chess960
+    );
   } else {
     state.premovable.dests = undefined;
     state.predroppable.dropDests = undefined;
@@ -258,8 +254,11 @@ export function canMove(state: HeadlessState, orig: cg.Key, dest: cg.Key): boole
 function canDrop(state: HeadlessState, orig: cg.Key, dest: cg.Key): boolean {
   if (state.movable.free) return true;
   const piece = state.pieces.get(orig);
-  return !!piece &&
-      !!state.movable.dests?.get(letterOf(piece.role, true)+'@' as cg.Orig)?.includes(dest);
+  return !!piece && canDropRole(state, piece.role, dest);
+}
+
+function canDropRole(state: HeadlessState, role: cg.Role, dest: cg.Key): boolean {
+  return !!state.movable.dests?.get(letterOf(role, true)+'@' as cg.Orig)?.includes(dest);
 }
 
 function isPremovable(state: HeadlessState, orig: cg.Key): boolean {
@@ -329,11 +328,11 @@ export function playPremove(state: HeadlessState): boolean {
   return success;
 }
 
-export function playPredrop(state: HeadlessState, validate: (drop: cg.Drop) => boolean): boolean {
+export function playPredrop(state: HeadlessState): boolean {
   const drop = state.predroppable.current;
   let success = false;
   if (!drop) return false;
-  if (validate(drop)) {
+  if (canDropRole(state, drop.role, drop.key)) {
     const piece = {
       role: drop.role,
       color: state.movable.color,
