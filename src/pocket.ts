@@ -3,11 +3,9 @@ import * as util from './util';
 import { dragNewPiece } from './drag';
 import { setDropMode, cancelDropMode } from './drop';
 
-import { createEl, letterOf, opposite, pieceClasses as pieceNameOf, roleOf } from "./util";
-import { HeadlessState, State } from "./state";
-import { Elements, PieceNode } from "./types";
-import { lc } from "./commonUtils";
-import { predrop } from "./predrop";
+import { HeadlessState, State } from './state';
+import { Elements, PieceNode } from './types';
+import { predrop } from './predrop';
 
 // These types maybe belong to ./types.ts, but put here to avoid merge conflicts from upsteam
 type Position = 'top' | 'bottom';
@@ -35,8 +33,8 @@ export function readPockets(fen: cg.FEN, pocketRoles: PocketRoles): Pockets | un
     const rBlack = pocketRoles('black') ?? [];
     const pWhite: Pocket = {};
     const pBlack: Pocket = {};
-    rWhite.forEach(r => pWhite[roleOf(r as cg.PieceLetter)] = lc(pocketsFenPart, r, true));
-    rBlack.forEach(r => pBlack[roleOf(r as cg.PieceLetter)] = lc(pocketsFenPart, r, false));
+    rWhite.forEach(r => pWhite[util.roleOf(r as cg.PieceLetter)] = lc(pocketsFenPart, r, true));
+    rBlack.forEach(r => pBlack[util.roleOf(r as cg.PieceLetter)] = lc(pocketsFenPart, r, false));
     return {white: pWhite, black: pBlack};
   }
   return undefined;
@@ -49,7 +47,7 @@ function renderPiece(el: HTMLElement, state: HeadlessState) {
 
   const dropMode = state.dropmode;
   const dropPiece = state.dropmode.piece;
-  const selectedSquare = dropMode?.active && dropPiece?.role === role && dropPiece?.color === color;
+  const selectedSquare = dropMode.active && dropPiece?.role === role && dropPiece.color === color;
   const preDropRole = state.predroppable.current?.role;
   const activeColor = color === state.movable.color;
 
@@ -65,13 +63,13 @@ function renderPiece(el: HTMLElement, state: HeadlessState) {
   }
 }
 
-export function renderPocketsInitial(state: HeadlessState, elements: Elements, pocketTop?: HTMLElement, pocketBottom?: HTMLElement) {
+export function renderPocketsInitial(state: HeadlessState, elements: Elements, pocketTop?: HTMLElement, pocketBottom?: HTMLElement): void {
 
   function pocketView(pocketEl: HTMLElement, position: Position) {
 
     if (!state.pockets) return;
 
-    const color = position === 'top' ? opposite(state.orientation) : state.orientation;
+    const color = position === 'top' ? util.opposite(state.orientation) : state.orientation;
     const pocket = state.pockets[color];
     if (!pocket) return;
 
@@ -85,15 +83,15 @@ export function renderPocketsInitial(state: HeadlessState, elements: Elements, p
     pocketEl.classList.add('pocket', position, 'usable');
 
     roles.forEach((role: string) => {
-      const pieceName = pieceNameOf({role: role, color: color, promoted: false} as cg.Piece, state.orientation);
-      const p = createEl('piece', pieceName);
+      const pieceName = util.pieceClasses({role: role, color: color, promoted: false} as cg.Piece, state.orientation);
+      const p = util.createEl('piece', pieceName);
       // todo: next 2 attributes already exist as classes, but need inverse function for util.ts->pieceClasses()
       p.setAttribute('data-color', color);
       p.setAttribute('data-role', role);
 
       renderPiece(p, state);
 
-      // todo: i wonder if events.ts->bindBoard() or something similar is a better place for this for some reason?
+      // todo: i wonder if events.ts->bindBoard() or something similar is a better place similarly to main board?
       // todo: in spectators mode movable.color is never set (except in goPly to undefined). Simultaneously
       //       state.ts->default is "both" and here as well. Effect is that dragging and clicking is disabled, which is
       //       great, but feels more like an accidental side effect than intention (effectively 'both' means 'none').
@@ -132,7 +130,7 @@ export function click(state: HeadlessState, e: cg.MouchEvent): void {
     role = el.getAttribute('data-role') as cg.Role,
     color = el.getAttribute('data-color') as cg.Color,
     number = el.getAttribute('data-nb');
-  if (!role || !color || number === '0') return;
+  if (number === '0') return;
   const dropMode = state.dropmode;
   const dropPiece = state.dropmode.piece;
 
@@ -160,7 +158,7 @@ export function drag(state: HeadlessState, e: cg.MouchEvent): void {
                                            // then we know not to call setDropMode selecting the piece we have just unselected.
                                            // Alternatively we might not cancelDropMode on drag of same piece but then after drag is over
                                            // the selected piece remains selected which is not how board pieces behave and more importantly is counter intuitive
-  if (!role || !color || n === 0) return;
+  if (n === 0) return;
 
   // always cancel drop mode if it is active
   if (state.dropmode.active) {
@@ -200,13 +198,25 @@ export function renderPockets(state: State): void {
 function pocket2str(pocket: Pocket) {
   const letters: string[] = [];
   for (const role in pocket) {
-    letters.push(letterOf(role as cg.Role, true).repeat(pocket[role as cg.Role] || 0));
+    letters.push(util.letterOf(role as cg.Role, true).repeat(pocket[role as cg.Role] || 0));
   }
   return letters.join('');
 }
 
-export function pockets2str(pockets: Pockets) {
+export function pockets2str(pockets: Pockets): string {
   return '[' + pocket2str(pockets['white']!) + pocket2str(pockets['black']!).toLowerCase() + ']';
+}
+
+function lc(str: string, letter: string, uppercase: boolean): number {
+    if (uppercase)
+        letter = letter.toUpperCase();
+    else
+        letter = letter.toLowerCase();
+    let letterCount = 0;
+    for (let position = 0; position < str.length; position++)
+        if (str.charAt(position) === letter)
+            letterCount += 1;
+    return letterCount;
 }
 
 /**

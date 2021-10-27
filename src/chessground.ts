@@ -7,7 +7,7 @@ import * as events from './events';
 import { render, renderResized, updateBounds } from './render';
 import * as svg from './svg';
 import * as util from './util';
-import { renderPockets, renderPocketsInitial } from "./pocket";
+import { renderPockets, renderPocketsInitial } from './pocket';
 
 export function Chessground(element: HTMLElement, pocketTop?: HTMLElement, pocketBottom?: HTMLElement, config?: Config): Api {
   const maybeState: State | HeadlessState = defaults();

@@ -5,12 +5,12 @@ import {
   createEl,
   posToTranslate as posToTranslateFromBounds,
   translate,
+  letterOf
 } from './util';
 import { whitePov } from './board';
 import { AnimCurrent, AnimVectors, AnimVector, AnimFadings } from './anim';
 import { DragCurrent } from './drag';
 import * as cg from './types';
-import * as util from "./util";
 
 type PieceName = string; // `$color $role`
 
@@ -253,8 +253,8 @@ function computeSquareClasses(s: State): SquareClasses {
       //       Maybe use the same here to decide what to render instead of potentially making it possible both
       //       kinds of highlighting to happen if something was not cleared up in the state.
       //       In other place (pocket.ts) this condition is used ot decide similar question: ctrl.mycolor === ctrl.turnColor
-      if (s.dropmode.showDropDests && piece.color == s.turnColor) {
-        const dests = s.movable.dests?.get(util.letterOf(piece.role, true) + "@" as cg.Orig);
+      if (s.dropmode.showDropDests && piece.color === s.turnColor) {
+        const dests = s.movable.dests?.get(letterOf(piece.role, true) + "@" as cg.Orig);
         if (dests)
           for (const k of dests) {
             addSquare(squares, k, 'move-dest');

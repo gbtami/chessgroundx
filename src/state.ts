@@ -4,7 +4,7 @@ import { DragCurrent } from './drag';
 import { Drawable } from './draw';
 import { timer } from './util';
 import * as cg from './types';
-import { PocketRoles, Pockets } from "./pocket";
+import { PocketRoles, Pockets } from './pocket';
 
 export interface HeadlessState {
   pieces: cg.Pieces;

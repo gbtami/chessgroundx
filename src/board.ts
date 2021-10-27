@@ -174,7 +174,7 @@ export function userMove(state: HeadlessState, orig: cg.Key, dest: cg.Key): bool
  * */
 export function dropNewPiece(state: HeadlessState, orig: cg.Key, dest: cg.Key, force?: boolean): void {
   const piece = state.pieces.get(orig);
-  if (piece && (canDrop(state, orig, dest) || force)) {
+  if (piece && (canDrop(state, piece.role, dest) || force)) {
     state.pieces.delete(orig);
     baseNewPiece(state, piece, dest, force);
     state.dropmode.active = false;
@@ -251,13 +251,8 @@ export function canMove(state: HeadlessState, orig: cg.Key, dest: cg.Key): boole
   );
 }
 
-function canDrop(state: HeadlessState, orig: cg.Key, dest: cg.Key): boolean {
+function canDrop(state: HeadlessState, role: cg.Role, dest: cg.Key): boolean {
   if (state.movable.free) return true;
-  const piece = state.pieces.get(orig);
-  return !!piece && canDropRole(state, piece.role, dest);
-}
-
-function canDropRole(state: HeadlessState, role: cg.Role, dest: cg.Key): boolean {
   return !!state.movable.dests?.get(letterOf(role, true)+'@' as cg.Orig)?.includes(dest);
 }
 
@@ -332,7 +327,7 @@ export function playPredrop(state: HeadlessState): boolean {
   const drop = state.predroppable.current;
   let success = false;
   if (!drop) return false;
-  if (canDropRole(state, drop.role, drop.key)) {
+  if (canDrop(state, drop.role, drop.key)) {
     const piece = {
       role: drop.role,
       color: state.movable.color,

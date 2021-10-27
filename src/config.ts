@@ -3,7 +3,7 @@ import { setCheck, setSelected } from './board';
 import { read as fenRead } from './fen';
 import { DrawShape, DrawBrushes } from './draw';
 import * as cg from './types';
-import { setPredropDests, PocketRoles, readPockets } from "./pocket";
+import { setPredropDests, PocketRoles, readPockets } from './pocket';
 
 export interface Config {
   fen?: cg.FEN; // chess position in Forsyth notation

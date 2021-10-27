@@ -1,6 +1,6 @@
 import { pos2key, invRanks, roleOf, letterOf } from './util';
 import * as cg from './types';
-import { Pockets, pockets2str } from "./pocket";
+import { Pockets, pockets2str } from './pocket';
 
 export const initial: cg.FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR';
 
