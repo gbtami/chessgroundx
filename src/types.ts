@@ -215,4 +215,5 @@ export const dimensions: BoardDimensions[] = [
 
 export const shogiVariants: Variant[] = ['shogi', 'minishogi', 'kyotoshogi', 'dobutsu', 'gorogoro', 'torishogi'];
 
-export const xiangqiVariants: Variant[] = ['xiangqi', 'minixiangqi', 'manchu'];
+// XIANGQI_WXF can't handle Manchu banner piece, so we will use SAN and chess coords for Manchu
+export const xiangqiVariants: Variant[] = ['xiangqi', 'minixiangqi'];
