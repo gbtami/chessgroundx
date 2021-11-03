@@ -36,6 +36,7 @@ export function setCheck(state: HeadlessState, color: cg.Color | boolean): void 
     for (const [k, p] of state.pieces) {
       if (p.role === king && p.color === color) {
         state.check = k;
+        break;
       }
     }
 }
