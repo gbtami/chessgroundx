@@ -16,7 +16,7 @@ export function setDropMode(s: State, piece?: cg.Piece): void {
       s.predroppable.dropDests = predrop(s.pieces, piece, s.geometry, s.variant);
     } else {
       if (s.movable.dests) {
-        const dropDests = new Map([[piece.role, s.movable.dests.get(util.letterOf(piece.role, true) + "@" as cg.Orig)!]]);
+        const dropDests = new Map([[piece.role, s.movable.dests.get(util.dropOrigOf(piece.role))!]]);
         s.dropmode.active = true;
         s.dropmode.dropDests = dropDests;
       }
