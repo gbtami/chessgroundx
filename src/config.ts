@@ -153,7 +153,7 @@ export function configure(state: HeadlessState, config: Config): void {
 
   // fix move/premove dests
   if (state.selected) setSelected(state, state.selected);
-  setPredropDests(state); // todo: integrate pocket with the "selected" infrastructure and move this in setSelected()
+  setPredropDests(state); // TODO: integrate pocket with the "selected" infrastructure and move this in setSelected()
 
   applyAnimation(state, config);
 
