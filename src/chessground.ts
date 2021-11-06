@@ -9,7 +9,7 @@ import * as svg from './svg';
 import * as util from './util';
 import { renderPockets, renderPocketsInitial } from './pocket';
 
-export function Chessground(element: HTMLElement, pocketTop?: HTMLElement, pocketBottom?: HTMLElement, config?: Config): Api {
+export function Chessground(element: HTMLElement, config?: Config, pocketTop?: HTMLElement, pocketBottom?: HTMLElement): Api {
   const maybeState: State | HeadlessState = defaults();
   configure(maybeState, config || {});
 

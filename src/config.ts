@@ -3,7 +3,7 @@ import { setCheck, setSelected } from './board';
 import { read as fenRead } from './fen';
 import { DrawShape, DrawBrushes } from './draw';
 import * as cg from './types';
-import { setPredropDests, PocketRoles, readPockets } from './pocket';
+import { setPredropDests, readPockets } from './pocket';
 
 export interface Config {
   fen?: cg.FEN; // chess position in Forsyth notation
@@ -108,7 +108,7 @@ export interface Config {
   variant?: cg.Variant;
   chess960?: boolean;
   notation?: cg.Notation;
-  pocketRoles?: PocketRoles; // what pieces have slots in the pocket for each color
+  pocketRoles?: cg.PocketRoles; // what pieces have slots in the pocket for each color
 }
 
 export function applyAnimation(state: HeadlessState, config: Config): void {

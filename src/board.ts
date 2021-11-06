@@ -1,5 +1,5 @@
 import { HeadlessState } from './state';
-import { pos2key, key2pos, opposite, distanceSq, allPos, computeSquareCenter, letterOf } from './util';
+import { pos2key, key2pos, opposite, distanceSq, allPos, computeSquareCenter, dropOrigOf } from './util';
 import { premove, queen, knight } from './premove';
 import { predrop } from './predrop';
 import * as cg from './types';

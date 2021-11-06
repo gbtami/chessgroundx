@@ -5,7 +5,7 @@ import {
   createEl,
   posToTranslate as posToTranslateFromBounds,
   translate,
-  letterOf
+  dropOrigOf
 } from './util';
 import { whitePov } from './board';
 import { AnimCurrent, AnimVectors, AnimVector, AnimFadings } from './anim';

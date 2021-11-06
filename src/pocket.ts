@@ -4,18 +4,7 @@ import { dragNewPiece } from './drag';
 import { setDropMode, cancelDropMode } from './drop';
 
 import { HeadlessState, State } from './state';
-import { Elements, PieceNode } from './types';
 import { predrop } from './predrop';
-
-// These types maybe belong to ./types.ts, but put here to avoid merge conflicts from upsteam
-type Position = 'top' | 'bottom';
-export type Pocket = Partial<Record<cg.Role, number>>;
-export type Pockets = Partial<Record<cg.Color, Pocket>>;
-export type PocketRoles = (color: cg.Color) => string[] | undefined; // type for functions that map a color to possible
-                                                                     // pieces that can be in pocket for that side
-
-export const eventsDragging = ['mousedown', 'touchmove'];
-export const eventsClicking = ['click'];
 
 /**
  * Logically maybe belongs to fen.ts, but put here to avoid merge conflicts from upsteam
@@ -23,7 +12,7 @@ export const eventsClicking = ['click'];
  * TODO: See todo in fen.ts->read() as well. Not sure if pocket parsing belongs there unless return
  *       type is extended to contain pocket state.
  * */
-export function readPockets(fen: cg.FEN, pocketRoles: PocketRoles): Pockets | undefined {
+export function readPockets(fen: cg.FEN, pocketRoles: cg.PocketRoles): cg.Pockets | undefined {
   const placement = fen.split(" ")[0];
   const bracketPos = placement.indexOf("[");
   const pocketsFenPart = bracketPos !== -1 ? placement.slice(bracketPos) : undefined;
@@ -31,13 +20,25 @@ export function readPockets(fen: cg.FEN, pocketRoles: PocketRoles): Pockets | un
   if (pocketsFenPart) {
     const rWhite = pocketRoles('white') ?? [];
     const rBlack = pocketRoles('black') ?? [];
-    const pWhite: Pocket = {};
-    const pBlack: Pocket = {};
+    const pWhite: cg.Pocket = {};
+    const pBlack: cg.Pocket = {};
     rWhite.forEach(r => pWhite[util.roleOf(r as cg.PieceLetter)] = lc(pocketsFenPart, r, true));
     rBlack.forEach(r => pBlack[util.roleOf(r as cg.PieceLetter)] = lc(pocketsFenPart, r, false));
     return {white: pWhite, black: pBlack};
   }
   return undefined;
+}
+
+function lc(str: string, letter: string, uppercase: boolean): number {
+    if (uppercase)
+        letter = letter.toUpperCase();
+    else
+        letter = letter.toLowerCase();
+    let letterCount = 0;
+    for (let position = 0; position < str.length; position++)
+        if (str.charAt(position) === letter)
+            letterCount += 1;
+    return letterCount;
 }
 
 function renderPiece(el: HTMLElement, state: HeadlessState) {
@@ -63,9 +64,9 @@ function renderPiece(el: HTMLElement, state: HeadlessState) {
   }
 }
 
-export function renderPocketsInitial(state: HeadlessState, elements: Elements, pocketTop?: HTMLElement, pocketBottom?: HTMLElement): void {
+export function renderPocketsInitial(state: HeadlessState, elements: cg.Elements, pocketTop?: HTMLElement, pocketBottom?: HTMLElement): void {
 
-  function pocketView(pocketEl: HTMLElement, position: Position) {
+  function pocketView(pocketEl: HTMLElement, position: cg.PocketPosition) {
 
     if (!state.pockets) return;
 
@@ -97,12 +98,12 @@ export function renderPocketsInitial(state: HeadlessState, elements: Elements, p
       //       great, but feels more like an accidental side effect than intention (effectively 'both' means 'none').
       //       Maybe state.movable.color should be set to undef in roundCtrl ALWAYS when in spectotor mode instead of
       //       left unset (and with its default). Then below we can handle 'both' properly for sake of clarity
-      eventsDragging.forEach(name =>
+      cg.eventsDragging.forEach(name =>
         p.addEventListener(name, (e: cg.MouchEvent) => {
           if (state.movable.free || state.movable.color === color) drag(state, e);
         })
       );
-      eventsClicking.forEach(name =>
+      cg.eventsClicking.forEach(name =>
         p.addEventListener(name, (e: cg.MouchEvent) => {
           // movable.free is synonymous with editor mode, and right now click-drop not supported for pocket pieces
           if (/*state.movable.free ||*/ state.movable.color === color) click(state, e);
@@ -185,17 +186,17 @@ export function drag(state: HeadlessState, e: cg.MouchEvent): void {
  * */
 export function renderPockets(state: State): void {
   function renderPocket(pocketEl?: HTMLElement){
-    let el: PieceNode | undefined = pocketEl?.firstChild as (PieceNode | undefined);
+    let el: cg.PieceNode | undefined = pocketEl?.firstChild as (cg.PieceNode | undefined);
     while (el) {
       renderPiece(el, state);
-      el = el.nextSibling as PieceNode;
+      el = el.nextSibling as cg.PieceNode;
     }
   }
   renderPocket(state.dom.elements.pocketBottom);
   renderPocket(state.dom.elements.pocketTop);
 }
 
-function pocket2str(pocket: Pocket) {
+function pocket2str(pocket: cg.Pocket) {
   const letters: string[] = [];
   for (const role in pocket) {
     letters.push(util.letterOf(role as cg.Role, true).repeat(pocket[role as cg.Role] || 0));
@@ -203,20 +204,8 @@ function pocket2str(pocket: Pocket) {
   return letters.join('');
 }
 
-export function pockets2str(pockets: Pockets): string {
+export function pockets2str(pockets: cg.Pockets): string {
   return '[' + pocket2str(pockets['white']!) + pocket2str(pockets['black']!).toLowerCase() + ']';
-}
-
-function lc(str: string, letter: string, uppercase: boolean): number {
-    if (uppercase)
-        letter = letter.toUpperCase();
-    else
-        letter = letter.toLowerCase();
-    let letterCount = 0;
-    for (let position = 0; position < str.length; position++)
-        if (str.charAt(position) === letter)
-            letterCount += 1;
-    return letterCount;
 }
 
 /**
