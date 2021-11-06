@@ -254,7 +254,7 @@ function computeSquareClasses(s: State): SquareClasses {
       //       kinds of highlighting to happen if something was not cleared up in the state.
       //       In other place (pocket.ts) this condition is used ot decide similar question: ctrl.mycolor === ctrl.turnColor
       if (s.dropmode.showDropDests && piece.color === s.turnColor) {
-        const dests = s.movable.dests?.get(letterOf(piece.role, true) + "@" as cg.Orig);
+        const dests = s.movable.dests?.get(dropOrigOf(piece.role));
         if (dests)
           for (const k of dests) {
             addSquare(squares, k, 'move-dest');
