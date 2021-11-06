@@ -91,7 +91,7 @@ export function renderPocketsInitial(state: HeadlessState, elements: Elements, p
 
       renderPiece(p, state);
 
-      // todo: i wonder if events.ts->bindBoard() or something similar is a better place similarly to main board?
+      // TODO: i wonder if events.ts->bindBoard() or something similar is a better place similarly to main board?
       // todo: in spectators mode movable.color is never set (except in goPly to undefined). Simultaneously
       //       state.ts->default is "both" and here as well. Effect is that dragging and clicking is disabled, which is
       //       great, but feels more like an accidental side effect than intention (effectively 'both' means 'none').
