@@ -34,7 +34,7 @@ export type Variant =
   | 'shinobi'
   | 'empire'
   | 'ordamirror'
-  | undefined;
+  ;
 export type Color = typeof colors[number];
 export type PieceSide = typeof pieceSides[number];
 export type Letter = typeof letters[number];
@@ -217,4 +217,9 @@ export const dimensions: BoardDimensions[] = [
 
 export const shogiVariants: Variant[] = ['shogi', 'minishogi', 'kyotoshogi', 'dobutsu', 'gorogoro', 'torishogi'];
 
-export const xiangqiVariants: Variant[] = ['xiangqi', 'minixiangqi', 'manchu'];
+// XIANGQI_WXF can't handle Manchu banner piece, so we will use SAN and chess coords for Manchu
+export const xiangqiVariants: Variant[] = ['xiangqi', 'minixiangqi'];
+
+export const alternateKing: Partial<Record<Variant, Role>> = {
+  'dobutsu': 'l-piece',
+};

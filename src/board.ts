@@ -29,12 +29,14 @@ export function setPieces(state: HeadlessState, pieces: cg.PiecesDiff): void {
 }
 
 export function setCheck(state: HeadlessState, color: cg.Color | boolean): void {
+  const king: cg.Role = cg.alternateKing[state.variant] ?? 'k-piece';
   state.check = undefined;
   if (color === true) color = state.turnColor;
   if (color)
     for (const [k, p] of state.pieces) {
-      if (p.role === 'k-piece' && p.color === color) {
+      if (p.role === king && p.color === color) {
         state.check = k;
+        break;
       }
     }
 }
