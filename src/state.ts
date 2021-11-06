@@ -205,6 +205,6 @@ export function defaults(): HeadlessState {
     geometry: cg.Geometry.dim8x8,
     variant: 'chess',
     chess960: false,
-    notation: cg.Notation.DEFAULT,
+    notation: cg.Notation.ALGEBRAIC,
   };
 }

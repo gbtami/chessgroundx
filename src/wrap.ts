@@ -1,7 +1,72 @@
 import { HeadlessState } from './state';
 import { setVisible, createEl } from './util';
-import { colors, files, ranks, ranks10, shogiVariants, xiangqiVariants, Elements, Notation } from './types';
+import { colors, letters, Elements, Notation } from './types';
 import { createElement as createSVG, setAttributes } from './svg';
+
+type CoordFormat = {
+  coords: readonly string[],
+  position: 'top' | 'bottom' | 'side',
+  direction: 'forward' | 'backward',  // "Forward" means bottom to top / left to right
+  noBlackReverse?: boolean,           // Don't reverse the direction for black orientation
+};
+
+const LETTER_ENGLISH = letters;
+const NUMBER_ARABIC = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'] as const;
+const NUMBER_JANGGI = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'] as const;
+
+const coordFormat: Record<Notation, CoordFormat[]> = {
+  [Notation.ALGEBRAIC]: [{
+    coords: LETTER_ENGLISH,
+    position: 'bottom',
+    direction: 'forward',
+  }, {
+    coords: NUMBER_ARABIC,
+    position: 'side',
+    direction: 'forward',
+  }],
+
+  [Notation.SHOGI_ENGLET]: [{
+    coords: NUMBER_ARABIC,
+    position: 'top',
+    direction: 'backward',
+  }, {
+    coords: LETTER_ENGLISH,
+    position: 'side',
+    direction: 'backward',
+  }],
+
+  [Notation.SHOGI_ARBNUM]: [{
+    coords: NUMBER_ARABIC,
+    position: 'top',
+    direction: 'backward',
+  }, {
+    coords: NUMBER_ARABIC,
+    position: 'side',
+    direction: 'backward',
+  }],
+
+  [Notation.JANGGI]: [{
+    coords: NUMBER_ARABIC,
+    position: 'bottom',
+    direction: 'forward',
+  }, {
+    coords: NUMBER_JANGGI,
+    position: 'side',
+    direction: 'backward',
+  }],
+
+  [Notation.XIANGQI_ARBNUM]: [{
+    coords: NUMBER_ARABIC,
+    position: 'top',
+    direction: 'forward',
+    noBlackReverse: true,
+  }, {
+    coords: NUMBER_ARABIC,
+    position: 'bottom',
+    direction: 'backward',
+    noBlackReverse: true,
+  }],
+};
 
 export function renderWrap(element: HTMLElement, s: HeadlessState): Elements {
   // .cg-wrap (element passed to Chessground)
@@ -58,20 +123,11 @@ export function renderWrap(element: HTMLElement, s: HeadlessState): Elements {
   }
 
   if (s.coordinates) {
-    const orientClass = s.orientation === 'black' ? ' black' : '';
-    if (shogiVariants.includes(s.variant)) {
-      container.appendChild(renderCoords(ranks.slice(0, s.dimensions.height).reverse(), 'files' + orientClass));
-      container.appendChild(renderCoords(ranks.slice(0, s.dimensions.width).reverse(), 'ranks' + orientClass));
-    } else if (s.notation === Notation.JANGGI) {
-      container.appendChild(renderCoords(['0'].concat(ranks.slice(0, 9).reverse()), 'ranks' + orientClass));
-      container.appendChild(renderCoords(ranks.slice(0, 9), 'files' + orientClass));
-    } else if (xiangqiVariants.includes(s.variant)) {
-      container.appendChild(renderCoords(ranks.slice(0, s.dimensions.width), 'files' + orientClass));
-      container.appendChild(renderCoords(ranks.slice(0, s.dimensions.width), 'ranks' + orientClass));
-    } else {
-      container.appendChild(renderCoords(ranks10.slice(0, s.dimensions.height), 'ranks' + orientClass));
-      container.appendChild(renderCoords(files.slice(0, s.dimensions.width), 'files' + orientClass));
-    }
+    coordFormat[s.notation].forEach(f => {
+      const max = f.position === 'side' ? s.dimensions.height : s.dimensions.width;
+      const coords = f.coords.slice(0, max);
+      container.appendChild(renderCoords(coords, `${f.position} ${f.direction}${f.noBlackReverse ? '' : ' ' + s.orientation}`));
+    });
   }
 
   let ghost: HTMLElement | undefined;
