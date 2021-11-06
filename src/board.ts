@@ -253,7 +253,7 @@ export function canMove(state: HeadlessState, orig: cg.Key, dest: cg.Key): boole
 
 function canDrop(state: HeadlessState, role: cg.Role, dest: cg.Key): boolean {
   if (state.movable.free) return true;
-  return !!state.movable.dests?.get(letterOf(role, true)+'@' as cg.Orig)?.includes(dest);
+  return !!state.movable.dests?.get(dropOrigOf(role))?.includes(dest);
 }
 
 function isPremovable(state: HeadlessState, orig: cg.Key): boolean {
