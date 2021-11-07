@@ -42,7 +42,7 @@ export interface Api {
   cancelPremove(): void;
 
   // play the current predrop, if any; returns true if premove was played
-  playPredrop(validate: (drop: cg.Drop) => boolean): boolean;
+  playPredrop(): boolean;
 
   // cancel the current predrop, if any
   cancelPredrop(): void;
@@ -92,7 +92,7 @@ export function start(state: State, redrawAll: cg.Redraw): Api {
 
     state,
 
-    getFen: () => fenWrite(state.pieces, state.geometry),
+    getFen: () => fenWrite(state.pieces, state.geometry, state.pockets),
 
     toggleOrientation,
 
@@ -125,9 +125,9 @@ export function start(state: State, redrawAll: cg.Redraw): Api {
       return false;
     },
 
-    playPredrop(validate): boolean {
+    playPredrop(): boolean {
       if (state.predroppable.current) {
-        const result = board.playPredrop(state, validate);
+        const result = board.playPredrop(state);
         state.dom.redraw();
         return result;
       }

@@ -3,6 +3,7 @@ import { setCheck, setSelected } from './board';
 import { read as fenRead } from './fen';
 import { DrawShape, DrawBrushes } from './draw';
 import * as cg from './types';
+import { setPredropDests, readPockets } from './pocket';
 
 export interface Config {
   fen?: cg.FEN; // chess position in Forsyth notation
@@ -87,9 +88,6 @@ export interface Config {
     piece?: cg.Piece;
     showDropDests?: boolean; // whether to add the move-dest class on squares for drops
     dropDests?: cg.DropDests; // see corresponding state.ts type for comments
-    events?: {
-      cancel?: () => void; // at least temporary - i need to refresh pocket on cancel of drop mode (mainly to clear the highlighting of the selected pocket piece) and pocket is currently outside chessgroundx so need to provide callback here
-    };
   };
   drawable?: {
     enabled?: boolean; // can draw
@@ -110,6 +108,7 @@ export interface Config {
   variant?: cg.Variant;
   chess960?: boolean;
   notation?: cg.Notation;
+  pocketRoles?: cg.PocketRoles; // what pieces have slots in the pocket for each color
 }
 
 export function applyAnimation(state: HeadlessState, config: Config): void {
@@ -138,6 +137,10 @@ export function configure(state: HeadlessState, config: Config): void {
     if (draggedPiece !== undefined) pieces.set('a0', draggedPiece);
     state.pieces = pieces;
     state.drawable.shapes = [];
+
+    if (state.pocketRoles) {
+        state.pockets = readPockets(config.fen, state.pocketRoles);
+    }
   }
 
   // apply config values that could be undefined yet meaningful
@@ -150,6 +153,7 @@ export function configure(state: HeadlessState, config: Config): void {
 
   // fix move/premove dests
   if (state.selected) setSelected(state, state.selected);
+  setPredropDests(state); // TODO: integrate pocket with the "selected" infrastructure and move this in setSelected()
 
   applyAnimation(state, config);
 

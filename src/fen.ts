@@ -1,5 +1,6 @@
 import { pos2key, invRanks, roleOf, letterOf } from './util';
 import * as cg from './types';
+import { pockets2str } from './pocket';
 
 export const initial: cg.FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR';
 
@@ -58,7 +59,7 @@ export function read(fen: cg.FEN): cg.Pieces {
   return pieces;
 }
 
-export function write(pieces: cg.Pieces, geom: cg.Geometry): cg.FEN {
+export function write(pieces: cg.Pieces, geom: cg.Geometry, pockets?: cg.Pockets): cg.FEN {
   const bd = cg.dimensions[geom];
   return invRanks
     .slice(-bd.height)
@@ -76,5 +77,5 @@ export function write(pieces: cg.Pieces, geom: cg.Geometry): cg.FEN {
         .join('')
     )
     .join('/')
-    .replace(/1{2,}/g, s => s.length.toString());
+    .replace(/1{2,}/g, s => s.length.toString()) + (pockets ? pockets2str(pockets) : "");
 }

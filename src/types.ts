@@ -78,6 +78,8 @@ export type Dests = Map<Orig, Key[]>;
 
 export interface Elements {
   board: HTMLElement;
+  pocketTop?: HTMLElement;
+  pocketBottom?: HTMLElement;
   wrap: HTMLElement;
   container: HTMLElement;
   ghost?: HTMLElement;
@@ -221,3 +223,12 @@ export const xiangqiVariants: Variant[] = ['xiangqi', 'minixiangqi'];
 export const alternateKing: Partial<Record<Variant, Role>> = {
   'dobutsu': 'l-piece',
 };
+
+export type PocketPosition = 'top' | 'bottom';
+export type Pocket = Partial<Record<Role, number>>;
+export type Pockets = Partial<Record<Color, Pocket>>;
+export type PocketRoles = (color: Color) => string[] | undefined; // type for functions that map a color to possible
+                                                                     // pieces that can be in pocket for that side
+
+export const eventsDragging = ['mousedown', 'touchmove'];
+export const eventsClicking = ['click'];

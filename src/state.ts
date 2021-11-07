@@ -79,7 +79,6 @@ export interface HeadlessState {
     showDropDests: boolean;
     piece?: cg.Piece;
     dropDests?: cg.DropDests; // Both in case of click-drop and drag-drop from pocket it stores the possible dests from highlighting (TODO:which is not great to use this for both cases imho)
-    events?: { cancel?: () => void };
   };
   selectable: {
     // disable to enforce dragging over click-click move
@@ -108,6 +107,8 @@ export interface HeadlessState {
   variant: cg.Variant;
   chess960: boolean;
   notation: cg.Notation;
+  pockets?: cg.Pockets; // undefinied for non-pocket variants. State of pockets for each color
+  pocketRoles?: cg.PocketRoles; // undefinied for non-pocket variants. Possible pieces that a pocket can hold for each color
 }
 
 export interface State extends HeadlessState {
