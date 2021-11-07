@@ -146,7 +146,6 @@ export const colors = ['white', 'black'] as const;
 export const pieceSides = ['ally', 'enemy'] as const;
 export const files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j'] as const;
 export const ranks = ['1', '2', '3', '4', '5', '6', '7', '8', '9', ':'] as const;
-export const ranks10 = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'] as const;
 export const letters = [
   'a',
   'b',
@@ -192,15 +191,16 @@ export const enum Geometry {
   dim3x4,
   dim5x6,
 }
+
 export const enum Notation {
-  DEFAULT,
-  SAN,
-  LAN,
-  SHOGI_HOSKING,
-  SHOGI_HODGES,
-  SHOGI_HODGES_NUMBER,
+  ALGEBRAIC,
+  SHOGI_ENGLET,
+  SHOGI_ARBNUM,
+  // TODO SHOGI_HANNUM,
   JANGGI,
-  XIANGQI_WXF,
+  XIANGQI_ARBNUM,
+  // TODO XIANGQI_HANNUM,
+  // TODO THAI_ALGEBRAIC,
 }
 
 export const dimensions: BoardDimensions[] = [
@@ -214,11 +214,6 @@ export const dimensions: BoardDimensions[] = [
   { width: 3, height: 4 },
   { width: 5, height: 6 },
 ];
-
-export const shogiVariants: Variant[] = ['shogi', 'minishogi', 'kyotoshogi', 'dobutsu', 'gorogoro', 'torishogi'];
-
-// XIANGQI_WXF can't handle Manchu banner piece, so we will use SAN and chess coords for Manchu
-export const xiangqiVariants: Variant[] = ['xiangqi', 'minixiangqi'];
 
 export const alternateKing: Partial<Record<Variant, Role>> = {
   'dobutsu': 'l-piece',
