@@ -112,13 +112,14 @@ export function renderPocketsInitial(state: HeadlessState, elements: cg.Elements
       pocketEl.appendChild(p);
     });
   }
-
   //
   if (pocketTop) {
+    pocketTop.innerHTML='';
     elements.pocketTop = pocketTop;
     pocketView(elements.pocketTop, "top");
   }
   if (pocketBottom) {
+    pocketBottom.innerHTML='';
     elements.pocketBottom = pocketBottom;
     pocketView(elements.pocketBottom, "bottom");
   }
