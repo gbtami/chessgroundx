@@ -15,18 +15,15 @@ import { predrop } from './predrop';
 export function readPockets(fen: cg.FEN, pocketRoles: cg.PocketRoles): cg.Pockets | undefined {
   const placement = fen.split(" ")[0];
   const bracketPos = placement.indexOf("[");
-  const pocketsFenPart = bracketPos !== -1 ? placement.slice(bracketPos) : undefined;
+  const pockets = bracketPos !== -1 ? placement.slice(bracketPos) : "";
 
-  if (pocketsFenPart) {
-    const rWhite = pocketRoles('white') ?? [];
-    const rBlack = pocketRoles('black') ?? [];
-    const pWhite: cg.Pocket = {};
-    const pBlack: cg.Pocket = {};
-    rWhite.forEach(r => pWhite[util.roleOf(r as cg.PieceLetter)] = lc(pocketsFenPart, r, true));
-    rBlack.forEach(r => pBlack[util.roleOf(r as cg.PieceLetter)] = lc(pocketsFenPart, r, false));
-    return {white: pWhite, black: pBlack};
-  }
-  return undefined;
+  const rWhite = pocketRoles('white') ?? [];
+  const rBlack = pocketRoles('black') ?? [];
+  const pWhite: cg.Pocket = {};
+  const pBlack: cg.Pocket = {};
+  rWhite.forEach(r => pWhite[util.roleOf(r)] = lc(pockets, r, true));
+  rBlack.forEach(r => pBlack[util.roleOf(r)] = lc(pockets, r, false));
+  return { white: pWhite, black: pBlack };
 }
 
 function lc(str: string, letter: string, uppercase: boolean): number {

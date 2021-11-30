@@ -222,8 +222,8 @@ export const alternateKing: Partial<Record<Variant, Role>> = {
 export type PocketPosition = 'top' | 'bottom';
 export type Pocket = Partial<Record<Role, number>>;
 export type Pockets = Partial<Record<Color, Pocket>>;
-export type PocketRoles = (color: Color) => string[] | undefined; // type for functions that map a color to possible
-                                                                     // pieces that can be in pocket for that side
+export type PocketRoles = (color: Color) => PieceLetter[] | undefined; // type for functions that map a color to possible
+                                                                  // pieces that can be in pocket for that side
 
 export const eventsDragging = ['mousedown', 'touchmove'];
 export const eventsClicking = ['click'];
