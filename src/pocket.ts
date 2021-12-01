@@ -12,18 +12,25 @@ import { predrop } from './predrop';
  * TODO: See todo in fen.ts->read() as well. Not sure if pocket parsing belongs there unless return
  *       type is extended to contain pocket state.
  * */
-export function readPockets(fen: cg.FEN, pocketRoles: cg.PocketRoles): cg.Pockets | undefined {
+export function readPockets(fen: cg.FEN, pocketRoles: cg.PocketRoles): cg.Pockets {
   const placement = fen.split(" ")[0];
   const bracketPos = placement.indexOf("[");
-  const pockets = bracketPos !== -1 ? placement.slice(bracketPos) : "";
+  const placementPockets = bracketPos !== -1 ? placement.slice(bracketPos) : "";
 
-  const rWhite = pocketRoles('white') ?? [];
-  const rBlack = pocketRoles('black') ?? [];
-  const pWhite: cg.Pocket = {};
-  const pBlack: cg.Pocket = {};
-  rWhite.forEach(r => pWhite[util.roleOf(r)] = lc(pockets, r, true));
-  rBlack.forEach(r => pBlack[util.roleOf(r)] = lc(pockets, r, false));
-  return { white: pWhite, black: pBlack };
+  const pockets: cg.Pockets = {};
+  const rWhite = pocketRoles('white');
+  const rBlack = pocketRoles('black');
+  if (rWhite) {
+    pockets.white = {};
+    for (const r of rWhite)
+      pockets.white[util.roleOf(r)] = lc(placementPockets, r, true);
+  }
+  if (rBlack) {
+    pockets.black = {};
+    for (const r of rBlack)
+      pockets.black[util.roleOf(r)] = lc(placementPockets, r, true);
+  }
+  return pockets;
 }
 
 function lc(str: string, letter: string, uppercase: boolean): number {
