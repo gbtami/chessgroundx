@@ -23,20 +23,20 @@ export function readPockets(fen: cg.FEN, pocketRoles: cg.PocketRoles): cg.Pocket
   if (rWhite) {
     pockets.white = {};
     for (const r of rWhite)
-      pockets.white[util.roleOf(r)] = lc(placementPockets, r, true);
+      pockets.white[util.roleOf(r)] = lc(placementPockets, r, "upper");
   }
   if (rBlack) {
     pockets.black = {};
     for (const r of rBlack)
-      pockets.black[util.roleOf(r)] = lc(placementPockets, r, true);
+      pockets.black[util.roleOf(r)] = lc(placementPockets, r, "lower");
   }
   return pockets;
 }
 
-function lc(str: string, letter: string, uppercase: boolean): number {
-    if (uppercase)
+function lc(str: string, letter: string, letterCase?: "upper" | "lower"): number {
+    if (letterCase === "upper")
         letter = letter.toUpperCase();
-    else
+    else if (letterCase === "lower")
         letter = letter.toLowerCase();
     let letterCount = 0;
     for (let position = 0; position < str.length; position++)
