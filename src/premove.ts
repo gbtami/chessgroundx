@@ -205,7 +205,7 @@ function palace(geom: cg.Geometry, color: cg.Color): Palace {
   ];
 }
 
-const palaces: { [geom in cg.Geometry]?: { [color in cg.Color]: Palace } } = {
+const palaces: Partial<Record<cg.Geometry, Record<cg.Color, Palace>>> = {
   [cg.Geometry.dim9x10]: {
     white: palace(cg.Geometry.dim9x10, 'white'),
     black: palace(cg.Geometry.dim9x10, 'black'),
@@ -474,6 +474,30 @@ function toriEagle(color: cg.Color): Mobility {
       ? kingNoCastling(x1, y1, x2, y2) || (xd === yd && (y2 > y1 || (y2 < y1 && yd <= 2))) || (x2 === x1 && y2 < y1)
       : kingNoCastling(x1, y1, x2, y2) || (xd === yd && (y2 < y1 || (y2 > y1 && yd <= 2))) || (x2 === x1 && y2 > y1);
   };
+}
+
+// chak pawn
+function pawnChak(color: cg.Color): Mobility {
+  return (x1, y1, x2, y2) => {
+    const xd = diff(x1, x2);
+    return color === 'white'
+      ? y2 > y1 && y2 - y1 <= 1 && xd <= 1
+      : y1 > y2 && y1 - y2 <= 1 && xd <= 1;
+  };
+}
+
+// chak warrior
+function chakWarrior(color: cg.Color): Mobility {
+  return (x1, y1, x2, y2) => toriCrane(x1, y1, x2, y2) && (color === 'white' ? y2 >= 4 : y2 <= 4);
+}
+
+// chak divine king
+function chakDivineKing(color: cg.Color): Mobility {
+  return (x1, y1, x2, y2) => {
+    const xd = diff(x1, x2);
+    const yd = diff(y1, y2);
+    return queen(x1, y1, x2, y2) && xd <= 2 && yd <= 2 && (color === 'white' ? y2 >= 4 : y2 <= 4);
+  }
 }
 
 export function premove(
@@ -1031,6 +1055,41 @@ export function premove(
         case 'k-piece':
           mobility = king(color, rookFilesOf(pieces, color), canCastle);
           break; // king
+      }
+      break;
+
+    case 'chak':
+      switch (role) {
+        case 'p-piece': // pawn
+          mobility = pawnChak(color);
+          break;
+        case 'pp-piece': // warrior
+          mobility = chakWarrior(color);
+          break;
+        case 'r-piece': // serpent
+          mobility = rook;
+          break;
+        case 'v-piece': // vulture
+          mobility = knight;
+          break;
+        case 'b-piece': // bishop
+          mobility = toriCrane;
+          break;
+        case 'j-piece': // jaguar
+          mobility = centaur;
+          break;
+        case 'q-piece': // quetzal
+          mobility = queen;
+          break;
+        case 'o-piece': // offering
+          mobility = () => false;
+          break;
+        case 'k-piece': // king
+          mobility = kingNoCastling;
+          break;
+        case 'pk-piece': // divine king
+          mobility = chakDivineKing(color);
+          break;
       }
       break;
 

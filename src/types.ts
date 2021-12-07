@@ -34,6 +34,7 @@ export type Variant =
   | 'shinobi'
   | 'empire'
   | 'ordamirror'
+  | 'chak'
   ;
 export type Color = typeof colors[number];
 export type PieceSide = typeof pieceSides[number];
