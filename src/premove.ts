@@ -1072,7 +1072,7 @@ export function premove(
         case 'v-piece': // vulture
           mobility = knight;
           break;
-        case 'b-piece': // bishop
+        case 's-piece': // shaman
           mobility = toriCrane;
           break;
         case 'j-piece': // jaguar
