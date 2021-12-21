@@ -53,19 +53,11 @@ export function predrop(pieces: cg.Pieces, piece: cg.Piece, geom: cg.Geometry, v
 
     case 'sittuyin':
       switch (role) {
-        case 'r-piece':
+        case 'r-piece': // rooks can only be placed on the first rank
           mobility = rankRange(0, 1, color, geom);
-          break; // rooks can only be placed on the first rank
-        default:
-          mobility = (x, y) => {
-            // the "drop" is the placement phase where pieces can be placed on its player's half of the board
-            const bd = cg.dimensions[geom];
-            if (color === 'black') {
-              x = bd.width - 1 - x;
-              y = bd.height - 1 - y;
-            }
-            return y < 2 || (x > 3 && y === 2);
-          };
+          break;
+        default: // the "drop" is the placement phase where pieces can be placed on its player's half of the board
+          mobility = rankRange(0, 3, color, geom);
       }
       break;
 
