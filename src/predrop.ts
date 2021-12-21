@@ -72,6 +72,7 @@ export function predrop(pieces: cg.Pieces, piece: cg.Piece, geom: cg.Geometry, v
     case 'shogi':
     case 'minishogi':
     case 'gorogoro':
+    case 'gorogoroplus':
       switch (role) {
         case 'p-piece': // pawns and lances can't be dropped on the last rank
         case 'l-piece':
