@@ -12,6 +12,7 @@ export type Variant =
   | 'kyotoshogi'
   | 'dobutsu'
   | 'gorogoro'
+  | 'gorogoroplus'
   | 'torishogi'
   | 'xiangqi'
   | 'minixiangqi'

@@ -588,6 +588,7 @@ export function premove(
     case 'shogi':
     case 'minishogi':
     case 'gorogoro':
+    case 'gorogoroplus':
       switch (piece.role) {
         case 'p-piece':
           mobility = shogiPawn(color);
