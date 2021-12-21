@@ -512,7 +512,7 @@ export function premove(
   const role = piece.role;
   const color = piece.color;
   const pos = util.key2pos(key);
-  let mobility: Mobility;
+  let mobility: Mobility = () => false;
 
   switch (variant) {
     case 'xiangqi':
