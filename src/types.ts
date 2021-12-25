@@ -36,6 +36,7 @@ export type Variant =
   | 'empire'
   | 'ordamirror'
   | 'chak'
+  | 'chennis'
   ;
 export type Color = typeof colors[number];
 export type PieceSide = typeof pieceSides[number];

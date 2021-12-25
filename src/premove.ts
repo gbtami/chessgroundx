@@ -16,6 +16,12 @@ function pawn(color: cg.Color): Mobility {
       : y2 === y1 - 1 || (y1 >= 6 && y2 === y1 - 2 && x1 === x2));
 }
 
+function pawnNoDoubleStep(color: cg.Color): Mobility {
+  return (x1, y1, x2, y2) =>
+    diff(x1, x2) < 2 &&
+    (color === 'white' ? y2 === y1 + 1 : y2 === y1 - 1);
+}
+
 export const knight: Mobility = (x1, y1, x2, y2) => {
   const xd = diff(x1, x2);
   const yd = diff(y1, y2);
@@ -497,7 +503,16 @@ function chakDivineKing(color: cg.Color): Mobility {
     const xd = diff(x1, x2);
     const yd = diff(y1, y2);
     return queen(x1, y1, x2, y2) && xd <= 2 && yd <= 2 && (color === 'white' ? y2 >= 4 : y2 <= 4);
-  }
+  };
+}
+
+// chennis king
+function kingChennis(color: cg.Color): Mobility {
+  return (x1, y1, x2, y2) =>
+    kingNoCastling(x1, y1, x2, y2) &&
+    x2 >= 1 &&
+    x2 <= 5 &&
+    (color === 'white') ? y2 <= 3 : y2 >= 3;
 }
 
 export function premove(
@@ -1090,6 +1105,38 @@ export function premove(
           break;
         case 'pk-piece': // divine king
           mobility = chakDivineKing(color);
+          break;
+      }
+      break;
+
+    case 'chennis':
+      switch (role) {
+        case 'p-piece': // pawn
+          mobility = pawnNoDoubleStep(color);
+          break;
+        case 'pp-piece': // rook
+          mobility = rook;
+          break;
+        case 's-piece': // soldier
+          mobility = minixiangqiPawn(color);
+          break;
+        case 'ps-piece': // bishop
+          mobility = bishop;
+          break;
+        case 'f-piece': // ferz
+          mobility = ferz;
+          break;
+        case 'pf-piece': // cannon
+          mobility = rook;
+          break;
+        case 'm-piece': // mann
+          mobility = kingNoCastling;
+          break;
+        case 'pm-piece': // knight
+          mobility = knight;
+          break;
+        case 'k-piece': // king
+          mobility = kingChennis(color);
           break;
       }
       break;

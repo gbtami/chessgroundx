@@ -79,6 +79,7 @@ export function predrop(pieces: cg.Pieces, piece: cg.Piece, geom: cg.Geometry, v
     // This code is unnecessary but is here anyway to be explicit
     case 'kyotoshogi':
     case 'dobutsu':
+    case 'chennis':
       mobility = wholeBoard;
       break;
 
