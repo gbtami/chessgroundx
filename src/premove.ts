@@ -481,8 +481,8 @@ function pawnChak(color: cg.Color): Mobility {
   return (x1, y1, x2, y2) => {
     const xd = diff(x1, x2);
     return color === 'white'
-      ? y2 > y1 && y2 - y1 <= 1 && xd <= 1
-      : y1 > y2 && y1 - y2 <= 1 && xd <= 1;
+      ? y2 >= y1 && y2 - y1 <= 1 && xd <= 1
+      : y1 >= y2 && y1 - y2 <= 1 && xd <= 1;
   };
 }
 
