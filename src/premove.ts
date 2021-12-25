@@ -16,12 +16,6 @@ function pawn(color: cg.Color): Mobility {
       : y2 === y1 - 1 || (y1 >= 6 && y2 === y1 - 2 && x1 === x2));
 }
 
-function pawnNoDoubleStep(color: cg.Color): Mobility {
-  return (x1, y1, x2, y2) =>
-    diff(x1, x2) < 2 &&
-    (color === 'white' ? y2 === y1 + 1 : y2 === y1 - 1);
-}
-
 export const knight: Mobility = (x1, y1, x2, y2) => {
   const xd = diff(x1, x2);
   const yd = diff(y1, y2);
@@ -107,6 +101,21 @@ function rookFilesOfShako(pieces: cg.Pieces, color: cg.Color) {
   return files;
 }
 
+function pawnNoDoubleStep(color: cg.Color): Mobility {
+  return (x1, y1, x2, y2) =>
+    diff(x1, x2) < 2 &&
+    (color === 'white' ? y2 === y1 + 1 : y2 === y1 - 1);
+}
+
+// grand pawn (10x10 board, can move two squares on third row)
+function pawnGrand(color: cg.Color): Mobility {
+  return (x1, y1, x2, y2) =>
+    diff(x1, x2) < 2 &&
+    (color === 'white'
+      ? y2 === y1 + 1 || (y1 <= 2 && y2 === y1 + 2 && x1 === x2)
+      : y2 === y1 - 1 || (y1 >= 7 && y2 === y1 - 2 && x1 === x2));
+}
+
 // wazir
 const wazir: Mobility = (x1, y1, x2, y2) => {
   const xd = diff(x1, x2);
@@ -143,15 +152,6 @@ const amazon: Mobility = (x1, y1, x2, y2) => {
 const centaur: Mobility = (x1, y1, x2, y2) => {
   return kingNoCastling(x1, y1, x2, y2) || knight(x1, y1, x2, y2);
 };
-
-// grand pawn (10x10 board, can move two squares on third row)
-function pawnGrand(color: cg.Color): Mobility {
-  return (x1, y1, x2, y2) =>
-    diff(x1, x2) < 2 &&
-    (color === 'white'
-      ? y2 === y1 + 1 || (y1 <= 2 && y2 === y1 + 2 && x1 === x2)
-      : y2 === y1 - 1 || (y1 >= 7 && y2 === y1 - 2 && x1 === x2));
-}
 
 // shogi lance
 function shogiLance(color: cg.Color): Mobility {
@@ -290,11 +290,8 @@ function janggiPawn(color: cg.Color, geom: cg.Geometry): Mobility {
       default:
         additionalMobility = () => false;
     }
-    return (
-      (x2 === x1 && (color === 'white' ? y2 === y1 + 1 : y2 === y1 - 1)) ||
-      (y2 === y1 && diff(x1, x2) < 2) ||
-      additionalMobility(x1, y1, x2, y2)
-    );
+    return minixiangqiPawn(color)(x1, y1, x2, y2) ||
+      additionalMobility(x1, y1, x2, y2);
   };
 }
 
@@ -357,10 +354,8 @@ function janggiKing(color: cg.Color, geom: cg.Geometry): Mobility {
       default:
         additionalMobility = () => false;
     }
-    return (
-      (wazir(x1, y1, x2, y2) || additionalMobility(x1, y1, x2, y2)) &&
-      palace.some(point => point[0] === x2 && point[1] === y2)
-    );
+    return (wazir(x1, y1, x2, y2) || additionalMobility(x1, y1, x2, y2)) &&
+      palace.some(point => point[0] === x2 && point[1] === y2);
   };
 }
 
@@ -733,7 +728,7 @@ export function premove(
     case 'asean':
       switch (role) {
         case 'p-piece':
-          mobility = pawn(color);
+          mobility = pawnNoDoubleStep(color);
           break; // pawn
         case 'r-piece':
           mobility = rook;
