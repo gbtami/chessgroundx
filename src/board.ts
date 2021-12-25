@@ -1,5 +1,5 @@
 import { HeadlessState } from './state';
-import { pos2key, key2pos, opposite, distanceSq, allPos, computeSquareCenter, dropOrigOf } from './util';
+import { pos2key, key2pos, opposite, distanceSq, allPos, computeSquareCenter, dropOrigOf, kingRoles } from './util';
 import { premove, queen, knight } from './premove';
 import { predrop } from './predrop';
 import * as cg from './types';
@@ -29,10 +29,7 @@ export function setPieces(state: HeadlessState, pieces: cg.PiecesDiff): void {
 }
 
 export function setCheck(state: HeadlessState, color: cg.Color | boolean): void {
-  const kings = [ 'k-piece' ];
-  const alternateKing = cg.alternateKing[state.variant];
-  if (alternateKing)
-    kings.push(alternateKing);
+  const kings = kingRoles(state.variant);
   state.check = undefined;
   if (color === true) color = state.turnColor;
   if (color)

@@ -217,11 +217,6 @@ export const dimensions: BoardDimensions[] = [
   { width: 5, height: 6 },
 ];
 
-export const alternateKing: Partial<Record<Variant, Role>> = {
-  'dobutsu': 'l-piece',
-  'chak': 'pk-piece',
-};
-
 export type PocketPosition = 'top' | 'bottom';
 export type Pocket = Partial<Record<Role, number>>;
 export type Pockets = Partial<Record<Color, Pocket>>;

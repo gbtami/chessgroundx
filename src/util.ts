@@ -39,6 +39,14 @@ export function dropOrigOf(role: cg.Role): cg.DropOrig {
   return (letterOf(role, true) + '@') as cg.DropOrig;
 }
 
+export function kingRoles(variant: cg.Variant): cg.Role[] {
+  switch (variant) {
+    case 'dobutsu': return ['l-piece'];
+    case 'chak': return ['k-piece', 'pk-piece'];
+    default: return ['k-piece'];
+  }
+}
+
 export function memo<A>(f: () => A): cg.Memo<A> {
   let v: A | undefined;
   const ret = (): A => {
