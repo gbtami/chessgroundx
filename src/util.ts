@@ -123,6 +123,10 @@ export const createEl = (tagName: string, className?: string): HTMLElement => {
   return el;
 };
 
+export const isMiniBoard = (el: HTMLElement): boolean => {
+  return Array.from(el.classList).includes('mini');
+};
+
 export function computeSquareCenter(
   key: cg.Key,
   asWhite: boolean,

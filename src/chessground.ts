@@ -28,6 +28,8 @@ export function Chessground(element: HTMLElement, config?: Config, pocketTop?: H
         updateBounds(state);
         renderResized(state);
       };
+    if (elements.pocketTop) pocketTop = elements.pocketTop;
+    if (elements.pocketBottom) pocketBottom = elements.pocketBottom;
     renderPocketsInitial(maybeState, elements, pocketTop, pocketBottom);
     const state = maybeState as State;
     state.dom = {
