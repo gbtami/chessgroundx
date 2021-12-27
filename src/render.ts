@@ -204,6 +204,14 @@ export function updateBounds(s: State): void {
   if (s.addDimensionsCssVars) {
     document.documentElement.style.setProperty('--cg-width', width + 'px');
     document.documentElement.style.setProperty('--cg-height', height + 'px');
+    if (s.dom.elements.pocketTop) {
+        s.dom.elements.pocketTop.style.setProperty('--cg-width', width + 'px');
+        s.dom.elements.pocketTop.style.setProperty('--cg-height', height + 'px');
+    }
+    if (s.dom.elements.pocketBottom) {
+        s.dom.elements.pocketBottom.style.setProperty('--cg-width', width + 'px');
+        s.dom.elements.pocketBottom.style.setProperty('--cg-height', height + 'px');
+    }
   }
 }
 

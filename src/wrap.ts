@@ -1,5 +1,5 @@
 import { HeadlessState } from './state';
-import { setVisible, createEl } from './util';
+import { setVisible, createEl, isMiniBoard } from './util';
 import { colors, letters, Elements, Notation } from './types';
 import { createElement as createSVG, setAttributes } from './svg';
 
@@ -100,6 +100,16 @@ export function renderWrap(element: HTMLElement, s: HeadlessState): Elements {
   const board = createEl('cg-board');
   container.appendChild(board);
 
+  let pocketBottom, pocketTop;
+  if (isMiniBoard(element)) {
+    if (s.pockets) {
+      pocketBottom = createEl('pocketBottom');
+      pocketTop = createEl('pocketTop');
+      container.insertBefore(s.orientation === 'white' ? pocketTop : pocketBottom, board);
+      container.insertBefore(s.orientation === 'white' ? pocketBottom : pocketTop, board.nextSibling);
+    }
+  }
+
   let svg: SVGElement | undefined;
   let customSvg: SVGElement | undefined;
   if (s.drawable.visible) {
@@ -138,6 +148,8 @@ export function renderWrap(element: HTMLElement, s: HeadlessState): Elements {
   }
 
   return {
+    pocketTop,
+    pocketBottom,
     board,
     container,
     wrap: element,
