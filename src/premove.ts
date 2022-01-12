@@ -507,7 +507,7 @@ function kingChennis(color: cg.Color): Mobility {
     kingNoCastling(x1, y1, x2, y2) &&
     x2 >= 1 &&
     x2 <= 5 &&
-    (color === 'white') ? y2 <= 3 : y2 >= 3;
+    ((color === 'white') ? y2 <= 3 : y2 >= 3);
 }
 
 export function premove(
