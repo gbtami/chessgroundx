@@ -1,6 +1,5 @@
 # Chessgroundx
 
-[![Continuous Integration](https://github.com/gbtami/chessgroundx/actions/workflows/ci.yml/badge.svg)](https://github.com/gbtami/chessgroundx/actions/workflows/ci.yml)
 [![Node.js CI](https://github.com/gbtami/chessgroundx/actions/workflows/nodejs.yml/badge.svg)](https://github.com/gbtami/chessgroundx/actions/workflows/nodejs.yml)
 [![npm](https://img.shields.io/npm/v/chessgroundx)](https://www.npmjs.com/package/chessgroundx)
 
