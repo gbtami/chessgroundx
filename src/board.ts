@@ -1,6 +1,6 @@
 import { HeadlessState } from './state';
 import { pos2key, key2pos, opposite, distanceSq, allPos, computeSquareCenter, dropOrigOf, kingRoles } from './util';
-import { premove, queen, knight } from './premove';
+import { premove, queen, knight, janggiElephant } from './premove';
 import { predrop } from './predrop';
 import * as cg from './types';
 import { cancelDropMode } from './drop';
@@ -380,8 +380,10 @@ export function getSnappedKeyAtDomPos(
 ): cg.Key | undefined {
   const origPos = key2pos(orig);
   const validSnapPos = allPos(geom).filter(pos2 => {
-    return queen(origPos[0], origPos[1], pos2[0], pos2[1]) || knight(origPos[0], origPos[1], pos2[0], pos2[1]);
-    // TODO Add janggi elephant
+    return  queen(origPos[0], origPos[1], pos2[0], pos2[1]) ||
+            knight(origPos[0], origPos[1], pos2[0], pos2[1]) ||
+            // Only apply this to 9x10 board to avoid interfering with other variants beside Janggi
+            (geom === cg.Geometry.dim9x10 && janggiElephant(origPos[0], origPos[1], pos2[0], pos2[1]));
   });
   const bd = cg.dimensions[geom];
   const validSnapCenters = validSnapPos.map(pos2 => computeSquareCenter(pos2key(pos2), asWhite, bounds, bd));

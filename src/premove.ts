@@ -258,7 +258,7 @@ const shakoElephant: Mobility = (x1, y1, x2, y2) => {
 };
 
 // janggi elephant
-const janggiElephant: Mobility = (x1, y1, x2, y2) => {
+export const janggiElephant: Mobility = (x1, y1, x2, y2) => {
   const xd = diff(x1, x2);
   const yd = diff(y1, y2);
   return (xd === 2 && yd === 3) || (xd === 3 && yd === 2);
