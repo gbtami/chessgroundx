@@ -2,9 +2,6 @@ import * as cg from './types';
 
 export const invRanks: readonly cg.Rank[] = [...cg.ranks].reverse();
 
-export const NRanks: readonly number[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-export const invNRanks: readonly number[] = [...NRanks].reverse();
-
 function files(n: number) {
   return cg.files.slice(0, n);
 }

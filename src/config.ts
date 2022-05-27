@@ -105,6 +105,7 @@ export interface Config {
     onChange?: (shapes: DrawShape[]) => void; // called after drawable shapes change
   };
   geometry?: cg.Geometry; // dim3x4 | dim5x5 | dim7x7 | dim8x8 | dim9x9 | dim10x8 | dim9x10 | dim10x10
+  dimensions?: cg.BoardDimensions;
   variant?: cg.Variant;
   chess960?: boolean;
   notation?: cg.Notation;
