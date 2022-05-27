@@ -15,7 +15,7 @@ describe('premove() test', () => {
       state.pieces,
       'e1',
       state.premovable.castle,
-      state.geometry,
+      state.dimensions,
       state.variant,
       state.chess960
     );
@@ -34,7 +34,7 @@ describe('premove() test', () => {
       state.pieces,
       'e2',
       state.premovable.castle,
-      state.geometry,
+      state.dimensions,
       state.variant,
       state.chess960
     );
@@ -53,7 +53,7 @@ describe('premove() test', () => {
       state.pieces,
       'e2',
       state.premovable.castle,
-      state.geometry,
+      state.dimensions,
       state.variant,
       state.chess960
     );
@@ -92,7 +92,7 @@ describe('premove() test', () => {
       state.pieces,
       'f3',
       state.premovable.castle,
-      state.geometry,
+      state.dimensions,
       state.variant,
       state.chess960
     );
