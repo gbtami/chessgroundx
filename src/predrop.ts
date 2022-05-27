@@ -10,7 +10,7 @@ const wholeBoard = () => true;
  * @param from	0-based index from given color's PoV, inclusive
  * @param to	0-based index from given color's PoV, exclusive
  * @param color The piece's color
- * @param geom  The board's geometry
+ * @param bd    The board's dimensions
  *
  * Returns a function that checks if a position's rank is inside the from-to range, where from and to are indices of rank when counting from
  * current "color"'s point of view (i.e. if from=to=1 and color=black the function will return true only if the position's rank is 8 in case of 8x8 board)
