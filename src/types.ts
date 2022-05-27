@@ -183,6 +183,7 @@ export interface BoardDimensions {
   height: number;
 }
 
+// Deprecated, will remove in version 10
 export const enum Geometry {
   dim8x8,
   dim9x9,
@@ -206,6 +207,7 @@ export const enum Notation {
   // TODO THAI_ALGEBRAIC,
 }
 
+// Deprecated, will remove in version 10
 export const dimensions: BoardDimensions[] = [
   { width: 8, height: 8 },
   { width: 9, height: 9 },
