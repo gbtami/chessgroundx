@@ -222,7 +222,7 @@ export function setSelected(state: HeadlessState, key: cg.Key): void {
       state.pieces,
       key,
       state.premovable.castle,
-      state.geometry,
+      state.dimensions,
       state.variant,
       state.chess960
     );
@@ -278,7 +278,7 @@ function canPremove(state: HeadlessState, orig: cg.Key, dest: cg.Key): boolean {
   return (
     orig !== dest &&
     isPremovable(state, orig) &&
-    premove(state.pieces, orig, state.premovable.castle, state.geometry, state.variant, state.chess960).includes(dest)
+    premove(state.pieces, orig, state.premovable.castle, state.dimensions, state.variant, state.chess960).includes(dest)
   );
 }
 
@@ -292,7 +292,7 @@ function canPredrop(state: HeadlessState, orig: cg.Key, dest: cg.Key): boolean {
     state.predroppable.enabled &&
     state.movable.color === piece.color &&
     state.turnColor !== piece.color &&
-    predrop(state.pieces, piece, state.geometry, state.variant).includes(dest)
+    predrop(state.pieces, piece, state.dimensions, state.variant).includes(dest)
   );
 }
 
@@ -361,9 +361,8 @@ export function getKeyAtDomPos(
   pos: cg.NumberPair,
   asWhite: boolean,
   bounds: ClientRect,
-  geom: cg.Geometry
+  bd: cg.BoardDimensions,
 ): cg.Key | undefined {
-  const bd = cg.dimensions[geom];
   let file = Math.floor((bd.width * (pos[0] - bounds.left)) / bounds.width);
   if (!asWhite) file = bd.width - 1 - file;
   let rank = bd.height - 1 - Math.floor((bd.height * (pos[1] - bounds.top)) / bounds.height);
@@ -376,16 +375,15 @@ export function getSnappedKeyAtDomPos(
   pos: cg.NumberPair,
   asWhite: boolean,
   bounds: ClientRect,
-  geom: cg.Geometry
+  bd: cg.BoardDimensions,
 ): cg.Key | undefined {
   const origPos = key2pos(orig);
-  const validSnapPos = allPos(geom).filter(pos2 => {
+  const validSnapPos = allPos(bd).filter(pos2 => {
     return  queen(origPos[0], origPos[1], pos2[0], pos2[1]) ||
             knight(origPos[0], origPos[1], pos2[0], pos2[1]) ||
             // Only apply this to 9x10 board to avoid interfering with other variants beside Janggi
-            (geom === cg.Geometry.dim9x10 && janggiElephant(origPos[0], origPos[1], pos2[0], pos2[1]));
+            (bd.width === 9 && bd.height === 10 && janggiElephant(origPos[0], origPos[1], pos2[0], pos2[1]));
   });
-  const bd = cg.dimensions[geom];
   const validSnapCenters = validSnapPos.map(pos2 => computeSquareCenter(pos2key(pos2), asWhite, bounds, bd));
   const validSnapDistances = validSnapCenters.map(pos2 => distanceSq(pos, pos2));
   const [, closestSnapIndex] = validSnapDistances.reduce(

@@ -227,7 +227,7 @@ export function setPredropDests(state: HeadlessState): void {
   const piece = state.draggable.current?.piece;
   if (piece && piece.color !== state.turnColor) {
       //it is opponents turn, but we are dragging a pocket piece at the same time
-      const dropDests = predrop(state.pieces, piece, state.geometry, state.variant);
+      const dropDests = predrop(state.pieces, piece, state.dimensions, state.variant);
       state.predroppable.dropDests = dropDests;
   }
 }
