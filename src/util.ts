@@ -13,13 +13,12 @@ function ranks(n: number) {
   return cg.ranks.slice(0, n);
 }
 
-export function allKeys(geom: cg.Geometry): cg.Key[] {
-  const bd = cg.dimensions[geom];
+export function allKeys(bd: cg.BoardDimensions): cg.Key[] {
   return Array.prototype.concat(...files(bd.width).map(c => ranks(bd.height).map(r => c + r)));
 }
 
-export function allPos(geom: cg.Geometry): cg.Pos[] {
-  return allKeys(geom).map(key2pos);
+export function allPos(bd: cg.BoardDimensions): cg.Pos[] {
+  return allKeys(bd).map(key2pos);
 }
 
 export const pos2key = (pos: cg.Pos): cg.Key => (cg.files[pos[0]] + cg.ranks[pos[1]]) as cg.Key;

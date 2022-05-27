@@ -92,7 +92,7 @@ export function start(state: State, redrawAll: cg.Redraw): Api {
 
     state,
 
-    getFen: () => fenWrite(state.pieces, state.geometry, state.pockets),
+    getFen: () => fenWrite(state.pieces, state.dimensions, state.pockets),
 
     toggleOrientation,
 
@@ -169,7 +169,7 @@ export function start(state: State, redrawAll: cg.Redraw): Api {
     },
 
     getKeyAtDomPos(pos): cg.Key | undefined {
-      return board.getKeyAtDomPos(pos, board.whitePov(state), state.dom.bounds(), state.geometry);
+      return board.getKeyAtDomPos(pos, board.whitePov(state), state.dom.bounds(), state.dimensions);
     },
 
     redrawAll,
