@@ -44,6 +44,8 @@ export function kingRoles(variant: cg.Variant): cg.Role[] {
 }
 
 // TODO cover two-digit numbers
+// This function isn't used anywhere inside chessground btw, it's probably used in Lichess
+// Pychess has this in chess.ts
 export const uciToMove = (uci: string | undefined): cg.Key[] | undefined => {
   if (!uci) return undefined;
   if (uci[1] === '@') return [uci.slice(2, 4) as cg.Key];
