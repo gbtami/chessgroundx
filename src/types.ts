@@ -88,6 +88,7 @@ export interface Elements {
   ghost?: HTMLElement;
   svg?: SVGElement;
   customSvg?: SVGElement;
+  autoPieces?: HTMLElement;
 }
 export interface Dom {
   elements: Elements;
@@ -124,6 +125,7 @@ export interface PieceNode extends KeyedNode {
   cgAnimating?: boolean;
   cgFading?: boolean;
   cgDragging?: boolean;
+  cgScale?: number;
 }
 export interface SquareNode extends KeyedNode {
   tagName: 'SQUARE';
@@ -144,6 +146,8 @@ export type Redraw = () => void;
 export type Unbind = () => void;
 export type Milliseconds = number;
 export type KHz = number;
+
+export type RanksPosition = 'left' | 'right';
 
 export const colors = ['white', 'black'] as const;
 export const pieceSides = ['ally', 'enemy'] as const;

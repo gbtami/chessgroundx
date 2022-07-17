@@ -1,13 +1,14 @@
-import { Api, start } from './api';
-import { Config, configure } from './config';
-import { HeadlessState, State, defaults } from './state';
+import { Api, start } from './api.js';
+import { Config, configure } from './config.js';
+import { HeadlessState, State, defaults } from './state.js';
 
-import { renderWrap } from './wrap';
-import * as events from './events';
-import { render, renderResized, updateBounds } from './render';
-import * as svg from './svg';
-import * as util from './util';
-import { renderPockets, renderPocketsInitial } from './pocket';
+import { renderWrap } from './wrap.js';
+import * as events from './events.js';
+import { render, renderResized, updateBounds } from './render.js';
+import * as autoPieces from './autoPieces.js';
+import * as svg from './svg.js';
+import * as util from './util.js';
+import { renderPockets, renderPocketsInitial } from './pocket.js';
 
 export function Chessground(element: HTMLElement, config?: Config, pocketTop?: HTMLElement, pocketBottom?: HTMLElement): Api {
   const maybeState: State | HeadlessState = defaults();
@@ -22,11 +23,13 @@ export function Chessground(element: HTMLElement, config?: Config, pocketTop?: H
       redrawNow = (skipSvg?: boolean): void => {
         render(state);
         renderPockets(state);
+        if (elements.autoPieces) autoPieces.render(state, elements.autoPieces);
         if (!skipSvg && elements.svg) svg.renderSvg(state, elements.svg, elements.customSvg!);
       },
       onResize = (): void => {
         updateBounds(state);
         renderResized(state);
+        if (elements.autoPieces) autoPieces.renderResized(state);
       };
     if (elements.pocketTop) pocketTop = elements.pocketTop;
     if (elements.pocketBottom) pocketBottom = elements.pocketBottom;

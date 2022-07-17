@@ -1,4 +1,4 @@
-import { State } from './state';
+import { State } from './state.js';
 import {
   key2pos,
   pieceClasses as pieceNameOf,
@@ -6,17 +6,17 @@ import {
   posToTranslate as posToTranslateFromBounds,
   translate,
   dropOrigOf
-} from './util';
-import { whitePov } from './board';
-import { AnimCurrent, AnimVectors, AnimVector, AnimFadings } from './anim';
-import { DragCurrent } from './drag';
-import * as cg from './types';
+} from './util.js';
+import { whitePov } from './board.js';
+import { AnimCurrent, AnimVectors, AnimVector, AnimFadings } from './anim.js';
+import { DragCurrent } from './drag.js';
+import * as cg from './types.js';
 
 type PieceName = string; // `$color $role`
 
 type SquareClasses = Map<cg.Key, string>;
 
-// ported from https://github.com/veloce/lichobile/blob/master/src/js/chessground/view.js
+// ported from https://github.com/lichess-org/lichobile/blob/master/src/chessground/render.ts
 // in case of bugs, blame @veloce
 export function render(s: State): void {
   const asWhite: boolean = whitePov(s),
@@ -227,9 +227,11 @@ function removeNodes(s: State, nodes: HTMLElement[]): void {
 }
 
 function posZIndex(pos: cg.Pos, asWhite: boolean): string {
-  let z = 3 + pos[1] * 8 + (7 - pos[0]);
-  if (asWhite) z = 69 - z;
-  return z + '';
+  const minZ = 3;
+  const rank = pos[1];
+  const z = asWhite ? minZ + 7 - rank : minZ + rank;
+
+  return `${z}`;
 }
 
 function computeSquareClasses(s: State): SquareClasses {

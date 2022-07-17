@@ -1,4 +1,4 @@
-import * as cg from './types';
+import * as cg from './types.js';
 
 export const invRanks: readonly cg.Rank[] = [...cg.ranks].reverse();
 
@@ -42,6 +42,15 @@ export function kingRoles(variant: cg.Variant): cg.Role[] {
     default: return ['k-piece'];
   }
 }
+
+// TODO cover two-digit numbers
+// This function isn't used anywhere inside chessground btw, it's probably used in Lichess
+// Pychess has this in chess.ts
+export const uciToMove = (uci: string | undefined): cg.Key[] | undefined => {
+  if (!uci) return undefined;
+  if (uci[1] === '@') return [uci.slice(2, 4) as cg.Key];
+  return [uci.slice(0, 2), uci.slice(2, 4)] as cg.Key[];
+};
 
 export function memo<A>(f: () => A): cg.Memo<A> {
   let v: A | undefined;
@@ -99,6 +108,10 @@ export const posToTranslate =
 
 export const translate = (el: HTMLElement, pos: cg.NumberPair): void => {
   el.style.transform = `translate(${pos[0]}px,${pos[1]}px)`;
+};
+
+export const translateAndScale = (el: HTMLElement, pos: cg.NumberPair, scale = 1): void => {
+  el.style.transform = `translate(${pos[0]}px,${pos[1]}px) scale(${scale})`;
 };
 
 export const setVisible = (el: HTMLElement, v: boolean): void => {

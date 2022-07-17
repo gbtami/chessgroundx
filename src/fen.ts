@@ -1,6 +1,6 @@
-import { pos2key, invRanks, roleOf, letterOf } from './util';
-import * as cg from './types';
-import { pockets2str } from './pocket';
+import { pos2key, invRanks, roleOf, letterOf } from './util.js';
+import * as cg from './types.js';
+import { pockets2str } from './pocket.js';
 
 export const initial: cg.FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR';
 
@@ -18,6 +18,7 @@ export function read(fen: cg.FEN): cg.Pieces {
   for (const c of fen) {
     switch (c) {
       case ' ':
+      case '[':
         return pieces;
       case '/':
         --row;
@@ -68,9 +69,9 @@ export function write(pieces: cg.Pieces, bd: cg.BoardDimensions, pockets?: cg.Po
         .map(x => {
           const piece = pieces.get((x + y) as cg.Key);
           if (piece) {
-            let pieceLetter = letterOf(piece.role, piece.color === 'white');
-            if (piece.promoted && pieceLetter.charAt(0) !== '+') pieceLetter += '~';
-            return pieceLetter;
+            let p = letterOf(piece.role, piece.color === 'white');
+            if (piece.promoted && p.charAt(0) !== '+') p += '~';
+            return p;
           } else return '1';
         })
         .join('')

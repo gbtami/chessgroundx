@@ -1,7 +1,7 @@
-import { HeadlessState } from './state';
-import { setVisible, createEl, isMiniBoard } from './util';
-import { colors, letters, Elements, Notation } from './types';
-import { createElement as createSVG, setAttributes } from './svg';
+import { HeadlessState } from './state.js';
+import { setVisible, createEl, isMiniBoard } from './util.js';
+import { colors, letters, Elements, Notation } from './types.js';
+import { createElement as createSVG, setAttributes } from './svg.js';
 
 type CoordFormat = {
   coords: readonly string[],
@@ -77,6 +77,7 @@ export function renderWrap(element: HTMLElement, s: HeadlessState): Elements {
   //       g
   //     svg.cg-custom-svgs
   //       g
+  //     cg-auto-pieces
   //     coords.ranks
   //     coords.files
   //     piece.ghost
@@ -112,6 +113,8 @@ export function renderWrap(element: HTMLElement, s: HeadlessState): Elements {
 
   let svg: SVGElement | undefined;
   let customSvg: SVGElement | undefined;
+  let autoPieces: HTMLElement | undefined;
+
   if (s.drawable.visible) {
     const width = s.dimensions.width;
     const height = s.dimensions.height;
@@ -122,21 +125,27 @@ export function renderWrap(element: HTMLElement, s: HeadlessState): Elements {
     });
     svg.appendChild(createSVG('defs'));
     svg.appendChild(createSVG('g'));
+
     customSvg = setAttributes(createSVG('svg'), {
       class: 'cg-custom-svgs',
       viewBox: `${-(width - 1) / 2} ${-(height - 1) / 2} ${width} ${height}`,
       preserveAspectRatio: 'xMidYMid slice',
     });
     customSvg.appendChild(createSVG('g'));
+
+    autoPieces = createEl('cg-auto-pieces');
+
     container.appendChild(svg);
     container.appendChild(customSvg);
+    container.appendChild(autoPieces);
   }
 
   if (s.coordinates) {
     coordFormat[s.notation].forEach(f => {
       const max = f.position === 'side' ? s.dimensions.height : s.dimensions.width;
+      const pos = f.position; // TODO pos = f.position === 'side' ? s.ranksPosition : f.position;
       const coords = f.coords.slice(0, max);
-      container.appendChild(renderCoords(coords, `${f.position} ${f.direction}${f.noBlackReverse ? '' : ' ' + s.orientation}`));
+      container.appendChild(renderCoords(coords, `${pos} ${f.direction}${f.noBlackReverse ? '' : ' ' + s.orientation}`));
     });
   }
 
@@ -156,6 +165,7 @@ export function renderWrap(element: HTMLElement, s: HeadlessState): Elements {
     ghost,
     svg,
     customSvg,
+    autoPieces,
   };
 }
 

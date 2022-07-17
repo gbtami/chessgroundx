@@ -1,9 +1,9 @@
-import { HeadlessState } from './state';
-import { setCheck, setSelected } from './board';
-import { read as fenRead } from './fen';
-import { DrawShape, DrawBrushes } from './draw';
-import * as cg from './types';
-import { setPredropDests, readPockets } from './pocket';
+import { HeadlessState } from './state.js';
+import { setCheck, setSelected } from './board.js';
+import { read as fenRead } from './fen.js';
+import { DrawShape, DrawBrushes } from './draw.js';
+import * as cg from './types.js';
+import { setPredropDests, readPockets } from './pocket.js';
 
 export interface Config {
   fen?: cg.FEN; // chess position in Forsyth notation
@@ -99,9 +99,6 @@ export interface Config {
     shapes?: DrawShape[];
     autoShapes?: DrawShape[];
     brushes?: DrawBrushes;
-    pieces?: {
-      baseUrl?: string;
-    };
     onChange?: (shapes: DrawShape[]) => void; // called after drawable shapes change
   };
   geometry?: cg.Geometry; // dim3x4 | dim5x5 | dim7x7 | dim8x8 | dim9x9 | dim10x8 | dim9x10 | dim10x10
