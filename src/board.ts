@@ -1,9 +1,9 @@
-import { HeadlessState } from './state';
-import { pos2key, key2pos, opposite, distanceSq, allPos, computeSquareCenter, dropOrigOf, kingRoles } from './util';
-import { premove, queen, knight, janggiElephant } from './premove';
-import { predrop } from './predrop';
-import * as cg from './types';
-import { cancelDropMode } from './drop';
+import { HeadlessState } from './state.js';
+import { pos2key, key2pos, opposite, distanceSq, allPos, computeSquareCenter, dropOrigOf, kingRoles } from './util.js';
+import { premove, queen, knight, janggiElephant } from './premove.js';
+import { predrop } from './predrop.js';
+import * as cg from './types.js';
+import { cancelDropMode } from './drop.js';
 
 export function callUserFunction<T extends (...args: any[]) => void>(f: T | undefined, ...args: Parameters<T>): void {
   if (f) setTimeout(() => f(...args), 1);

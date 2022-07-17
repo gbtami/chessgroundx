@@ -1,5 +1,5 @@
-import * as util from './util';
-import * as cg from './types';
+import * as util from './util.js';
+import * as cg from './types.js';
 
 type DropMobility = (x: number, y: number) => boolean;
 

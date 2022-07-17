@@ -1,10 +1,10 @@
-import * as cg from './types';
-import * as util from './util';
-import { dragNewPiece } from './drag';
-import { setDropMode, cancelDropMode } from './drop';
+import * as cg from './types.js';
+import * as util from './util.js';
+import { dragNewPiece } from './drag.js';
+import { setDropMode, cancelDropMode } from './drop.js';
 
-import { HeadlessState, State } from './state';
-import { predrop } from './predrop';
+import { HeadlessState, State } from './state.js';
+import { predrop } from './predrop.js';
 
 /**
  * Logically maybe belongs to fen.ts, but put here to avoid merge conflicts from upsteam
