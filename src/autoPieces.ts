@@ -1,5 +1,5 @@
 import { State } from './state.js';
-import { key2pos, createEl, posToTranslate as posToTranslateFromBounds, translateAndScale } from './util.js';
+import { key2pos, createEl, posToTranslate as posToTranslateFromBounds, translateAndScale, pieceClasses as pieceNameOf } from './util.js';
 import { whitePov } from './board.js';
 import * as cg from './types.js';
 import { DrawShape } from './draw.js';
@@ -29,18 +29,20 @@ export function renderResized(state: State): void {
 }
 
 function renderShape(state: State, { shape, hash }: SyncableShape, bounds: ClientRect): cg.PieceNode {
-  const orig = shape.orig;
-  const role = shape.piece?.role;
-  const color = shape.piece?.color;
-  const scale = shape.piece?.scale;
+  if (shape.piece) {
+    const orig = shape.orig;
+    const scale = shape.piece.scale;
 
-  const pieceEl = createEl('piece', `${role} ${color}`) as cg.PieceNode;
-  pieceEl.setAttribute('cgHash', hash);
-  pieceEl.cgKey = orig;
-  pieceEl.cgScale = scale;
-  translateAndScale(pieceEl, posToTranslateFromBounds(bounds, state.dimensions)(key2pos(orig), whitePov(state)), scale);
+    const pieceEl = createEl('piece', pieceNameOf(shape.piece, state.orientation)) as cg.PieceNode;
+    pieceEl.setAttribute('cgHash', hash);
+    pieceEl.cgKey = orig;
+    pieceEl.cgScale = scale;
+    translateAndScale(pieceEl, posToTranslateFromBounds(bounds, state.dimensions)(key2pos(orig), whitePov(state)), scale);
 
-  return pieceEl;
+    return pieceEl;
+  } else {
+    return createEl('piece', '') as cg.PieceNode;
+  }
 }
 
 function hash(autoPiece: DrawShape): Hash {
