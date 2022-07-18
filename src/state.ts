@@ -6,7 +6,7 @@ import { timer } from './util.js';
 import * as cg from './types.js';
 
 export interface HeadlessState {
-  pieces: cg.Pieces;
+  boardState: cg.BoardState;
   orientation: cg.Color; // board orientation. white | black
   turnColor: cg.Color; // turn to play. white | black
   check?: cg.Key; // square currently in check "a2"
@@ -107,7 +107,6 @@ export interface HeadlessState {
   variant: cg.Variant;
   chess960: boolean;
   notation: cg.Notation;
-  pockets?: cg.Pockets; // undefinied for non-pocket variants. State of pockets for each color
   pocketRoles?: cg.PocketRoles; // undefinied for non-pocket variants. Possible pieces that a pocket can hold for each color
 }
 
@@ -117,7 +116,7 @@ export interface State extends HeadlessState {
 
 export function defaults(): HeadlessState {
   return {
-    pieces: fen.read(fen.initial),
+    boardState: fen.read(fen.initial, { width: 8, height: 8 }),
     orientation: 'white',
     turnColor: 'white',
     coordinates: true,
