@@ -3,7 +3,6 @@ import { pos2key, key2pos, opposite, distanceSq, allPos, computeSquareCenter, dr
 import { premove, queen, knight, janggiElephant } from './premove.js';
 import { predrop } from './predrop.js';
 import * as cg from './types.js';
-import { cancelDropMode } from './drop.js';
 
 export function callUserFunction<T extends (...args: any[]) => void>(f: T | undefined, ...args: Parameters<T>): void {
   if (f) setTimeout(() => f(...args), 1);
@@ -189,7 +188,7 @@ export function dropNewPiece(state: HeadlessState, orig: cg.Key, dest: cg.Key, f
   } else {
     unsetPremove(state);
     unsetPredrop(state);
-    cancelDropMode(state);
+    state.dropmode.active = false;
   }
   state.boardState.pieces.delete(orig);
   unselect(state);
