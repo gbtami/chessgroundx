@@ -124,20 +124,14 @@ export function configure(state: HeadlessState, config: Config): void {
 
   deepMerge(state, config);
 
-  if (config.geometry) state.dimensions = cg.dimensions[config.geometry];
-
   // if a fen was provided, replace the pieces
   if (config.fen) {
-    const pieces = fenRead(config.fen);
+    const boardState = fenRead(config.fen, state.dimensions);
     // prevent calling cancel() if piece drag is already started from pocket!
-    const draggedPiece = state.pieces.get('a0');
-    if (draggedPiece !== undefined) pieces.set('a0', draggedPiece);
-    state.pieces = pieces;
+    const draggedPiece = state.boardState.pieces.get('a0');
+    if (draggedPiece !== undefined) boardState.pieces.set('a0', draggedPiece);
+    state.boardState = boardState;
     state.drawable.shapes = [];
-
-    if (state.pocketRoles) {
-        state.pockets = readPockets(config.fen, state.pocketRoles);
-    }
   }
 
   // apply config values that could be undefined yet meaningful
@@ -158,7 +152,7 @@ export function configure(state: HeadlessState, config: Config): void {
     const rank = state.movable.color === 'white' ? '1' : '8',
       kingStartPos = ('e' + rank) as cg.Key,
       dests = state.movable.dests.get(kingStartPos),
-      king = state.pieces.get(kingStartPos);
+      king = state.boardState.pieces.get(kingStartPos);
     if (!dests || !king || king.role !== 'k-piece') return;
     state.movable.dests.set(
       kingStartPos,

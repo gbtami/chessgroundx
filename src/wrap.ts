@@ -103,7 +103,7 @@ export function renderWrap(element: HTMLElement, s: HeadlessState): Elements {
 
   let pocketBottom, pocketTop;
   if (isMiniBoard(element)) {
-    if (s.pockets) {
+    if (s.boardState.pockets) {
       pocketBottom = createEl('pocketBottom');
       pocketTop = createEl('pocketTop');
       container.insertBefore(s.orientation === 'white' ? pocketTop : pocketBottom, board);
