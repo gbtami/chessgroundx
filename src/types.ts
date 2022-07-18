@@ -30,7 +30,7 @@ export type Pockets = Record<Color, Pocket>;
 export type PocketRoles = Record<Color, Role[]>;
 
 export type BoardState = {
-  boardPieces: Pieces,
+  pieces: Pieces,
   pockets?: Pockets,
 };
 

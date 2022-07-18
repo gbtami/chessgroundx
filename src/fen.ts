@@ -20,7 +20,7 @@ export function read(fen: cg.FEN, bd: cg.BoardDimensions): cg.BoardState {
   }
 
   return {
-    boardPieces: readBoard(boardPart),
+    pieces: readBoard(boardPart),
     pockets: readPockets(pocketPart),
   };
 }
@@ -102,7 +102,7 @@ function readPockets(pocketStr: string | undefined): cg.Pockets | undefined {
 }
 
 export function write(boardState: cg.BoardState, bd: cg.BoardDimensions): cg.FEN {
-  return writeBoard(boardState.boardPieces, bd) + writePockets(boardState.pockets);
+  return writeBoard(boardState.pieces, bd) + writePockets(boardState.pockets);
 }
 
 export function writeBoard(pieces: cg.Pieces, bd: cg.BoardDimensions): cg.FEN {
