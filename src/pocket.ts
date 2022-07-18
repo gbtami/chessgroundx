@@ -9,7 +9,7 @@ import { predrop } from './predrop.js';
 function renderPiece(el: HTMLElement, state: HeadlessState) {
   const role = el.getAttribute("data-role") as cg.Role;
   const color = el.getAttribute("data-color") as cg.Color;
-  el.setAttribute("data-nb", '' + (state.pockets![color]![role] ?? 0));
+  el.setAttribute("data-nb", '' + (state.boardState.pockets![color].get(role) ?? 0));
 
   const dropMode = state.dropmode;
   const dropPiece = state.dropmode.piece;
@@ -33,10 +33,10 @@ export function renderPocketsInitial(state: HeadlessState, elements: cg.Elements
 
   function pocketView(pocketEl: HTMLElement, position: cg.PocketPosition) {
 
-    if (!state.pockets) return;
+    if (!state.boardState.pockets) return;
 
     const color = position === 'top' ? util.opposite(state.orientation) : state.orientation;
-    const pocket = state.pockets[color];
+    const pocket = state.boardState.pockets[color];
     if (!pocket) return;
 
     const roles = Object.keys(pocket); // contains the list of possible pieces/roles (i.e. for crazyhouse p-piece, n-piece, b-piece, r-piece, q-piece) in the order they will be displayed in the pocket
@@ -176,7 +176,7 @@ export function setPredropDests(state: HeadlessState): void {
   const piece = state.draggable.current?.piece;
   if (piece && piece.color !== state.turnColor) {
       //it is opponents turn, but we are dragging a pocket piece at the same time
-      const dropDests = predrop(state.pieces, piece, state.dimensions, state.variant);
+      const dropDests = predrop(state.boardState.pieces, piece, state.dimensions, state.variant);
       state.predroppable.dropDests = dropDests;
   }
 }
