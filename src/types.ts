@@ -1,43 +1,4 @@
-export type Variant =
-  | 'chess'
-  | 'crazyhouse'
-  | 'makruk'
-  | 'makpong'
-  | 'cambodian'
-  | 'sittuyin'
-  | 'asean'
-  | 'placement'
-  | 'shogi'
-  | 'minishogi'
-  | 'kyotoshogi'
-  | 'dobutsu'
-  | 'gorogoro'
-  | 'gorogoroplus'
-  | 'torishogi'
-  | 'xiangqi'
-  | 'minixiangqi'
-  | 'capablanca'
-  | 'seirawan'
-  | 'capahouse'
-  | 'shouse'
-  | 'grand'
-  | 'grandhouse'
-  | 'gothic'
-  | 'gothhouse'
-  | 'shako'
-  | 'shogun'
-  | 'janggi'
-  | 'orda'
-  | 'synochess'
-  | 'manchu'
-  | 'musketeer'
-  | 'hoppelpoppel'
-  | 'shinobi'
-  | 'empire'
-  | 'ordamirror'
-  | 'chak'
-  | 'chennis'
-  ;
+export type Variant = string;
 export type Color = typeof colors[number];
 export type PieceSide = typeof pieceSides[number];
 export type Letter = typeof letters[number];
@@ -62,6 +23,16 @@ export interface Drop {
 }
 export type Pieces = Map<Key, Piece>;
 export type PiecesDiff = Map<Key, Piece | undefined>;
+
+export type PocketPosition = 'top' | 'bottom';
+export type Pocket = Map<Role, number>;
+export type Pockets = Record<Color, Pocket>;
+export type PocketRoles = Record<Color, Role[]>;
+
+export type BoardState = {
+  boardPieces: Pieces,
+  pockets?: Pockets,
+};
 
 export type KeyPair = [Key, Key];
 
@@ -223,12 +194,6 @@ export const dimensions: BoardDimensions[] = [
   { width: 3, height: 4 },
   { width: 5, height: 6 },
 ];
-
-export type PocketPosition = 'top' | 'bottom';
-export type Pocket = Partial<Record<Role, number>>;
-export type Pockets = Partial<Record<Color, Pocket>>;
-export type PocketRoles = (color: Color) => PieceLetter[] | undefined; // type for functions that map a color to possible
-                                                                  // pieces that can be in pocket for that side
 
 export const eventsDragging = ['mousedown', 'touchmove'];
 export const eventsClicking = ['click'];
