@@ -86,9 +86,9 @@ function readPockets(pocketStr: string | undefined): cg.Pockets | undefined {
 
     for (const p of pocketStr) {
       const role = roleOf(p as cg.PieceLetter);
-      if (p === p.toUpperCase())
+      if (/[A-Z]/.test(p))
         changeNumber(whitePocket, role, 1);
-      else
+      else if (/[a-z]/.test(p))
         changeNumber(blackPocket, role, 1);
     }
 
