@@ -6,45 +6,6 @@ import { setDropMode, cancelDropMode } from './drop.js';
 import { HeadlessState, State } from './state.js';
 import { predrop } from './predrop.js';
 
-/**
- * Logically maybe belongs to fen.ts, but put here to avoid merge conflicts from upsteam
- * Analogous to fen.ts->read(), but for pocket part of FEN
- * TODO: See todo in fen.ts->read() as well. Not sure if pocket parsing belongs there unless return
- *       type is extended to contain pocket state.
- * */
-export function readPockets(fen: cg.FEN, pocketRoles: cg.PocketRoles): cg.Pockets {
-  const placement = fen.split(" ")[0];
-  const bracketPos = placement.indexOf("[");
-  const placementPockets = bracketPos !== -1 ? placement.slice(bracketPos) : "";
-
-  const pockets: cg.Pockets = {};
-  const rWhite = pocketRoles('white');
-  const rBlack = pocketRoles('black');
-  if (rWhite) {
-    pockets.white = {};
-    for (const r of rWhite)
-      pockets.white[util.roleOf(r)] = lc(placementPockets, r, "upper");
-  }
-  if (rBlack) {
-    pockets.black = {};
-    for (const r of rBlack)
-      pockets.black[util.roleOf(r)] = lc(placementPockets, r, "lower");
-  }
-  return pockets;
-}
-
-function lc(str: string, letter: string, letterCase?: "upper" | "lower"): number {
-    if (letterCase === "upper")
-        letter = letter.toUpperCase();
-    else if (letterCase === "lower")
-        letter = letter.toLowerCase();
-    let letterCount = 0;
-    for (let position = 0; position < str.length; position++)
-        if (str.charAt(position) === letter)
-            letterCount += 1;
-    return letterCount;
-}
-
 function renderPiece(el: HTMLElement, state: HeadlessState) {
   const role = el.getAttribute("data-role") as cg.Role;
   const color = el.getAttribute("data-color") as cg.Color;
@@ -199,18 +160,6 @@ export function renderPockets(state: State): void {
   }
   renderPocket(state.dom.elements.pocketBottom);
   renderPocket(state.dom.elements.pocketTop);
-}
-
-function pocket2str(pocket: cg.Pocket) {
-  const letters: string[] = [];
-  for (const role in pocket) {
-    letters.push(util.letterOf(role as cg.Role, true).repeat(pocket[role as cg.Role] || 0));
-  }
-  return letters.join('');
-}
-
-export function pockets2str(pockets: cg.Pockets): string {
-  return '[' + pocket2str(pockets['white']!) + pocket2str(pockets['black']!).toLowerCase() + ']';
 }
 
 /**
