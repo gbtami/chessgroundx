@@ -1,4 +1,4 @@
-import { pos2key, invRanks, roleOf, letterOf } from './util.js';
+import { pos2key, invRanks, roleOf, letterOf, changeNumber } from './util.js';
 import * as cg from './types.js';
 
 export const initial: cg.FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR';
@@ -87,9 +87,9 @@ function readPockets(pocketStr: string | undefined): cg.Pockets | undefined {
     for (const p of pocketStr) {
       const role = roleOf(p as cg.PieceLetter);
       if (p === p.toUpperCase())
-        whitePocket.set(role, (whitePocket.get(role) ?? 0) + 1);
+        changeNumber(whitePocket, role, 1);
       else
-        blackPocket.set(role, (whitePocket.get(role) ?? 0) + 1);
+        changeNumber(blackPocket, role, 1);
     }
 
     return {

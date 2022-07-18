@@ -43,6 +43,10 @@ export function kingRoles(variant: cg.Variant): cg.Role[] {
   }
 }
 
+export function changeNumber<T>(map: Map<T, number>, key: T, num: number): void {
+    map.set(key, (map.get(key) ?? 0) + num);
+}
+
 // TODO cover two-digit numbers
 // This function isn't used anywhere inside chessground btw, it's probably used in Lichess
 // Pychess has this in chess.ts
