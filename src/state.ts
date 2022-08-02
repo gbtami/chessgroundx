@@ -43,7 +43,6 @@ export interface HeadlessState {
   };
   premovable: {
     enabled: boolean; // allow premoves for color that can not move
-    showDests: boolean; // whether to add the premove-dest class on squares
     castle: boolean; // whether to allow king castle premoves
     dests?: cg.Key[]; // premove destinations for the current selection
     current?: cg.KeyPair; // keys of the current saved premove ["e2" "e4"]
@@ -54,8 +53,6 @@ export interface HeadlessState {
   };
   predroppable: {
     enabled: boolean; // allow predrops for color that can not move
-    showDropDests: boolean; // whether to add the premove-dest css class on dest squares. Maybe an overkill to have this showDest and showDrop dests in each and every place, but could make sense one day
-    dropDests?: cg.Key[]; // premove destinations for the currently "selected" piece for pre-dropping. Both in case of drag-drop or click-drop
     current?: {
       // current saved predrop {role: 'knight'; key: 'e4'}.
       role: cg.Role;
@@ -77,9 +74,7 @@ export interface HeadlessState {
   dropmode: {
     // used for pocket pieces drops.
     active: boolean;
-    showDropDests: boolean;
     piece?: cg.Piece;
-    dropDests?: cg.DropDests; // Both in case of click-drop and drag-drop from pocket it stores the possible dests from highlighting (TODO:which is not great to use this for both cases imho)
   };
   selectable: {
     // disable to enforce dragging over click-click move
@@ -145,13 +140,11 @@ export function defaults(): HeadlessState {
     },
     premovable: {
       enabled: true,
-      showDests: true,
       castle: true,
       events: {},
     },
     predroppable: {
       enabled: false,
-      showDropDests: true,
       events: {},
     },
     draggable: {
@@ -163,7 +156,6 @@ export function defaults(): HeadlessState {
     },
     dropmode: {
       active: false,
-      showDropDests: true,
     },
     selectable: {
       enabled: true,

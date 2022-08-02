@@ -41,7 +41,6 @@ export interface Config {
   };
   premovable?: {
     enabled?: boolean; // allow premoves for color that can not move
-    showDests?: boolean; // whether to add the premove-dest class on squares
     castle?: boolean; // whether to allow king castle premoves
     dests?: cg.Key[]; // premove destinations for the current selection
     events?: {
@@ -51,8 +50,6 @@ export interface Config {
   };
   predroppable?: {
     enabled?: boolean; // allow predrops for color that can not move
-    showDropDests?: boolean;
-    dropDests?: cg.Key[];
     current?: {
       // See corresponding type in state.ts for more comments
       role: cg.Role;
@@ -86,8 +83,6 @@ export interface Config {
   dropmode?: {
     active?: boolean;
     piece?: cg.Piece;
-    showDropDests?: boolean; // whether to add the move-dest class on squares for drops
-    dropDests?: cg.DropDests; // see corresponding state.ts type for comments
   };
   drawable?: {
     enabled?: boolean; // can draw
@@ -119,7 +114,6 @@ export function applyAnimation(state: HeadlessState, config: Config): void {
 export function configure(state: HeadlessState, config: Config): void {
   // don't merge destinations and autoShapes. Just override.
   if (config.movable?.dests) state.movable.dests = undefined;
-  if (config.dropmode?.dropDests) state.dropmode.dropDests = undefined;
   if (config.drawable?.autoShapes) state.drawable.autoShapes = [];
 
   deepMerge(state, config);

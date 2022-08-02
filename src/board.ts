@@ -124,7 +124,6 @@ export function baseNewPiece(state: HeadlessState, piece: cg.Piece, key: cg.Key,
   state.check = undefined;
   callUserFunction(state.events.change);
   state.movable.dests = undefined;
-  state.dropmode.dropDests = undefined;
   state.turnColor = opposite(state.turnColor);
   return true;
 }
@@ -133,7 +132,6 @@ function baseUserMove(state: HeadlessState, orig: cg.Key, dest: cg.Key): cg.Piec
   const result = baseMove(state, orig, dest);
   if (result) {
     state.movable.dests = undefined;
-    state.dropmode.dropDests = undefined;
     state.turnColor = opposite(state.turnColor);
     state.animation.current = undefined;
   }
@@ -227,14 +225,12 @@ export function setSelected(state: HeadlessState, key: cg.Key): void {
     );
   } else {
     state.premovable.dests = undefined;
-    state.predroppable.dropDests = undefined;
   }
 }
 
 export function unselect(state: HeadlessState): void {
   state.selected = undefined;
   state.premovable.dests = undefined;
-  state.predroppable.dropDests = undefined;
   state.hold.cancel();
 }
 
@@ -352,7 +348,7 @@ export function cancelMove(state: HeadlessState): void {
 }
 
 export function stop(state: HeadlessState): void {
-  state.movable.color = state.movable.dests = state.dropmode.dropDests = state.animation.current = undefined;
+  state.movable.color = state.movable.dests = state.animation.current = undefined;
   cancelMove(state);
 }
 

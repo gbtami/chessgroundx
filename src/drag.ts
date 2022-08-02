@@ -109,7 +109,7 @@ export function dragNewPiece(s: State, piece: cg.Piece, e: cg.MouchEvent, force?
   };
 
   if (board.isPredroppable(s)) {
-    s.predroppable.dropDests = predrop(s.boardState.pieces, piece, s.dimensions, s.variant);
+    s.premovable.dests = predrop(s.boardState.pieces, piece, s.dimensions, s.variant);
   }
 
   processDrag(s);

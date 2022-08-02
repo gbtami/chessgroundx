@@ -146,11 +146,6 @@ export function drag(state: HeadlessState, e: cg.MouchEvent): void {
     }
   }
 
-  if (state.movable.dests) {
-    const dropDests = new Map([[role, state.movable.dests.get(util.letterOf(role, true) + "@" as cg.Orig)!]]);
-    state.dropmode.dropDests = dropDests;
-  }
-
   e.stopPropagation();
   e.preventDefault();
   dragNewPiece(state as State, {color, role}, e);
@@ -170,7 +165,6 @@ export function setPredropDests(state: HeadlessState): void {
   const piece = state.draggable.current?.piece;
   if (piece && piece.color !== state.turnColor) {
       //it is opponents turn, but we are dragging a pocket piece at the same time
-      const dropDests = predrop(state.boardState.pieces, piece, state.dimensions, state.variant);
-      state.predroppable.dropDests = dropDests;
+      state.premovable.dests = predrop(state.boardState.pieces, piece, state.dimensions, state.variant);
   }
 }
