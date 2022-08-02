@@ -101,11 +101,11 @@ export interface Config {
     brushes?: DrawBrushes;
     onChange?: (shapes: DrawShape[]) => void; // called after drawable shapes change
   };
-  geometry?: cg.Geometry; // dim3x4 | dim5x5 | dim7x7 | dim8x8 | dim9x9 | dim10x8 | dim9x10 | dim10x10
-  dimensions?: cg.BoardDimensions;
+  geometry?: cg.Geometry; // dim3x4 | dim5x5 | dim7x7 | dim8x8 | dim9x9 | dim10x8 | dim9x10 | dim10x10 (deprecated!)
+  dimensions?: cg.BoardDimensions; // declare the boards size (up to 16x16)
   variant?: cg.Variant;
   chess960?: boolean;
-  notation?: cg.Notation;
+  notation?: cg.Notation; // coord notation style
   pocketRoles?: cg.PocketRoles; // what pieces have slots in the pocket for each color
 }
 
