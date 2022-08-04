@@ -45,6 +45,5 @@ function renderShape(state: State, { shape, hash }: SyncableShape, bounds: Clien
   }
 }
 
-function hash(autoPiece: DrawShape): Hash {
-  return [autoPiece.orig, autoPiece.piece?.role, autoPiece.piece?.color, autoPiece.piece?.scale].join(',');
-}
+const hash = (autoPiece: DrawShape): Hash =>
+  [autoPiece.orig, autoPiece.piece?.role, autoPiece.piece?.color, autoPiece.piece?.scale].join(',');

@@ -17,7 +17,7 @@ export interface Config {
   viewOnly?: boolean; // don't bind events: the user will never be able to move pieces around
   disableContextMenu?: boolean; // because who needs a context menu on a chessboard
   addPieceZIndex?: boolean; // adds z-index values to pieces (for 3D)
-  addDimensionsCssVars?: boolean; // add --cg-width and --cg-height CSS vars containing the board's dimensions to the document root
+  addDimensionsCssVarsTo?: HTMLElement; // add --cg-width and --cg-height CSS vars containing the board's dimensions to this element
   blockTouchScroll?: boolean; // block scrolling via touch dragging on the board, e.g. for coordinate training
   // pieceKey: boolean; // add a data-key attribute to piece elements
   highlight?: {
@@ -161,11 +161,16 @@ export function configure(state: HeadlessState, config: Config): void {
 
 function deepMerge(base: any, extend: any): void {
   for (const key in extend) {
-    if (isObject(base[key]) && isObject(extend[key])) deepMerge(base[key], extend[key]);
-    else base[key] = extend[key];
+    if (Object.prototype.hasOwnProperty.call(extend, key)) {
+      if (Object.prototype.hasOwnProperty.call(base, key) && isPlainObject(base[key]) && isPlainObject(extend[key]))
+        deepMerge(base[key], extend[key]);
+      else base[key] = extend[key];
+    }
   }
 }
 
-function isObject(o: unknown): boolean {
-  return typeof o === 'object';
+function isPlainObject(o: unknown): boolean {
+  if (typeof o !== 'object' || o === null) return false;
+  const proto = Object.getPrototypeOf(o);
+  return proto === Object.prototype || proto === null;
 }
