@@ -115,7 +115,7 @@ export function click(state: HeadlessState, e: cg.MouchEvent): void {
   el.setAttribute("canceledDropMode", "");
 
   if ((!dropMode.active || dropPiece?.role !== role) && canceledDropMode !== "true") {
-    setDropMode(state as State, {color, role});
+    setDropMode(state as State, true, {color, role});
   } else {
     cancelDropMode(state);
   }
@@ -149,7 +149,7 @@ export function drag(state: HeadlessState, e: cg.MouchEvent): void {
 
   e.stopPropagation();
   e.preventDefault();
-  dragNewPiece(state as State, {color, role}, e);
+  dragNewPiece(state as State, {color, role}, true, e);
 }
 
 /**

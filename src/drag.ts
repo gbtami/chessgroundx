@@ -14,6 +14,7 @@ export interface DragCurrent {
   started: boolean; // whether the drag has started; as per the distance setting
   element: cg.PieceNode | (() => cg.PieceNode | undefined);
   newPiece?: boolean; // it is a new piece from outside the board
+  fromPocket?: boolean; // it is a piece from one of the pockets
   force?: boolean; // can the new piece replace an existing one (editor)
   previouslySelected?: cg.Key;
   originTarget: EventTarget | null;
@@ -86,7 +87,7 @@ function pieceCloseTo(s: State, pos: cg.NumberPair): boolean {
   return false;
 }
 
-export function dragNewPiece(s: State, piece: cg.Piece, e: cg.MouchEvent, force?: boolean): void {
+export function dragNewPiece(s: State, piece: cg.Piece, fromPocket: boolean, e: cg.MouchEvent, force?: boolean): void {
   const key: cg.Key = 'a0';
   s.boardState.pieces.set(key, piece);
   s.dom.redraw();
@@ -102,6 +103,7 @@ export function dragNewPiece(s: State, piece: cg.Piece, e: cg.MouchEvent, force?
     element: () => pieceElementByKey(s, key),
     originTarget: e.target,
     newPiece: true,
+    fromPocket: fromPocket,
     force: !!force,
     keyHasChanged: false,
   };
@@ -171,16 +173,17 @@ export function end(s: State, e: cg.MouchEvent): void {
   const eventPos = util.eventPosition(e) || cur.pos;
   const dest = board.getKeyAtDomPos(eventPos, board.whitePov(s), s.dom.bounds(), s.dimensions);
   if (dest && cur.started && cur.orig !== dest) {
-    if (cur.newPiece) board.dropNewPiece(s, cur.piece, dest, cur.force);
+    if (cur.newPiece) board.dropNewPiece(s, cur.piece, dest, !!cur.fromPocket, cur.force);
     else {
       s.stats.ctrlKey = e.ctrlKey;
       if (board.userMove(s, cur.orig, dest)) s.stats.dragged = true;
     }
-  } else if (cur.newPiece) {
-    s.boardState.pieces.delete(cur.orig);
   } else if (s.draggable.deleteOnDropOff && !dest) {
     s.boardState.pieces.delete(cur.orig);
+    if (cur.fromPocket) util.changeNumber(s.boardState.pockets![cur.piece.color], cur.piece.role, -1);
     board.callUserFunction(s.events.change);
+  } else if (cur.newPiece) {
+    s.boardState.pieces.delete(cur.orig);
   }
   if ((cur.orig === cur.previouslySelected || cur.keyHasChanged) && (cur.orig === dest || !dest)) board.unselect(s);
   else if (!s.selectable.enabled) board.unselect(s);

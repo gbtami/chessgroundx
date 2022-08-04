@@ -5,8 +5,9 @@ import * as util from './util.js';
 import { cancel as dragCancel } from './drag.js';
 import { predrop } from './predrop.js';
 
-export function setDropMode(s: State, piece?: cg.Piece): void {
+export function setDropMode(s: State, fromPocket: boolean, piece?: cg.Piece): void {
   s.dropmode.active = true;
+  s.dropmode.fromPocket = fromPocket;
   s.dropmode.piece = piece;
 
   dragCancel(s);
@@ -37,7 +38,7 @@ export function drop(s: State, e: cg.MouchEvent): void {
     s.boardState.pieces.set('a0', piece);
     const position = util.eventPosition(e);
     const dest = position && board.getKeyAtDomPos(position, board.whitePov(s), s.dom.bounds(), s.dimensions);
-    if (dest) board.dropNewPiece(s, piece, dest);
+    if (dest) board.dropNewPiece(s, piece, dest, s.dropmode.fromPocket);
   }
   s.dom.redraw();
 }

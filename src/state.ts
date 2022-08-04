@@ -62,6 +62,7 @@ export interface HeadlessState {
   dropmode: {
     // used for pocket pieces drops.
     active: boolean;
+    fromPocket: boolean;
     piece?: cg.Piece;
   };
   selectable: {
@@ -139,6 +140,7 @@ export function defaults(): HeadlessState {
     },
     dropmode: {
       active: false,
+      fromPocket: false,
     },
     selectable: {
       enabled: true,

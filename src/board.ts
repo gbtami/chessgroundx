@@ -153,13 +153,13 @@ export function userMove(state: HeadlessState, orig: cg.Key, dest: cg.Key): bool
   return false;
 }
 
-export function dropNewPiece(state: HeadlessState, piece: cg.Piece, dest: cg.Key, force?: boolean): void {
+export function dropNewPiece(state: HeadlessState, piece: cg.Piece, dest: cg.Key, fromPocket: boolean, force?: boolean): void {
   if (piece && (canDrop(state, piece, dest) || force)) {
     state.boardState.pieces.delete('a0');
-    baseNewPiece(state, piece, dest, true, force);
+    baseNewPiece(state, piece, dest, fromPocket, force);
     state.dropmode.active = false;
     callUserFunction(state.movable.events.afterNewPiece, piece.role, dest, { premove: false });
-  } else if (piece && canPredrop(state, piece, dest)) {
+  } else if (piece && fromPocket && canPredrop(state, piece, dest)) {
     setPredrop(state, piece.role, dest, { ctrlKey: state.stats.ctrlKey });
   } else {
     unsetPremove(state);

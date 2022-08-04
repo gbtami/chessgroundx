@@ -63,7 +63,7 @@ export interface Api {
   redrawAll: cg.Redraw;
 
   // for crazyhouse and board editors
-  dragNewPiece(piece: cg.Piece, event: cg.MouchEvent, force?: boolean): void;
+  dragNewPiece(piece: cg.Piece, fromPocket: boolean, event: cg.MouchEvent, force?: boolean): void;
 
   // unbinds all events
   // (important for document-wide events like scroll and mousemove)
@@ -155,8 +155,8 @@ export function start(state: State, redrawAll: cg.Redraw): Api {
 
     redrawAll,
 
-    dragNewPiece(piece, event, force): void {
-      dragNewPiece(state, piece, event, force);
+    dragNewPiece(piece, fromPocket, event, force): void {
+      dragNewPiece(state, piece, fromPocket, event, force);
     },
 
     destroy(): void {
