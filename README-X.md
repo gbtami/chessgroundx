@@ -52,7 +52,8 @@ Other differences
 - Piece roles are NOT piece names like `pawn`, `knight`, `bishop`, `rook`, `queen`, `king`,
    but letter-based like `p-piece`, `n-piece`, `b-piece`, `r-piece`, `q-piece`, `k-piece` etc.
    They are in `*-piece` format where `*` is the corresponding piece letter used in FEN.
-   Also in variants where promoted pieces needs their own role (like Shogi)
+   Also in variants where promoted pieces needs their own role (like Shogi),
+   signified by prefixing with a '+' in the FEN,
    they are prefixed with `p` like `pr-piece` for promoted Rook in Shogi.
    Example [shogi.css](https://github.com/gbtami/pychess-variants/blob/master/static/piece/shogi/shogi.css)
 - In Shogi-like variants where piece images are differentiated with directions (instead of color),
