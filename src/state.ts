@@ -60,7 +60,7 @@ export interface HeadlessState {
     current?: DragCurrent;
   };
   dropmode: {
-    // used for pocket pieces drops.
+    // used for piece drops from outside the board
     active: boolean;
     fromPocket: boolean;
     piece?: cg.Piece;
@@ -91,7 +91,7 @@ export interface HeadlessState {
   variant: cg.Variant;
   chess960: boolean;
   notation: cg.Notation;
-  pocketRoles?: cg.PocketRoles; // undefinied for non-pocket variants. Possible pieces that a pocket can hold for each color
+  pocketRoles?: cg.PocketRoles; // undefined for non-pocket variants. Possible pieces that a pocket can hold for each color
 }
 
 export interface State extends HeadlessState {
