@@ -206,7 +206,7 @@ export function selectSquare(state: HeadlessState, key: cg.Key, force?: boolean)
       }
     }
   }
-  if (isMovable(state, key) || isPremovable(state, key)) {
+  if ((state.selectable.enabled || state.draggable.enabled) && (isMovable(state, key) || isPremovable(state, key))) {
     setSelected(state, key);
     state.hold.start();
   }
@@ -242,11 +242,8 @@ function isMovable(state: HeadlessState, orig: cg.Key): boolean {
   );
 }
 
-export function canMove(state: HeadlessState, orig: cg.Key, dest: cg.Key): boolean {
-  return (
-    orig !== dest && isMovable(state, orig) && (state.movable.free || !!state.movable.dests?.get(orig)?.includes(dest))
-  );
-}
+export const canMove = (state: HeadlessState, orig: cg.Key, dest: cg.Key): boolean =>
+  orig !== dest && isMovable(state, orig) && (state.movable.free || !!state.movable.dests?.get(orig)?.includes(dest));
 
 function canDrop(state: HeadlessState, role: cg.Role, dest: cg.Key): boolean {
   if (state.movable.free) return true;
@@ -269,26 +266,13 @@ export function isPredroppable(state: HeadlessState): boolean {
   );
 }
 
-function canPremove(state: HeadlessState, orig: cg.Key, dest: cg.Key): boolean {
-  return (
-    orig !== dest &&
-    isPremovable(state, orig) &&
-    premove(state.boardState.pieces, orig, state.premovable.castle, state.dimensions, state.variant, state.chess960).includes(dest)
-  );
-}
+const canPremove = (state: HeadlessState, orig: cg.Key, dest: cg.Key): boolean =>
+  orig !== dest && isPremovable(state, orig) && premove(state.boardState.pieces, orig, state.premovable.castle, state.dimensions, state.variant, state.chess960).includes(dest);
 
 // TODO: orig is probably always equal to a0 and only used for getting the piece - consider replacing that param with "piece" (see also dropNewPiece(...) )
-function canPredrop(state: HeadlessState, orig: cg.Key, dest: cg.Key): boolean {
+const canPredrop = (state: HeadlessState, orig: cg.Key, dest: cg.Key): boolean => {
   const piece = state.boardState.pieces.get(orig);
-  const destPiece = state.boardState.pieces.get(dest);
-  return (
-    !!piece &&
-    (!destPiece || destPiece.color !== state.movable.color) &&
-    state.predroppable.enabled &&
-    state.movable.color === piece.color &&
-    state.turnColor !== piece.color &&
-    predrop(state.boardState.pieces, piece, state.dimensions, state.variant).includes(dest)
-  );
+  return !!piece && isPredroppable(state) && predrop(state.boardState.pieces, piece, state.dimensions, state.variant).includes(dest);
 }
 
 export function isDraggable(state: HeadlessState, orig: cg.Key): boolean {
@@ -388,6 +372,4 @@ export function getSnappedKeyAtDomPos(
   return pos2key(validSnapPos[closestSnapIndex]);
 }
 
-export function whitePov(s: HeadlessState): boolean {
-  return s.orientation === 'white';
-}
+export const whitePov = (s: HeadlessState): boolean => s.orientation === 'white';

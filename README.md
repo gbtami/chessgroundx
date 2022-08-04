@@ -1,6 +1,6 @@
 # Chessgroundx
 
-[![Node.js CI](https://github.com/gbtami/chessgroundx/actions/workflows/nodejs.yml/badge.svg)](https://github.com/gbtami/chessgroundx/actions/workflows/nodejs.yml)
+[![Continuous Integration](https://github.com/gbtami/chessgroundx/actions/workflows/nodejs.yml/badge.svg)](https://github.com/gbtami/chessgroundx/actions/workflows/nodejs.yml)
 [![npm](https://img.shields.io/npm/v/chessgroundx)](https://www.npmjs.com/package/chessgroundx)
 
 ![Chessground Xiangqi and Shogi](/screenshot/chessgroundx.png)
@@ -22,6 +22,7 @@ Please read more about GPL for JavaScript on [greendrake.info](https://greendrak
 
 ## Demos
 
+- [Embedded PGN viewer](https://github.com/lichess-org/pgn-viewer)
 - [Chess TV](https://lichess.org/tv)
 - [Board editor](https://lichess.org/editor)
 - [Puzzles](https://lichess.org/training)
