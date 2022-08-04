@@ -1,19 +1,6 @@
 Main differences compared to upstream chessground
 ===
 New Config types
-
-`addDimensionsCssVars?: boolean; // add --cg-width and --cg-height CSS vars containing the board's dimensions to the document root`
-
-```
-predroppable?: {
-    showDropDests?: boolean;
-    dropDests?: cg.Key[];
-    current?: {
-      // See corresponding type in state.ts for more comments
-      role: cg.Role;
-      key: cg.Key;
-    };
-```
 ```
 dropmode?: {
     active?: boolean;
