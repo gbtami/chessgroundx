@@ -23,23 +23,39 @@ dropmode?: {
   };
 ```
 
-`dimensions?: cg.BoardDimensions; // declare the boards size (up to 16x16)`
+```
+dimensions?: cg.BoardDimensions;
+```
+The dimensions of the board: width and height. In the format `{ width: number, height: number }`. The default is `{ width: 8, height: 8 }`, representing an 8x8 board.
 
+```
 `variant?: cg.Variant;`
+```
+The name of the variant being played. Used for determining premove destinations. All variants in [Pychess](https://www.pychess.org) are supported. The default is `'chess'`.
 
-`chess960?: boolean;`
+```
+chess960?: boolean;
+```
+Whether the game being represented is a [960](https://lichess.org/variant/chess960) game. Used for 960-style castling premove destinations.
 
-`notation?: cg.Notation; // coord notation style`
+```
+notation?: cg.Notation;
+```
+Notation style for the coordinates. More information in the `Notation` type in `types.ts` and `wrap.ts`.
 
-`pocketRoles?: cg.PocketRoles; // what pieces have slots in the pocket for each color`
+```
+pocketRoles?: cg.PocketRoles;
+```
+The roles of the piece in each side's pocket. In the format `{ white: cg.Role[], black: cg.Role[] }`. Used for internal pocket support.
 
 Other differences
-- Premoves are supported for all the piece types available in https://www.pychess.org
-- Piece roles are NOT `pawn`, `knight`, `bishop`, `rook`, `queen`, `king`, but 
-   `p-piece`, `n-piece`, `b-piece`, `r-piece`, `q-piece`, `k-piece` etc.
+- Piece roles are NOT piece names like `pawn`, `knight`, `bishop`, `rook`, `queen`, `king`,
+   but letter-based like `p-piece`, `n-piece`, `b-piece`, `r-piece`, `q-piece`, `k-piece` etc.
    They are in `*-piece` format where `*` is the corresponding piece letter used in FEN.
-   Also in variants where promoted pieces needs their own role (mostly in drop variants)
+   Also in variants where promoted pieces needs their own role (like Shogi)
    they are prefixed with `p` like `pr-piece` for promoted Rook in Shogi.
-   Example [dobutsu.css](https://github.com/gbtami/pychess-variants/blob/master/static/piece/dobutsu/dobutsu.css)
-- In Shogi-like variants where piece images are the same for both side but differentiated with directions you can use `.ally`/`.enemy` instead of `.white`/`.black` in .css files.
+   Example [shogi.css](https://github.com/gbtami/pychess-variants/blob/master/static/piece/shogi/shogi.css)
+- In Shogi-like variants where piece images are differentiated with directions (instead of color),
+    you can use `.ally`/`.enemy` classes instead of `.white`/`.black` in .css files.
+    This can also be seen in the aforementioned shogi.css file.
 - Pockets are rendered for drop variant `.mini` boards.
