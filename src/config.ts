@@ -48,18 +48,6 @@ export interface Config {
       unset?: () => void; // called after the premove has been unset
     };
   };
-  predroppable?: {
-    enabled?: boolean; // allow predrops for color that can not move
-    current?: {
-      // See corresponding type in state.ts for more comments
-      role: cg.Role;
-      key: cg.Key;
-    };
-    events?: {
-      set?: (role: cg.Role, key: cg.Key) => void; // called after the predrop has been set
-      unset?: () => void; // called after the predrop has been unset
-    };
-  };
   draggable?: {
     enabled?: boolean; // allow moves & premoves to use drag'n drop
     distance?: number; // minimum distance to initiate a drag; in pixels
