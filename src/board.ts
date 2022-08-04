@@ -154,7 +154,7 @@ export function userMove(state: HeadlessState, orig: cg.Key, dest: cg.Key): bool
 }
 
 export function dropNewPiece(state: HeadlessState, piece: cg.Piece, dest: cg.Key, fromPocket: boolean, force?: boolean): void {
-  if (piece && (canDrop(state, piece, dest) || force)) {
+  if (piece && (canDrop(state, piece, dest, fromPocket) || force)) {
     state.boardState.pieces.delete('a0');
     baseNewPiece(state, piece, dest, fromPocket, force);
     state.dropmode.active = false;
@@ -219,10 +219,10 @@ function isMovable(state: HeadlessState, orig: cg.Key): boolean {
   );
 }
 
-function isDroppable(state: HeadlessState, piece: cg.Piece): boolean {
+function isDroppable(state: HeadlessState, piece: cg.Piece, fromPocket: boolean): boolean {
   const num = state.boardState.pockets?.[piece.color].get(piece.role) ?? 0;
   return (
-    num > 0 &&
+    (!fromPocket || num > 0) &&
     (state.movable.color === 'both' || (state.movable.color === piece.color && state.turnColor === piece.color))
   );
 }
@@ -230,8 +230,8 @@ function isDroppable(state: HeadlessState, piece: cg.Piece): boolean {
 export const canMove = (state: HeadlessState, orig: cg.Key, dest: cg.Key): boolean =>
   orig !== dest && isMovable(state, orig) && (state.movable.free || !!state.movable.dests?.get(orig)?.includes(dest));
 
-export const canDrop = (state: HeadlessState, piece: cg.Piece, dest: cg.Key): boolean =>
-  isDroppable(state, piece) && (state.movable.free || !!state.movable.dests?.get(dropOrigOf(piece.role))?.includes(dest));
+export const canDrop = (state: HeadlessState, piece: cg.Piece, dest: cg.Key, fromPocket: boolean): boolean =>
+  isDroppable(state, piece, fromPocket) && (state.movable.free || !!state.movable.dests?.get(dropOrigOf(piece.role))?.includes(dest));
 
 function isPremovable(state: HeadlessState, orig: cg.Key): boolean {
   const piece = state.boardState.pieces.get(orig);
@@ -268,7 +268,7 @@ export function playPremove(state: HeadlessState): boolean {
   if (isDropOrig(orig)) {
     const role = roleOf(orig);
     const piece = { role: role, color: state.movable.color } as cg.Piece;
-    if (canDrop(state, piece, dest)) {
+    if (canDrop(state, piece, dest, true)) {
       if (baseNewPiece(state, piece, dest, true)) {
         callUserFunction(state.movable.events.afterNewPiece, role, dest, { premove: true });
         success = true;
