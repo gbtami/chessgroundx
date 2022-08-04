@@ -27,7 +27,7 @@ export function start(s: State, e: cg.MouchEvent): void {
     position = util.eventPosition(e)!,
     orig = board.getKeyAtDomPos(position, board.whitePov(s), bounds, s.dimensions);
   if (!orig) return;
-  const piece = s.pieces.get(orig);
+  const piece = s.boardState.pieces.get(orig);
   const previouslySelected = s.selected;
   if (!previouslySelected && s.drawable.enabled && (s.drawable.eraseOnClick || !piece || piece.color !== s.turnColor))
     drawClear(s);
@@ -81,7 +81,7 @@ function pieceCloseTo(s: State, pos: cg.NumberPair): boolean {
   const asWhite = board.whitePov(s),
     bounds = s.dom.bounds(),
     radiusSq = Math.pow(bounds.width / s.dimensions.width, 2);
-  for (const key of s.pieces.keys()) {
+  for (const key of s.boardState.pieces.keys()) {
     const center = util.computeSquareCenter(key, asWhite, bounds, s.dimensions);
     if (util.distanceSq(center, pos) <= radiusSq) return true;
   }
@@ -90,7 +90,7 @@ function pieceCloseTo(s: State, pos: cg.NumberPair): boolean {
 
 export function dragNewPiece(s: State, piece: cg.Piece, e: cg.MouchEvent, force?: boolean): void {
   const key: cg.Key = 'a0';
-  s.pieces.set(key, piece);
+  s.boardState.pieces.set(key, piece);
   s.dom.redraw();
 
   const position = util.eventPosition(e)!;
@@ -109,7 +109,7 @@ export function dragNewPiece(s: State, piece: cg.Piece, e: cg.MouchEvent, force?
   };
 
   if (board.isPredroppable(s)) {
-    s.predroppable.dropDests = predrop(s.pieces, piece, s.dimensions, s.variant);
+    s.premovable.dests = predrop(s.boardState.pieces, piece, s.dimensions, s.variant);
   }
 
   processDrag(s);
@@ -122,7 +122,7 @@ function processDrag(s: State): void {
     // cancel animations while dragging
     if (s.animation.current?.plan.anims.has(cur.orig)) s.animation.current = undefined;
     // if moving piece is gone, cancel
-    const origPiece = s.pieces.get(cur.orig);
+    const origPiece = s.boardState.pieces.get(cur.orig);
     if (!origPiece || !util.samePiece(origPiece, cur.piece)) cancel(s);
     else {
       if (!cur.started && util.distanceSq(cur.pos, cur.origPos) >= Math.pow(s.draggable.distance, 2))
@@ -180,9 +180,9 @@ export function end(s: State, e: cg.MouchEvent): void {
       if (board.userMove(s, cur.orig, dest)) s.stats.dragged = true;
     }
   } else if (cur.newPiece) {
-    s.pieces.delete(cur.orig);
+    s.boardState.pieces.delete(cur.orig);
   } else if (s.draggable.deleteOnDropOff && !dest) {
-    s.pieces.delete(cur.orig);
+    s.boardState.pieces.delete(cur.orig);
     board.callUserFunction(s.events.change);
   }
   if ((cur.orig === cur.previouslySelected || cur.keyHasChanged) && (cur.orig === dest || !dest)) board.unselect(s);
@@ -197,7 +197,7 @@ export function end(s: State, e: cg.MouchEvent): void {
 export function cancel(s: State): void {
   const cur = s.draggable.current;
   if (cur) {
-    if (cur.newPiece) s.pieces.delete(cur.orig);
+    if (cur.newPiece) s.boardState.pieces.delete(cur.orig);
     s.draggable.current = undefined;
     board.unselect(s);
     removeDragElements(s);

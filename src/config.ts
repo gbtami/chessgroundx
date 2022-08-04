@@ -3,7 +3,7 @@ import { setCheck, setSelected } from './board.js';
 import { read as fenRead } from './fen.js';
 import { DrawShape, DrawBrushes } from './draw.js';
 import * as cg from './types.js';
-import { setPredropDests, readPockets } from './pocket.js';
+import { setPredropDests } from './pocket.js';
 
 export interface Config {
   fen?: cg.FEN; // chess position in Forsyth notation
@@ -41,7 +41,6 @@ export interface Config {
   };
   premovable?: {
     enabled?: boolean; // allow premoves for color that can not move
-    showDests?: boolean; // whether to add the premove-dest class on squares
     castle?: boolean; // whether to allow king castle premoves
     dests?: cg.Key[]; // premove destinations for the current selection
     events?: {
@@ -51,8 +50,6 @@ export interface Config {
   };
   predroppable?: {
     enabled?: boolean; // allow predrops for color that can not move
-    showDropDests?: boolean;
-    dropDests?: cg.Key[];
     current?: {
       // See corresponding type in state.ts for more comments
       role: cg.Role;
@@ -86,8 +83,6 @@ export interface Config {
   dropmode?: {
     active?: boolean;
     piece?: cg.Piece;
-    showDropDests?: boolean; // whether to add the move-dest class on squares for drops
-    dropDests?: cg.DropDests; // see corresponding state.ts type for comments
   };
   drawable?: {
     enabled?: boolean; // can draw
@@ -101,8 +96,7 @@ export interface Config {
     brushes?: DrawBrushes;
     onChange?: (shapes: DrawShape[]) => void; // called after drawable shapes change
   };
-  geometry?: cg.Geometry; // dim3x4 | dim5x5 | dim7x7 | dim8x8 | dim9x9 | dim10x8 | dim9x10 | dim10x10 (deprecated!)
-  dimensions?: cg.BoardDimensions; // declare the boards size (up to 16x16)
+  dimensions?: cg.BoardDimensions;
   variant?: cg.Variant;
   chess960?: boolean;
   notation?: cg.Notation; // coord notation style
@@ -120,25 +114,18 @@ export function applyAnimation(state: HeadlessState, config: Config): void {
 export function configure(state: HeadlessState, config: Config): void {
   // don't merge destinations and autoShapes. Just override.
   if (config.movable?.dests) state.movable.dests = undefined;
-  if (config.dropmode?.dropDests) state.dropmode.dropDests = undefined;
   if (config.drawable?.autoShapes) state.drawable.autoShapes = [];
 
   deepMerge(state, config);
 
-  if (config.geometry) state.dimensions = cg.dimensions[config.geometry];
-
   // if a fen was provided, replace the pieces
   if (config.fen) {
-    const pieces = fenRead(config.fen);
+    const boardState = fenRead(config.fen, state.dimensions);
     // prevent calling cancel() if piece drag is already started from pocket!
-    const draggedPiece = state.pieces.get('a0');
-    if (draggedPiece !== undefined) pieces.set('a0', draggedPiece);
-    state.pieces = pieces;
+    const draggedPiece = state.boardState.pieces.get('a0');
+    if (draggedPiece !== undefined) boardState.pieces.set('a0', draggedPiece);
+    state.boardState = boardState;
     state.drawable.shapes = [];
-
-    if (state.pocketRoles) {
-        state.pockets = readPockets(config.fen, state.pocketRoles);
-    }
   }
 
   // apply config values that could be undefined yet meaningful
@@ -159,7 +146,7 @@ export function configure(state: HeadlessState, config: Config): void {
     const rank = state.movable.color === 'white' ? '1' : '8',
       kingStartPos = ('e' + rank) as cg.Key,
       dests = state.movable.dests.get(kingStartPos),
-      king = state.pieces.get(kingStartPos);
+      king = state.boardState.pieces.get(kingStartPos);
     if (!dests || !king || king.role !== 'k-piece') return;
     state.movable.dests.set(
       kingStartPos,

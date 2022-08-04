@@ -22,7 +22,7 @@ export function render(s: State): void {
   const asWhite: boolean = whitePov(s),
     posToTranslate = posToTranslateFromBounds(s.dom.bounds(), s.dimensions),
     boardEl: HTMLElement = s.dom.elements.board,
-    pieces: cg.Pieces = s.pieces,
+    pieces: cg.Pieces = s.boardState.pieces,
     curAnim: AnimCurrent | undefined = s.animation.current,
     anims: AnimVectors = curAnim ? curAnim.plan.anims : new Map(),
     fadings: AnimFadings = curAnim ? curAnim.plan.fadings : new Map(),
@@ -247,12 +247,12 @@ function computeSquareClasses(s: State): SquareClasses {
       const dests = s.movable.dests?.get(s.selected);
       if (dests)
         for (const k of dests) {
-          addSquare(squares, k, 'move-dest' + (s.pieces.has(k) ? ' oc' : ''));
+          addSquare(squares, k, 'move-dest' + (s.boardState.pieces.has(k) ? ' oc' : ''));
         }
       const pDests = s.premovable.dests;
       if (pDests)
         for (const k of pDests) {
-          addSquare(squares, k, 'premove-dest' + (s.pieces.has(k) ? ' oc' : ''));
+          addSquare(squares, k, 'premove-dest' + (s.boardState.pieces.has(k) ? ' oc' : ''));
         }
     }
   } else if (s.dropmode.active || s.draggable.current?.orig === 'a0') {
@@ -263,17 +263,17 @@ function computeSquareClasses(s: State): SquareClasses {
       //       Maybe use the same here to decide what to render instead of potentially making it possible both
       //       kinds of highlighting to happen if something was not cleared up in the state.
       //       In other place (pocket.ts) this condition is used ot decide similar question: ctrl.mycolor === ctrl.turnColor
-      if (s.dropmode.showDropDests && piece.color === s.turnColor) {
+      if (s.movable.showDests && piece.color === s.turnColor) {
         const dests = s.movable.dests?.get(dropOrigOf(piece.role));
         if (dests)
           for (const k of dests) {
             addSquare(squares, k, 'move-dest');
           }
-      } else if (s.predroppable.showDropDests) {
-        const pDests = s.predroppable.dropDests;
+      } else if (s.movable.showDests) {
+        const pDests = s.premovable.dests;
         if (pDests)
           for (const k of pDests) {
-            addSquare(squares, k, 'premove-dest' + (s.pieces.get(k) ? ' oc' : ''));
+            addSquare(squares, k, 'premove-dest' + (s.boardState.pieces.get(k) ? ' oc' : ''));
           }
       }
     }

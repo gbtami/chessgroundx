@@ -1,43 +1,4 @@
-export type Variant =
-  | 'chess'
-  | 'crazyhouse'
-  | 'makruk'
-  | 'makpong'
-  | 'cambodian'
-  | 'sittuyin'
-  | 'asean'
-  | 'placement'
-  | 'shogi'
-  | 'minishogi'
-  | 'kyotoshogi'
-  | 'dobutsu'
-  | 'gorogoro'
-  | 'gorogoroplus'
-  | 'torishogi'
-  | 'xiangqi'
-  | 'minixiangqi'
-  | 'capablanca'
-  | 'seirawan'
-  | 'capahouse'
-  | 'shouse'
-  | 'grand'
-  | 'grandhouse'
-  | 'gothic'
-  | 'gothhouse'
-  | 'shako'
-  | 'shogun'
-  | 'janggi'
-  | 'orda'
-  | 'synochess'
-  | 'manchu'
-  | 'musketeer'
-  | 'hoppelpoppel'
-  | 'shinobi'
-  | 'empire'
-  | 'ordamirror'
-  | 'chak'
-  | 'chennis'
-  ;
+export type Variant = string;
 export type Color = typeof colors[number];
 export type PieceSide = typeof pieceSides[number];
 export type Letter = typeof letters[number];
@@ -62,6 +23,16 @@ export interface Drop {
 }
 export type Pieces = Map<Key, Piece>;
 export type PiecesDiff = Map<Key, Piece | undefined>;
+
+export type PocketPosition = 'top' | 'bottom';
+export type Pocket = Map<Role, number>;
+export type Pockets = Record<Color, Pocket>;
+export type PocketRoles = Record<Color, Role[]>;
+
+export type BoardState = {
+  pieces: Pieces,
+  pockets?: Pockets,
+};
 
 export type KeyPair = [Key, Key];
 
@@ -187,19 +158,6 @@ export interface BoardDimensions {
   height: number;
 }
 
-// Deprecated, will remove in version 10
-export const enum Geometry {
-  dim8x8,
-  dim9x9,
-  dim10x8,
-  dim9x10,
-  dim10x10,
-  dim5x5,
-  dim7x7,
-  dim3x4,
-  dim5x6,
-}
-
 export const enum Notation {
   ALGEBRAIC,
   SHOGI_ENGLET,
@@ -210,25 +168,6 @@ export const enum Notation {
   // TODO XIANGQI_HANNUM,
   // TODO THAI_ALGEBRAIC,
 }
-
-// Deprecated, will remove in version 10
-export const dimensions: BoardDimensions[] = [
-  { width: 8, height: 8 },
-  { width: 9, height: 9 },
-  { width: 10, height: 8 },
-  { width: 9, height: 10 },
-  { width: 10, height: 10 },
-  { width: 5, height: 5 },
-  { width: 7, height: 7 },
-  { width: 3, height: 4 },
-  { width: 5, height: 6 },
-];
-
-export type PocketPosition = 'top' | 'bottom';
-export type Pocket = Partial<Record<Role, number>>;
-export type Pockets = Partial<Record<Color, Pocket>>;
-export type PocketRoles = (color: Color) => PieceLetter[] | undefined; // type for functions that map a color to possible
-                                                                  // pieces that can be in pocket for that side
 
 export const eventsDragging = ['mousedown', 'touchmove'];
 export const eventsClicking = ['click'];

@@ -6,89 +6,22 @@ import { setDropMode, cancelDropMode } from './drop.js';
 import { HeadlessState, State } from './state.js';
 import { predrop } from './predrop.js';
 
-/**
- * Logically maybe belongs to fen.ts, but put here to avoid merge conflicts from upsteam
- * Analogous to fen.ts->read(), but for pocket part of FEN
- * TODO: See todo in fen.ts->read() as well. Not sure if pocket parsing belongs there unless return
- *       type is extended to contain pocket state.
- * */
-export function readPockets(fen: cg.FEN, pocketRoles: cg.PocketRoles): cg.Pockets {
-  const placement = fen.split(" ")[0];
-  const bracketPos = placement.indexOf("[");
-  const placementPockets = bracketPos !== -1 ? placement.slice(bracketPos) : "";
-
-  const pockets: cg.Pockets = {};
-  const rWhite = pocketRoles('white');
-  const rBlack = pocketRoles('black');
-  if (rWhite) {
-    pockets.white = {};
-    for (const r of rWhite)
-      pockets.white[util.roleOf(r)] = lc(placementPockets, r, "upper");
-  }
-  if (rBlack) {
-    pockets.black = {};
-    for (const r of rBlack)
-      pockets.black[util.roleOf(r)] = lc(placementPockets, r, "lower");
-  }
-  return pockets;
-}
-
-function lc(str: string, letter: string, letterCase?: "upper" | "lower"): number {
-    if (letterCase === "upper")
-        letter = letter.toUpperCase();
-    else if (letterCase === "lower")
-        letter = letter.toLowerCase();
-    let letterCount = 0;
-    for (let position = 0; position < str.length; position++)
-        if (str.charAt(position) === letter)
-            letterCount += 1;
-    return letterCount;
-}
-
-function renderPiece(el: HTMLElement, state: HeadlessState) {
-  const role = el.getAttribute("data-role") as cg.Role;
-  const color = el.getAttribute("data-color") as cg.Color;
-  el.setAttribute("data-nb", '' + (state.pockets![color]![role] ?? 0));
-
-  const dropMode = state.dropmode;
-  const dropPiece = state.dropmode.piece;
-  const selectedSquare = dropMode.active && dropPiece?.role === role && dropPiece.color === color;
-  const preDropRole = state.predroppable.current?.role;
-  const activeColor = color === state.movable.color;
-
-  if (activeColor && preDropRole === role) {
-    el.classList.add('premove');
-  } else {
-    el.classList.remove('premove');
-  }
-  if (selectedSquare) {
-    el.classList.add('selected-square');
-  } else {
-    el.classList.remove('selected-square');
-  }
-}
-
 export function renderPocketsInitial(state: HeadlessState, elements: cg.Elements, pocketTop?: HTMLElement, pocketBottom?: HTMLElement): void {
 
   function pocketView(pocketEl: HTMLElement, position: cg.PocketPosition) {
-
-    if (!state.pockets) return;
-
+    if (!state.boardState.pockets) return;
     const color = position === 'top' ? util.opposite(state.orientation) : state.orientation;
-    const pocket = state.pockets[color];
-    if (!pocket) return;
 
-    const roles = Object.keys(pocket); // contains the list of possible pieces/roles (i.e. for crazyhouse p-piece, n-piece, b-piece, r-piece, q-piece) in the order they will be displayed in the pocket
-
-    const pl = String(roles!.length);
+    const roles = state.pocketRoles![color];
+    const pl = String(roles.length);
     const files = String(state.dimensions.width);
     const ranks = String(state.dimensions.height);
     // const pocketEl = createEl('div','pocket ' + position + ' usable');
     pocketEl.setAttribute('style', `--pocketLength: ${pl}; --files: ${files}; --ranks: ${ranks}`);
     pocketEl.classList.add('pocket', position, 'usable');
 
-    roles.forEach((role: string) => {
-      const pieceName = util.pieceClasses({role: role, color: color, promoted: false} as cg.Piece, state.orientation);
+    roles.forEach(role => {
+      const pieceName = util.pieceClasses({role: role, color: color} as cg.Piece, state.orientation);
       const p = util.createEl('piece', pieceName);
       // todo: next 2 attributes already exist as classes, but need inverse function for util.ts->pieceClasses()
       p.setAttribute('data-color', color);
@@ -116,7 +49,6 @@ export function renderPocketsInitial(state: HeadlessState, elements: cg.Elements
       pocketEl.appendChild(p);
     });
   }
-  //
   if (pocketTop) {
     pocketTop.innerHTML='';
     elements.pocketTop = pocketTop;
@@ -126,6 +58,44 @@ export function renderPocketsInitial(state: HeadlessState, elements: cg.Elements
     pocketBottom.innerHTML='';
     elements.pocketBottom = pocketBottom;
     pocketView(elements.pocketBottom, "bottom");
+  }
+}
+
+/**
+ * updates each piece element attributes based on state
+ * */
+export function renderPockets(state: State): void {
+  function renderPocket(pocketEl?: HTMLElement){
+    let el: cg.PieceNode | undefined = pocketEl?.firstChild as (cg.PieceNode | undefined);
+    while (el) {
+      renderPiece(el, state);
+      el = el.nextSibling as cg.PieceNode;
+    }
+  }
+  renderPocket(state.dom.elements.pocketBottom);
+  renderPocket(state.dom.elements.pocketTop);
+}
+
+function renderPiece(el: HTMLElement, state: HeadlessState) {
+  const role = el.getAttribute("data-role") as cg.Role;
+  const color = el.getAttribute("data-color") as cg.Color;
+  el.setAttribute("data-nb", '' + (state.boardState.pockets![color].get(role) ?? 0));
+
+  const dropMode = state.dropmode;
+  const dropPiece = state.dropmode.piece;
+  const selectedSquare = dropMode.active && dropPiece?.role === role && dropPiece.color === color;
+  const preDropRole = state.predroppable.current?.role;
+  const activeColor = color === state.movable.color;
+
+  if (activeColor && preDropRole === role) {
+    el.classList.add('premove');
+  } else {
+    el.classList.remove('premove');
+  }
+  if (selectedSquare) {
+    el.classList.add('selected-square');
+  } else {
+    el.classList.remove('selected-square');
   }
 }
 
@@ -176,41 +146,9 @@ export function drag(state: HeadlessState, e: cg.MouchEvent): void {
     }
   }
 
-  if (state.movable.dests) {
-    const dropDests = new Map([[role, state.movable.dests.get(util.letterOf(role, true) + "@" as cg.Orig)!]]);
-    state.dropmode.dropDests = dropDests;
-  }
-
   e.stopPropagation();
   e.preventDefault();
   dragNewPiece(state as State, {color, role}, e);
-}
-
-/**
- * updates each piece element attributes based on state
- * */
-export function renderPockets(state: State): void {
-  function renderPocket(pocketEl?: HTMLElement){
-    let el: cg.PieceNode | undefined = pocketEl?.firstChild as (cg.PieceNode | undefined);
-    while (el) {
-      renderPiece(el, state);
-      el = el.nextSibling as cg.PieceNode;
-    }
-  }
-  renderPocket(state.dom.elements.pocketBottom);
-  renderPocket(state.dom.elements.pocketTop);
-}
-
-function pocket2str(pocket: cg.Pocket) {
-  const letters: string[] = [];
-  for (const role in pocket) {
-    letters.push(util.letterOf(role as cg.Role, true).repeat(pocket[role as cg.Role] || 0));
-  }
-  return letters.join('');
-}
-
-export function pockets2str(pockets: cg.Pockets): string {
-  return '[' + pocket2str(pockets['white']!) + pocket2str(pockets['black']!).toLowerCase() + ']';
 }
 
 /**
@@ -227,7 +165,6 @@ export function setPredropDests(state: HeadlessState): void {
   const piece = state.draggable.current?.piece;
   if (piece && piece.color !== state.turnColor) {
       //it is opponents turn, but we are dragging a pocket piece at the same time
-      const dropDests = predrop(state.pieces, piece, state.dimensions, state.variant);
-      state.predroppable.dropDests = dropDests;
+      state.premovable.dests = predrop(state.boardState.pieces, piece, state.dimensions, state.variant);
   }
 }
