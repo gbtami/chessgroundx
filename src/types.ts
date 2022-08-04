@@ -34,7 +34,7 @@ export type BoardState = {
   pockets?: Pockets,
 };
 
-export type KeyPair = [Key, Key];
+export type Move = [Orig, Key];
 
 export type NumberPair = [number, number];
 
@@ -79,7 +79,6 @@ export interface MoveMetadata {
   ctrlKey?: boolean;
   holdTime?: number;
   captured?: Piece;
-  predrop?: boolean;
 }
 export interface SetPremoveMetadata {
   ctrlKey?: boolean;

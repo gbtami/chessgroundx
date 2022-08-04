@@ -33,19 +33,13 @@ export interface Api {
   selectSquare(key: cg.Key | null, force?: boolean): void;
 
   // put a new piece on the board
-  newPiece(piece: cg.Piece, key: cg.Key): void;
+  newPiece(piece: cg.Piece, dest: cg.Key, fromPocket: boolean): void;
 
   // play the current premove, if any; returns true if premove was played
   playPremove(): boolean;
 
   // cancel the current premove, if any
   cancelPremove(): void;
-
-  // play the current predrop, if any; returns true if premove was played
-  playPredrop(): boolean;
-
-  // cancel the current predrop, if any
-  cancelPredrop(): void;
 
   // cancel the current move being made
   cancelMove(): void;
@@ -112,8 +106,8 @@ export function start(state: State, redrawAll: cg.Redraw): Api {
       anim(state => board.baseMove(state, orig, dest), state);
     },
 
-    newPiece(piece, key): void {
-      anim(state => board.baseNewPiece(state, piece, key), state);
+    newPiece(piece, key, fromPocket): void {
+      anim(state => board.baseNewPiece(state, piece, key, fromPocket), state);
     },
 
     playPremove(): boolean {
@@ -125,21 +119,8 @@ export function start(state: State, redrawAll: cg.Redraw): Api {
       return false;
     },
 
-    playPredrop(): boolean {
-      if (state.predroppable.current) {
-        const result = board.playPredrop(state);
-        state.dom.redraw();
-        return result;
-      }
-      return false;
-    },
-
     cancelPremove(): void {
       render(board.unsetPremove, state);
-    },
-
-    cancelPredrop(): void {
-      render(board.unsetPredrop, state);
     },
 
     cancelMove(): void {

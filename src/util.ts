@@ -21,8 +21,8 @@ export function allPos(bd: cg.BoardDimensions): cg.Pos[] {
 export const pos2key = (pos: cg.Pos): cg.Key => (cg.files[pos[0]] + cg.ranks[pos[1]]) as cg.Key;
 export const key2pos = (k: cg.Key): cg.Pos => [k.charCodeAt(0) - 97, k.charCodeAt(1) - 49];
 
-export function roleOf(letter: cg.PieceLetter): cg.Role {
-  return (letter.replace('+', 'p').toLowerCase() + '-piece') as cg.Role;
+export function roleOf(letter: cg.PieceLetter | cg.DropOrig): cg.Role {
+  return (letter.replace('+', 'p').replace('@', '').toLowerCase() + '-piece') as cg.Role;
 }
 
 export function letterOf(role: cg.Role, uppercase = false): cg.PieceLetter {
@@ -33,6 +33,14 @@ export function letterOf(role: cg.Role, uppercase = false): cg.PieceLetter {
 
 export function dropOrigOf(role: cg.Role): cg.DropOrig {
   return (letterOf(role, true) + '@') as cg.DropOrig;
+}
+
+export function isKey(orig: cg.Orig): orig is cg.Key {
+  return orig[0] === orig[0].toLowerCase();
+}
+
+export function isDropOrig(orig: cg.Orig): orig is cg.DropOrig {
+  return orig[0] === orig[0].toUpperCase();
 }
 
 export function kingRoles(variant: cg.Variant): cg.Role[] {

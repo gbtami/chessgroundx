@@ -84,7 +84,8 @@ function renderPiece(el: HTMLElement, state: HeadlessState) {
   const dropMode = state.dropmode;
   const dropPiece = state.dropmode.piece;
   const selectedSquare = dropMode.active && dropPiece?.role === role && dropPiece.color === color;
-  const preDropRole = state.predroppable.current?.role;
+  const premoveOrig = state.premovable.current?.[0];
+  const preDropRole = premoveOrig && util.isDropOrig(premoveOrig) ? util.roleOf(premoveOrig) : undefined;
   const activeColor = color === state.movable.color;
 
   if (activeColor && preDropRole === role) {

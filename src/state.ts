@@ -45,22 +45,10 @@ export interface HeadlessState {
     enabled: boolean; // allow premoves for color that can not move
     castle: boolean; // whether to allow king castle premoves
     dests?: cg.Key[]; // premove destinations for the current selection
-    current?: cg.KeyPair; // keys of the current saved premove ["e2" "e4"]
+    current?: cg.Move; // keys of the current saved premove ["e2" "e4"]
     events: {
-      set?: (orig: cg.Key, dest: cg.Key, metadata?: cg.SetPremoveMetadata) => void; // called after the premove has been set
+      set?: (orig: cg.Orig, dest: cg.Key, metadata?: cg.SetPremoveMetadata) => void; // called after the premove has been set
       unset?: () => void; // called after the premove has been unset
-    };
-  };
-  predroppable: {
-    enabled: boolean; // allow predrops for color that can not move
-    current?: {
-      // current saved predrop {role: 'knight'; key: 'e4'}.
-      role: cg.Role;
-      key: cg.Key;
-    };
-    events: {
-      set?: (role: cg.Role, key: cg.Key) => void; // called after the predrop has been set
-      unset?: () => void; // called after the predrop has been unset
     };
   };
   draggable: {
@@ -140,10 +128,6 @@ export function defaults(): HeadlessState {
     premovable: {
       enabled: true,
       castle: true,
-      events: {},
-    },
-    predroppable: {
-      enabled: false,
       events: {},
     },
     draggable: {

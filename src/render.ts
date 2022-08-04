@@ -5,7 +5,8 @@ import {
   createEl,
   posToTranslate as posToTranslateFromBounds,
   translate,
-  dropOrigOf
+  dropOrigOf,
+  isKey,
 } from './util.js';
 import { whitePov } from './board.js';
 import { AnimCurrent, AnimVectors, AnimVector, AnimFadings } from './anim.js';
@@ -269,8 +270,10 @@ function computeSquareClasses(s: State): SquareClasses {
     }
   }
   const premove = s.premovable.current;
-  if (premove) for (const k of premove) addSquare(squares, k, 'current-premove');
-  else if (s.predroppable.current) addSquare(squares, s.predroppable.current.key, 'current-premove');
+  if (premove)
+    for (const k of premove)
+      if (isKey(k))
+        addSquare(squares, k, 'current-premove');
 
   const o = s.exploding;
   if (o) for (const k of o.keys) addSquare(squares, k, 'exploding' + o.stage);

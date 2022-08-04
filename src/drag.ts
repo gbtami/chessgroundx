@@ -13,7 +13,7 @@ export interface DragCurrent {
   pos: cg.NumberPair; // latest event position
   started: boolean; // whether the drag has started; as per the distance setting
   element: cg.PieceNode | (() => cg.PieceNode | undefined);
-  newPiece?: boolean; // it it a new piece from outside the board
+  newPiece?: boolean; // it is a new piece from outside the board
   force?: boolean; // can the new piece replace an existing one (editor)
   previouslySelected?: cg.Key;
   originTarget: EventTarget | null;
@@ -39,7 +39,6 @@ export function start(s: State, e: cg.MouchEvent): void {
   )
     e.preventDefault();
   const hadPremove = !!s.premovable.current;
-  const hadPredrop = !!s.predroppable.current;
   s.stats.ctrlKey = e.ctrlKey;
   if (s.selected && board.canMove(s, s.selected, orig)) {
     anim(state => board.selectSquare(state, orig), s);
@@ -72,7 +71,6 @@ export function start(s: State, e: cg.MouchEvent): void {
     processDrag(s);
   } else {
     if (hadPremove) board.unsetPremove(s);
-    if (hadPredrop) board.unsetPredrop(s);
   }
   s.dom.redraw();
 }
@@ -108,7 +106,7 @@ export function dragNewPiece(s: State, piece: cg.Piece, e: cg.MouchEvent, force?
     keyHasChanged: false,
   };
 
-  if (board.isPredroppable(s)) {
+  if (board.isPredroppable(s, piece)) {
     s.premovable.dests = predrop(s.boardState.pieces, piece, s.dimensions, s.variant);
   }
 
@@ -169,12 +167,11 @@ export function end(s: State, e: cg.MouchEvent): void {
     return;
   }
   board.unsetPremove(s);
-  board.unsetPredrop(s);
   // touchend has no position; so use the last touchmove position instead
   const eventPos = util.eventPosition(e) || cur.pos;
   const dest = board.getKeyAtDomPos(eventPos, board.whitePov(s), s.dom.bounds(), s.dimensions);
   if (dest && cur.started && cur.orig !== dest) {
-    if (cur.newPiece) board.dropNewPiece(s, cur.orig, dest, cur.force);
+    if (cur.newPiece) board.dropNewPiece(s, cur.piece, dest, cur.force);
     else {
       s.stats.ctrlKey = e.ctrlKey;
       if (board.userMove(s, cur.orig, dest)) s.stats.dragged = true;
