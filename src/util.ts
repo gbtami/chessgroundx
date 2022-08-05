@@ -35,8 +35,16 @@ export function dropOrigOf(role: cg.Role): cg.DropOrig {
   return (letterOf(role, true) + '@') as cg.DropOrig;
 }
 
-export function isKey(orig: cg.Selectable): orig is cg.Key {
-  return typeof(orig) === 'string';
+export function isDropOrig(orig: cg.Orig): orig is cg.DropOrig {
+  return orig[0] === orig[0].toUpperCase();
+}
+
+export function isKey(selectable: cg.Selectable | cg.Orig): selectable is cg.Key {
+  return typeof(selectable) === 'string' && selectable[0] === selectable[0].toLowerCase();
+}
+
+export function isPiece(selectable: cg.Selectable): selectable is cg.Piece {
+  return typeof(selectable) !== 'string';
 }
 
 export function kingRoles(variant: cg.Variant): cg.Role[] {

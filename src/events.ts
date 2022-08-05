@@ -1,8 +1,8 @@
 import { State } from './state.js';
 import * as drag from './drag.js';
 import * as draw from './draw.js';
+import * as pocket from './pocket.js';
 import { isRightButton } from './util.js';
-import { unselect } from './board.js';
 import * as cg from './types.js';
 
 type MouchBind = (e: cg.MouchEvent) => void;
@@ -28,6 +28,31 @@ export function bindBoard(s: State, onResize: () => void): void {
   if (s.disableContextMenu || s.drawable.enabled) {
     boardEl.addEventListener('contextmenu', e => e.preventDefault());
   }
+}
+
+export function bindPockets(s: State): void {
+  const pocketTop = s.dom.elements.pocketTop;
+  const pocketBottom = s.dom.elements.pocketBottom;
+
+  if (s.viewOnly) return;
+
+  // Cannot be passive, because we prevent touch scrolling and dragging of
+  // selected elements.
+  const onStart = startDragOrDrawPocket(s);
+  [pocketTop, pocketBottom].forEach(el => {
+    if (el) {
+      el.addEventListener('touchstart', onStart as EventListener, {
+        passive: false,
+      });
+      el.addEventListener('mousedown', onStart as EventListener, {
+        passive: false,
+      });
+
+      if (s.disableContextMenu || s.drawable.enabled) {
+        el.addEventListener('contextmenu', e => e.preventDefault());
+      }
+    }
+  });
 }
 
 // returns the unbind function
@@ -65,21 +90,32 @@ function unbindable(
 
 const startDragOrDraw =
   (s: State): MouchBind =>
-  e => {
-    if (s.draggable.current) drag.cancel(s);
-    else if (s.drawable.current) draw.cancel(s);
-    else if (e.shiftKey || isRightButton(e)) {
-      if (s.drawable.enabled) draw.start(s, e);
-    } else if (!s.viewOnly) {
-      unselect(s);
-      drag.start(s, e);
-    }
-  };
+    e => {
+      if (s.draggable.current) drag.cancel(s);
+      else if (s.drawable.current) draw.cancel(s);
+      else if (e.shiftKey || isRightButton(e)) {
+        if (s.drawable.enabled) draw.start(s, e);
+      } else if (!s.viewOnly) {
+        drag.start(s, e);
+      }
+    };
+
+const startDragOrDrawPocket =
+  (s: State): MouchBind =>
+    e => {
+      if (s.draggable.current) drag.cancel(s);
+      else if (s.drawable.current) draw.cancel(s);
+      else if (e.shiftKey || isRightButton(e)) {
+        if (s.drawable.enabled) draw.start(s, e);
+      } else if (!s.viewOnly) {
+        pocket.drag(s, e);
+      }
+    };
 
 const dragOrDraw =
   (s: State, withDrag: StateMouchBind, withDraw: StateMouchBind): MouchBind =>
-  e => {
-    if (s.drawable.current) {
-      if (s.drawable.enabled) withDraw(s, e);
-    } else if (!s.viewOnly) withDrag(s, e);
-  };
+    e => {
+      if (s.drawable.current) {
+        if (s.drawable.enabled) withDraw(s, e);
+      } else if (!s.viewOnly) withDrag(s, e);
+    };

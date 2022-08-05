@@ -1,10 +1,8 @@
 import * as cg from './types.js';
 import * as util from './util.js';
-import { dragNewPiece } from './drag.js';
-import { setDropMode, cancelDropMode } from './drop.js';
-
+import * as board from './board.js';
+import { clear as drawClear } from './draw.js';
 import { HeadlessState, State } from './state.js';
-import { predrop } from './predrop.js';
 
 export function renderPocketsInitial(state: HeadlessState, elements: cg.Elements, pocketTop?: HTMLElement, pocketBottom?: HTMLElement): void {
 
@@ -27,8 +25,9 @@ export function renderPocketsInitial(state: HeadlessState, elements: cg.Elements
       p.setAttribute('data-color', color);
       p.setAttribute('data-role', role);
 
-      renderPiece(p, state);
+      renderPiece(state, p);
 
+      /*
       // TODO: i wonder if events.ts->bindBoard() or something similar is a better place similarly to main board?
       // todo: in spectators mode movable.color is never set (except in goPly to undefined). Simultaneously
       //       state.ts->default is "both" and here as well. Effect is that dragging and clicking is disabled, which is
@@ -43,9 +42,10 @@ export function renderPocketsInitial(state: HeadlessState, elements: cg.Elements
       cg.eventsClicking.forEach(name =>
         p.addEventListener(name, (e: cg.MouchEvent) => {
           // movable.free is synonymous with editor mode, and right now click-drop not supported for pocket pieces
-          if (/*state.movable.free ||*/ state.movable.color === color) click(state, e);
+          if (state.movable.free || state.movable.color === color) click(state, e);
         })
       );
+      */
       pocketEl.appendChild(p);
     });
   }
@@ -68,7 +68,7 @@ export function renderPockets(state: State): void {
   function renderPocket(pocketEl?: HTMLElement){
     let el: cg.PieceNode | undefined = pocketEl?.firstChild as (cg.PieceNode | undefined);
     while (el) {
-      renderPiece(el, state);
+      renderPiece(state, el);
       el = el.nextSibling as cg.PieceNode;
     }
   }
@@ -76,30 +76,27 @@ export function renderPockets(state: State): void {
   renderPocket(state.dom.elements.pocketTop);
 }
 
-function renderPiece(el: HTMLElement, state: HeadlessState) {
+function renderPiece(state: HeadlessState, el: HTMLElement) {
   const role = el.getAttribute("data-role") as cg.Role;
   const color = el.getAttribute("data-color") as cg.Color;
   el.setAttribute("data-nb", '' + (state.boardState.pockets![color].get(role) ?? 0));
 
-  const dropMode = state.dropmode;
-  const dropPiece = state.dropmode.piece;
-  const selectedSquare = dropMode.active && dropPiece?.role === role && dropPiece.color === color;
-  const premoveOrig = state.premovable.current?.[0];
-  const preDropRole = premoveOrig && util.isDropOrig(premoveOrig) ? util.roleOf(premoveOrig) : undefined;
-  const activeColor = color === state.movable.color;
-
-  if (activeColor && preDropRole === role) {
-    el.classList.add('premove');
-  } else {
-    el.classList.remove('premove');
-  }
-  if (selectedSquare) {
+  const selected = state.selectable.selected;
+  if (selected && util.isPiece(selected) && state.selectable.fromPocket && selected.role === role && selected.color === color) {
     el.classList.add('selected-square');
   } else {
     el.classList.remove('selected-square');
   }
+
+  const premoveOrig = state.premovable.current?.[0];
+  if (premoveOrig && util.isPiece(premoveOrig) && premoveOrig.role === role && premoveOrig.color === color) {
+    el.classList.add('premove');
+  } else {
+    el.classList.remove('premove');
+  }
 }
 
+/*
 export function click(state: HeadlessState, e: cg.MouchEvent): void {
   if (e.button !== undefined && e.button !== 0) return; // only touch or left click
 
@@ -122,50 +119,62 @@ export function click(state: HeadlessState, e: cg.MouchEvent): void {
   e.stopPropagation();
   e.preventDefault();
 }
+*/
 
-export function drag(state: HeadlessState, e: cg.MouchEvent): void {
-  if (e.button !== undefined && e.button !== 0) return; // only touch or left click
+export function drag(s: State, e: cg.MouchEvent): void {
+  if (!e.isTrusted || (e.button !== undefined && e.button !== 0)) return; // only touch or left click
+  if (e.touches && e.touches.length > 1) return; // support one finger touch only
   const el = e.target as HTMLElement,
     role = el.getAttribute('data-role') as cg.Role,
     color = el.getAttribute('data-color') as cg.Color,
     n = Number(el.getAttribute('data-nb'));
-  el.setAttribute("canceledDropMode", ""); // We want to know if later in this method cancelDropMode was called,
-                                           // so right after mouse button is up and dragging is over if a click event is triggered
-                                           // (which annoyingly does happen if mouse is still over same pocket element)
-                                           // then we know not to call setDropMode selecting the piece we have just unselected.
-                                           // Alternatively we might not cancelDropMode on drag of same piece but then after drag is over
-                                           // the selected piece remains selected which is not how board pieces behave and more importantly is counter intuitive
+  const position = util.eventPosition(e)!;
   if (n === 0) return;
-
-  // always cancel drop mode if it is active
-  if (state.dropmode.active) {
-    cancelDropMode(state);
-
-    if (state.dropmode.piece?.role === role) {
-      // we mark it with this only if we are cancelling the same piece we "drag"
-      el.setAttribute("canceledDropMode", "true");
-    }
+  const piece = { role, color };
+  const previouslySelected = s.selectable.selected;
+  if (!previouslySelected && s.drawable.enabled && (s.drawable.eraseOnClick || !piece || piece.color !== s.turnColor))
+    drawClear(s);
+  // Prevent touch scroll and create no corresponding mouse event, if there
+  // is an intent to interact with the board.
+  if (
+    e.cancelable !== false &&
+    (!e.touches || s.blockTouchScroll || piece || previouslySelected)
+  )
+    e.preventDefault();
+  const hadPremove = !!s.premovable.current;
+  s.stats.ctrlKey = e.ctrlKey;
+  board.select(s, piece);
+  const stillSelected = s.selectable.selected === piece;
+  const element = pieceElementInPocket(s, piece);
+  if (element && stillSelected && board.isDraggable(s, piece)) {
+    s.draggable.current = {
+      piece,
+      origPos: position,
+      pos: position,
+      started: true,
+      element,
+      originTarget: e.target,
+      fromPocket: true,
+      keyHasChanged: false,
+    };
+    element.cgDragging = true;
+    element.classList.add('dragging');
+  } else {
+    if (hadPremove) board.unsetPremove(s);
   }
-
-  e.stopPropagation();
-  e.preventDefault();
-  dragNewPiece(state as State, {color, role}, true, e);
+  s.dom.redraw();
 }
 
-/**
- * todo: Ideally this whole method should disappear. It is legacy solution from when pocket was outside CG for the case
- *       when dragging started while another premove/predrop was set. After that premove/drop executes and turn is again
- *       opp's, we are again in predrop state and need to set those again
- *       Maybe predroppable should be initialized in board.ts->setSelected() and implemented similarly as premove dests
- *       Could happen together with further refactoring to make pocket more of a first class citizen and enable other
- *       stuff like highlighting last move etc. maybe.
- *       Even if not made part of the setSelected infrastructure, i am pretty sure this is not needed if we track and
- *       check better what is dragged/clicked and with proper combination of if-s in render.ts and clean-up-to-undef logic
- * */
-export function setPredropDests(state: HeadlessState): void {
-  const piece = state.draggable.current?.piece;
-  if (piece && piece.color !== state.turnColor) {
-      //it is opponents turn, but we are dragging a pocket piece at the same time
-      state.premovable.dests = predrop(state.boardState.pieces, piece, state.dimensions, state.variant);
+function pieceElementInPocket(s: State, piece: cg.Piece): cg.PieceNode | undefined {
+  let el = s.dom.elements.pocketTop?.firstChild;
+  while (el) {
+    if ((el as HTMLElement).getAttribute('data-role') === piece.role && (el as HTMLElement).getAttribute('data-color') === piece.color && (el as cg.KeyedNode).tagName === 'PIECE') return el as cg.PieceNode;
+    el = el.nextSibling;
   }
+  el = s.dom.elements.pocketBottom?.firstChild;
+  while (el) {
+    if ((el as HTMLElement).getAttribute('data-role') === piece.role && (el as HTMLElement).getAttribute('data-color') === piece.color && (el as cg.KeyedNode).tagName === 'PIECE') return el as cg.PieceNode;
+    el = el.nextSibling;
+  }
+  return;
 }
