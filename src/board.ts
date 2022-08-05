@@ -267,13 +267,22 @@ const canPremove = (state: HeadlessState, orig: cg.Selectable, dest: cg.Key, fro
     predrop(state.boardState.pieces, orig, state.dimensions, state.variant).includes(dest)
   );
 
-export function isDraggable(state: HeadlessState, orig: cg.Key): boolean {
-  const piece = state.boardState.pieces.get(orig);
+export function isDraggable(state: HeadlessState, orig: cg.Key | cg.Piece): boolean {
+  let piece: cg.Piece | undefined;
+  let pieceAvailable: boolean = false;
+  if (isKey(orig)) {
+    piece = state.boardState.pieces.get(orig);
+    pieceAvailable = !!piece;
+  } else {
+    piece = orig;
+    const num = state.boardState.pockets?.[piece.color].get(piece.role) ?? 0;
+    pieceAvailable = num > 0;
+  }
   return (
-    !!piece &&
+    pieceAvailable &&
     state.draggable.enabled &&
     (state.movable.color === 'both' ||
-      (state.movable.color === piece.color && (state.turnColor === piece.color || state.premovable.enabled)))
+      (state.movable.color === piece!.color && (state.turnColor === piece!.color || state.premovable.enabled)))
   );
 }
 
