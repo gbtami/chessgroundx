@@ -36,6 +36,9 @@ export interface Api {
   // click a pocket piece programmatically
   selectPocket(piece: cg.Piece | null, force?: boolean): void;
 
+  // unselect everything programmatically
+  unselect(): void;
+
   // put a new piece on the board
   newPiece(piece: cg.Piece, dest: cg.Key, fromPocket: boolean): void;
 
@@ -112,6 +115,10 @@ export function start(state: State, redrawAll: cg.Redraw): Api {
         board.unselect(state);
         state.dom.redraw();
       }
+    },
+
+    unselect(): void {
+      board.unselect(state);
     },
 
     move(orig, dest): void {
