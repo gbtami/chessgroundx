@@ -267,7 +267,10 @@ export function playPremove(state: HeadlessState): boolean {
   let success = false;
   if (isDropOrig(orig)) {
     const role = roleOf(orig);
-    const piece = { role: role, color: state.movable.color } as cg.Piece;
+    const piece = {
+      role: role,
+      color: state.movable.color as cg.Color // Premove is only possible when state.movable.color is 'white' or 'black'
+    };
     if (canDrop(state, piece, dest, true)) {
       if (baseNewPiece(state, piece, dest, true)) {
         callUserFunction(state.movable.events.afterNewPiece, role, dest, { premove: true });
