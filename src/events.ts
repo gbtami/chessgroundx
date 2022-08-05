@@ -1,9 +1,8 @@
 import { State } from './state.js';
 import * as drag from './drag.js';
 import * as draw from './draw.js';
-import { cancelDropMode, drop } from './drop.js';
-import { eventPosition, isRightButton } from './util.js';
-import { getKeyAtDomPos, whitePov } from './board.js';
+import { isRightButton } from './util.js';
+import { unselect } from './board.js';
 import * as cg from './types.js';
 
 type MouchBind = (e: cg.MouchEvent) => void;
@@ -72,16 +71,8 @@ const startDragOrDraw =
     else if (e.shiftKey || isRightButton(e)) {
       if (s.drawable.enabled) draw.start(s, e);
     } else if (!s.viewOnly) {
-        if (s.dropmode.active &&
-            (squareOccupied(s, e) === undefined ||
-                (s.movable.color !== s.turnColor && squareOccupied(s, e)?.color === s.turnColor))
-        ) {
-            // only apply drop if the dest square is empty or predropping on an opponent's piece
-            drop(s, e);
-        } else {
-            cancelDropMode(s);
-            drag.start(s, e);
-        }
+      unselect(s);
+      drag.start(s, e);
     }
   };
 
@@ -92,10 +83,3 @@ const dragOrDraw =
       if (s.drawable.enabled) withDraw(s, e);
     } else if (!s.viewOnly) withDrag(s, e);
   };
-
-function squareOccupied(s: State, e: cg.MouchEvent): cg.Piece | undefined {
-  const position = eventPosition(e);
-  const dest = position && getKeyAtDomPos(position, whitePov(s), s.dom.bounds(), s.dimensions);
-  if (dest && s.boardState.pieces.get(dest)) return s.boardState.pieces.get(dest);
-  else return undefined;
-}

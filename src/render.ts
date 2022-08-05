@@ -232,10 +232,12 @@ function computeSquareClasses(s: State): SquareClasses {
       if (k !== 'a0') addSquare(squares, k, 'last-move');
     }
   if (s.check && s.highlight.check) addSquare(squares, s.check, 'check');
-  if (s.selected) {
-    addSquare(squares, s.selected, 'selected');
+  const selected = s.selectable.selected;
+  if (selected) {
+    if (isKey(selected))
+      addSquare(squares, selected, 'selected');
     if (s.movable.showDests) {
-      const dests = s.movable.dests?.get(s.selected);
+      const dests = s.movable.dests?.get(isKey(selected) ? selected : dropOrigOf(selected.role));
       if (dests)
         for (const k of dests) {
           addSquare(squares, k, 'move-dest' + (s.boardState.pieces.has(k) ? ' oc' : ''));
@@ -245,28 +247,6 @@ function computeSquareClasses(s: State): SquareClasses {
         for (const k of pDests) {
           addSquare(squares, k, 'premove-dest' + (s.boardState.pieces.has(k) ? ' oc' : ''));
         }
-    }
-  } else if (s.dropmode.active || s.draggable.current?.orig === 'a0') {
-    const piece = s.dropmode.active ? s.dropmode.piece : s.draggable.current?.piece;
-
-    if (piece) {
-      // TODO: there was a function called isPredroppable that was used in drag.ts or drop.ts or both.
-      //       Maybe use the same here to decide what to render instead of potentially making it possible both
-      //       kinds of highlighting to happen if something was not cleared up in the state.
-      //       In other place (pocket.ts) this condition is used ot decide similar question: ctrl.mycolor === ctrl.turnColor
-      if (s.movable.showDests && piece.color === s.turnColor) {
-        const dests = s.movable.dests?.get(dropOrigOf(piece.role));
-        if (dests)
-          for (const k of dests) {
-            addSquare(squares, k, 'move-dest');
-          }
-      } else if (s.movable.showDests) {
-        const pDests = s.premovable.dests;
-        if (pDests)
-          for (const k of pDests) {
-            addSquare(squares, k, 'premove-dest' + (s.boardState.pieces.get(k) ? ' oc' : ''));
-          }
-      }
     }
   }
   const premove = s.premovable.current;

@@ -42,9 +42,9 @@ export function start(s: State, e: cg.MouchEvent): void {
   const hadPremove = !!s.premovable.current;
   s.stats.ctrlKey = e.ctrlKey;
   if (s.selected && board.canMove(s, s.selected, orig)) {
-    anim(state => board.selectSquare(state, orig), s);
+    anim(state => board.select(state, orig), s);
   } else {
-    board.selectSquare(s, orig);
+    board.select(s, orig);
   }
   const stillSelected = s.selected === orig;
   const element = pieceElementByKey(s, orig);

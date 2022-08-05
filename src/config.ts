@@ -3,7 +3,6 @@ import { setCheck, setSelected } from './board.js';
 import { read as fenRead } from './fen.js';
 import { DrawShape, DrawBrushes } from './draw.js';
 import * as cg from './types.js';
-import { setPredropDests } from './pocket.js';
 
 export interface Config {
   fen?: cg.FEN; // chess position in Forsyth notation
@@ -11,7 +10,6 @@ export interface Config {
   turnColor?: cg.Color; // turn to play. white | black
   check?: cg.Color | boolean; // true for current color, false to unset
   lastMove?: cg.Key[]; // squares part of the last move ["c3", "c4"]
-  selected?: cg.Key; // square currently selected "a1"
   coordinates?: boolean; // include coords attributes
   autoCastle?: boolean; // immediately complete the castle by moving the rook after king move
   viewOnly?: boolean; // don't bind events: the user will never be able to move pieces around
@@ -56,8 +54,9 @@ export interface Config {
     deleteOnDropOff?: boolean; // delete a piece when it is dropped off the board
   };
   selectable?: {
-    // disable to enforce dragging over click-click move
-    enabled?: boolean;
+    enabled?: boolean; // disable to enforce dragging over click-click move
+    selected?: cg.Selectable; // square or piece currently selected "a1"
+    fromPocket?: boolean; // whether the selected piece is from the pocket
   };
   events?: {
     change?: () => void; // called after the situation changes on the board
@@ -67,10 +66,6 @@ export interface Config {
     dropNewPiece?: (piece: cg.Piece, key: cg.Key) => void;
     select?: (key: cg.Key) => void; // called when a square is selected
     insert?: (elements: cg.Elements) => void; // when the board DOM has been (re)inserted
-  };
-  dropmode?: {
-    active?: boolean;
-    piece?: cg.Piece;
   };
   drawable?: {
     enabled?: boolean; // can draw
@@ -125,8 +120,7 @@ export function configure(state: HeadlessState, config: Config): void {
   else if (config.lastMove) state.lastMove = config.lastMove;
 
   // fix move/premove dests
-  if (state.selected) setSelected(state, state.selected);
-  setPredropDests(state); // TODO: integrate pocket with the "selected" infrastructure and move this in setSelected()
+  if (state.selectable.selected) setSelected(state, state.selectable.selected, state.selectable.fromPocket);
 
   applyAnimation(state, config);
 
