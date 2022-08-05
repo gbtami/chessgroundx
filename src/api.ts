@@ -6,6 +6,7 @@ import { anim, render } from './anim.js';
 import { cancel as dragCancel, dragNewPiece } from './drag.js';
 import { DrawShape } from './draw.js';
 import { explosion } from './explosion.js';
+import { roleOf, isDropOrig } from './util.js';
 import * as cg from './types.js';
 
 export interface Api {
@@ -24,7 +25,7 @@ export interface Api {
   toggleOrientation(): void;
 
   // perform a move programmatically
-  move(orig: cg.Key, dest: cg.Key): void;
+  move(orig: cg.Orig, dest: cg.Key): void;
 
   // add and/or remove arbitrary pieces on the board
   setPieces(pieces: cg.PiecesDiff): void;
@@ -114,7 +115,10 @@ export function start(state: State, redrawAll: cg.Redraw): Api {
     },
 
     move(orig, dest): void {
-      anim(state => board.baseMove(state, orig, dest), state);
+      if (isDropOrig(orig))
+        board.baseNewPiece(state, { role: roleOf(orig), color: state.turnColor }, dest, true);
+      else
+        anim(state => board.baseMove(state, orig, dest), state);
     },
 
     newPiece(piece, key, fromPocket): void {
