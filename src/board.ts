@@ -1,5 +1,5 @@
 import { HeadlessState } from './state.js';
-import { pos2key, key2pos, opposite, distanceSq, allPos, computeSquareCenter, roleOf, dropOrigOf, kingRoles, changeNumber, isDropOrig } from './util.js';
+import { pos2key, key2pos, opposite, distanceSq, allPos, computeSquareCenter, dropOrigOf, kingRoles, changeNumber, isKey } from './util.js';
 import { premove, queen, knight, janggiElephant } from './premove.js';
 import { predrop } from './predrop.js';
 import * as cg from './types.js';
@@ -10,7 +10,7 @@ export function callUserFunction<T extends (...args: any[]) => void>(f: T | unde
 
 export function toggleOrientation(state: HeadlessState): void {
   state.orientation = opposite(state.orientation);
-  state.animation.current = state.draggable.current = state.selected = undefined;
+  state.animation.current = state.draggable.current = state.selectable.selected = undefined;
 }
 
 export function reset(state: HeadlessState): void {
@@ -39,13 +39,9 @@ export function setCheck(state: HeadlessState, color: cg.Color | boolean): void 
     }
 }
 
-function setPremove(state: HeadlessState, orig: cg.Orig, dest: cg.Key, meta: cg.SetPremoveMetadata): void {
+function setPremove(state: HeadlessState, orig: cg.Selectable, dest: cg.Key, meta: cg.SetPremoveMetadata): void {
   state.premovable.current = [orig, dest];
   callUserFunction(state.premovable.events.set, orig, dest, meta);
-}
-
-function setPredrop(state: HeadlessState, role: cg.Role, dest: cg.Key, meta: cg.SetPremoveMetadata): void {
-  setPremove(state, dropOrigOf(role), dest, meta);
 }
 
 export function unsetPremove(state: HeadlessState): void {
@@ -89,7 +85,7 @@ export function baseMove(state: HeadlessState, orig: cg.Key, dest: cg.Key): cg.P
     destPiece = state.boardState.pieces.get(dest);
   if (orig === dest || !origPiece) return false;
   const captured = destPiece && destPiece.color !== origPiece.color ? destPiece : undefined;
-  if (dest === state.selected) unselect(state);
+  if (dest === state.selectable.selected) unselect(state);
   callUserFunction(state.events.move, orig, dest, captured);
   if (!tryAutoCastle(state, orig, dest)) {
     state.boardState.pieces.set(dest, origPiece);
@@ -101,15 +97,15 @@ export function baseMove(state: HeadlessState, orig: cg.Key, dest: cg.Key): cg.P
   return captured || true;
 }
 
-export function baseNewPiece(state: HeadlessState, piece: cg.Piece, key: cg.Key, fromPocket: boolean, force?: boolean): boolean {
-  if (state.boardState.pieces.has(key)) {
-    if (force) state.boardState.pieces.delete(key);
+export function baseNewPiece(state: HeadlessState, piece: cg.Piece, dest: cg.Key, fromPocket: boolean, force?: boolean): boolean {
+  if (state.boardState.pieces.has(dest)) {
+    if (force) state.boardState.pieces.delete(dest);
     else return false;
   }
-  callUserFunction(state.events.dropNewPiece, piece, key);
-  state.boardState.pieces.set(key, piece);
+  callUserFunction(state.events.dropNewPiece, piece, dest);
+  state.boardState.pieces.set(dest, piece);
   if (fromPocket) changeNumber(state.boardState.pockets![piece.color], piece.role, -1);
-  state.lastMove = [key];
+  state.lastMove = [dest];
   state.check = undefined;
   callUserFunction(state.events.change);
   state.movable.dests = undefined;
@@ -117,8 +113,11 @@ export function baseNewPiece(state: HeadlessState, piece: cg.Piece, key: cg.Key,
   return true;
 }
 
-function baseUserMove(state: HeadlessState, orig: cg.Key, dest: cg.Key): cg.Piece | boolean {
-  const result = baseMove(state, orig, dest);
+function baseUserMove(state: HeadlessState, orig: cg.Selectable, dest: cg.Key, fromPocket: boolean, force?: boolean): cg.Piece | boolean {
+  const result = isKey(orig) ?
+    baseMove(state, orig, dest) :
+    baseNewPiece(state, orig, dest, fromPocket, force)
+  ;
   if (result) {
     state.movable.dests = undefined;
     state.turnColor = opposite(state.turnColor);
@@ -127,9 +126,9 @@ function baseUserMove(state: HeadlessState, orig: cg.Key, dest: cg.Key): cg.Piec
   return result;
 }
 
-export function userMove(state: HeadlessState, orig: cg.Key, dest: cg.Key): boolean {
-  if (canMove(state, orig, dest)) {
-    const result = baseUserMove(state, orig, dest);
+export function userMove(state: HeadlessState, orig: cg.Selectable, dest: cg.Key, fromPocket: boolean, force?: boolean): boolean {
+  if (canMove(state, orig, dest, fromPocket) || force) {
+    const result = baseUserMove(state, orig, dest, fromPocket, force);
     if (result) {
       const holdTime = state.hold.stop();
       unselect(state);
@@ -139,10 +138,13 @@ export function userMove(state: HeadlessState, orig: cg.Key, dest: cg.Key): bool
         holdTime,
       };
       if (result !== true) metadata.captured = result;
-      callUserFunction(state.movable.events.after, orig, dest, metadata);
+      if (isKey(orig))
+        callUserFunction(state.movable.events.after, orig, dest, metadata);
+      else
+        callUserFunction(state.movable.events.afterNewPiece, orig, dest, metadata);
       return true;
     }
-  } else if (canPremove(state, orig, dest)) {
+  } else if (canPremove(state, orig, dest, fromPocket)) {
     setPremove(state, orig, dest, {
       ctrlKey: state.stats.ctrlKey,
     });
@@ -153,52 +155,62 @@ export function userMove(state: HeadlessState, orig: cg.Key, dest: cg.Key): bool
   return false;
 }
 
-export function dropNewPiece(state: HeadlessState, piece: cg.Piece, dest: cg.Key, fromPocket: boolean, force?: boolean): void {
-  if (piece && (canDrop(state, piece, dest, fromPocket) || force)) {
-    state.boardState.pieces.delete('a0');
-    baseNewPiece(state, piece, dest, fromPocket, force);
-    state.dropmode.active = false;
-    callUserFunction(state.movable.events.afterNewPiece, piece.role, dest, { premove: false });
-  } else if (piece && fromPocket && canPredrop(state, piece, dest)) {
-    setPredrop(state, piece.role, dest, { ctrlKey: state.stats.ctrlKey });
-  } else {
-    unsetPremove(state);
-    state.dropmode.active = false;
-  }
-  state.boardState.pieces.delete('a0');
-  unselect(state);
-}
-
-export function selectSquare(state: HeadlessState, key: cg.Key, force?: boolean): void {
-  callUserFunction(state.events.select, key);
-  if (state.selected) {
-    if (state.selected === key && !state.draggable.enabled) {
+export function select(state: HeadlessState, selected: cg.Selectable, force?: boolean): void {
+  if (isKey(selected))
+    callUserFunction(state.events.select, selected);
+  else
+    callUserFunction(state.events.selectPocket, selected);
+  if (state.selectable.selected) {
+    if (state.selectable.selected === selected && !state.draggable.enabled) {
       unselect(state);
       state.hold.cancel();
       return;
-    } else if ((state.selectable.enabled || force) && state.selected !== key) {
-      if (userMove(state, state.selected, key)) {
+    } else if ((state.selectable.enabled || force) && isKey(selected) && state.selectable.selected !== selected) {
+      if (userMove(state, state.selectable.selected, selected, !!state.selectable.fromPocket)) {
         state.stats.dragged = false;
         return;
       }
     }
   }
-  if ((state.selectable.enabled || state.draggable.enabled) && (isMovable(state, key) || isPremovable(state, key))) {
-    setSelected(state, key);
+  if ((state.selectable.enabled || state.draggable.enabled) && (isMovable(state, selected, true) || isPremovable(state, selected, true))) {
+    setSelected(state, selected, true);
     state.hold.start();
   }
 }
 
-export function setSelected(state: HeadlessState, key: cg.Key): void {
-  state.selected = key;
-  if (isPremovable(state, key)) {
+export function setSelected(state: HeadlessState, selected: cg.Selectable, fromPocket?: boolean): void {
+  if (isKey(selected))
+    setSelectedKey(state, selected);
+  else
+    setDropMode(state, selected, !!fromPocket);
+}
+
+export function setSelectedKey(state: HeadlessState, key: cg.Key): void {
+  state.selectable.selected = key;
+  state.selectable.fromPocket = false;
+  if (isPremovable(state, key, false)) {
     state.premovable.dests = premove(
       state.boardState.pieces,
       key,
       state.premovable.castle,
       state.dimensions,
       state.variant,
-      state.chess960
+      state.chess960,
+    );
+  } else {
+    state.premovable.dests = undefined;
+  }
+}
+
+export function setDropMode(state: HeadlessState, piece: cg.Piece, fromPocket: boolean): void {
+  state.selectable.selected = piece;
+  state.selectable.fromPocket = fromPocket;
+  if (isPremovable(state, piece, fromPocket)) {
+    state.premovable.dests = predrop(
+      state.boardState.pieces,
+      piece,
+      state.dimensions,
+      state.variant,
     );
   } else {
     state.premovable.dests = undefined;
@@ -206,48 +218,54 @@ export function setSelected(state: HeadlessState, key: cg.Key): void {
 }
 
 export function unselect(state: HeadlessState): void {
-  state.selected = undefined;
+  state.selectable.selected = undefined;
   state.premovable.dests = undefined;
   state.hold.cancel();
 }
 
-function isMovable(state: HeadlessState, orig: cg.Key): boolean {
-  const piece = state.boardState.pieces.get(orig);
+function isMovable(state: HeadlessState, orig: cg.Selectable, fromPocket: boolean): boolean {
+  let piece: cg.Piece | undefined;
+  let pieceAvailable: boolean = false;
+  if (isKey(orig)) {
+    piece = state.boardState.pieces.get(orig);
+    pieceAvailable = !!piece;
+  } else {
+    piece = orig;
+    const num = state.boardState.pockets?.[piece.color].get(piece.role) ?? 0;
+    pieceAvailable = !fromPocket || num > 0;
+  }
   return (
-    !!piece &&
-    (state.movable.color === 'both' || (state.movable.color === piece.color && state.turnColor === piece.color))
+    pieceAvailable &&
+    (state.movable.color === 'both' || (state.movable.color === piece!.color && state.turnColor === piece!.color))
   );
 }
 
-function isDroppable(state: HeadlessState, piece: cg.Piece, fromPocket: boolean): boolean {
-  const num = state.boardState.pockets?.[piece.color].get(piece.role) ?? 0;
-  return (
-    (!fromPocket || num > 0) &&
-    (state.movable.color === 'both' || (state.movable.color === piece.color && state.turnColor === piece.color))
+export const canMove = (state: HeadlessState, orig: cg.Selectable, dest: cg.Key, fromPocket: boolean): boolean =>
+  orig !== dest &&
+  isMovable(state, orig, fromPocket) &&
+  (state.movable.free || !!state.movable.dests?.get(isKey(orig) ? orig : dropOrigOf(orig.role))?.includes(dest));
+
+function isPremovable(state: HeadlessState, orig: cg.Selectable, fromPocket: boolean): boolean {
+  let piece: cg.Piece | undefined;
+  let pieceAvailable: boolean = false;
+  if (isKey(orig)) {
+    piece = state.boardState.pieces.get(orig);
+    pieceAvailable = !!piece;
+  } else {
+    piece = orig;
+    const num = state.boardState.pockets?.[piece.color].get(piece.role) ?? 0;
+    pieceAvailable = fromPocket && num > 0;
+  }
+  return pieceAvailable && state.premovable.enabled && state.movable.color === piece!.color && state.turnColor !== piece!.color;
+}
+
+const canPremove = (state: HeadlessState, orig: cg.Selectable, dest: cg.Key, fromPocket: boolean): boolean =>
+  orig !== dest &&
+  isPremovable(state, orig, fromPocket) &&
+  (isKey(orig) ?
+    premove(state.boardState.pieces, orig, state.premovable.castle, state.dimensions, state.variant, state.chess960).includes(dest) :
+    predrop(state.boardState.pieces, orig, state.dimensions, state.variant).includes(dest)
   );
-}
-
-export const canMove = (state: HeadlessState, orig: cg.Key, dest: cg.Key): boolean =>
-  orig !== dest && isMovable(state, orig) && (state.movable.free || !!state.movable.dests?.get(orig)?.includes(dest));
-
-export const canDrop = (state: HeadlessState, piece: cg.Piece, dest: cg.Key, fromPocket: boolean): boolean =>
-  isDroppable(state, piece, fromPocket) && (state.movable.free || !!state.movable.dests?.get(dropOrigOf(piece.role))?.includes(dest));
-
-function isPremovable(state: HeadlessState, orig: cg.Key): boolean {
-  const piece = state.boardState.pieces.get(orig);
-  return !!piece && state.premovable.enabled && state.movable.color === piece.color && state.turnColor !== piece.color;
-}
-
-export function isPredroppable(state: HeadlessState, piece: cg.Piece): boolean {
-  const num = state.boardState.pockets?.[piece.color].get(piece.role) ?? 0;
-  return num > 0 && state.premovable.enabled && state.movable.color === piece.color && state.turnColor !== piece.color;
-}
-
-const canPremove = (state: HeadlessState, orig: cg.Key, dest: cg.Key): boolean =>
-  orig !== dest && isPremovable(state, orig) && premove(state.boardState.pieces, orig, state.premovable.castle, state.dimensions, state.variant, state.chess960).includes(dest);
-
-const canPredrop = (state: HeadlessState, piece: cg.Piece, dest: cg.Key): boolean =>
-  !!piece && isPredroppable(state, piece) && predrop(state.boardState.pieces, piece, state.dimensions, state.variant).includes(dest);
 
 export function isDraggable(state: HeadlessState, orig: cg.Key): boolean {
   const piece = state.boardState.pieces.get(orig);
@@ -265,27 +283,16 @@ export function playPremove(state: HeadlessState): boolean {
   const orig = move[0],
     dest = move[1];
   let success = false;
-  if (isDropOrig(orig)) {
-    const role = roleOf(orig);
-    const piece = {
-      role: role,
-      color: state.movable.color as cg.Color // Premove is only possible when state.movable.color is 'white' or 'black'
-    };
-    if (canDrop(state, piece, dest, true)) {
-      if (baseNewPiece(state, piece, dest, true)) {
-        callUserFunction(state.movable.events.afterNewPiece, role, dest, { premove: true });
-        success = true;
-      }
-    }
-  } else {
-    if (canMove(state, orig, dest)) {
-      const result = baseUserMove(state, orig, dest);
-      if (result) {
-        const metadata: cg.MoveMetadata = { premove: true };
-        if (result !== true) metadata.captured = result;
+  if (canMove(state, orig, dest, true)) {
+    const result = baseUserMove(state, orig, dest, true);
+    if (result) {
+      const metadata: cg.MoveMetadata = { premove: true };
+      if (result !== true) metadata.captured = result;
+      if (isKey(orig))
         callUserFunction(state.movable.events.after, orig, dest, metadata);
-        success = true;
-      }
+      else
+        callUserFunction(state.movable.events.afterNewPiece, orig, dest, metadata);
+      success = true;
     }
   }
   unsetPremove(state);

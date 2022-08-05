@@ -34,7 +34,9 @@ export type BoardState = {
   pockets?: Pockets,
 };
 
-export type Move = [Orig, Key];
+export type Selectable = Key | Piece;
+
+export type Move = [Selectable, Key];
 
 export type NumberPair = [number, number];
 
