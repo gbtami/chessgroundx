@@ -108,12 +108,12 @@ export function dragNewPiece(s: State, piece: cg.Piece, fromPocket: boolean, e: 
 export function processDrag(s: State): void {
   requestAnimationFrame(() => {
     const cur = s.draggable.current;
-    if (!cur?.orig) return;
+    if (!cur) return;
     // cancel animations while dragging
-    if (s.animation.current?.plan.anims.has(cur.orig)) s.animation.current = undefined;
+    if (cur.orig && s.animation.current?.plan.anims.has(cur.orig)) s.animation.current = undefined;
     // if moving piece is gone, cancel
-    const origPiece = s.boardState.pieces.get(cur.orig);
-    if (!origPiece || !util.samePiece(origPiece, cur.piece)) cancel(s);
+    const [ origPiece, available ] = board.pieceAvailability(s, cur.orig ?? cur.piece, !!cur.fromPocket);
+    if (!available || !util.samePiece(origPiece!, cur.piece)) cancel(s);
     else {
       if (!cur.started && util.distanceSq(cur.pos, cur.origPos) >= Math.pow(s.draggable.distance, 2))
         cur.started = true;

@@ -223,7 +223,7 @@ export function unselect(state: HeadlessState): void {
   state.hold.cancel();
 }
 
-function pieceAvailability(state: HeadlessState, orig: cg.Selectable, fromPocket: boolean): [cg.Piece | undefined, boolean] {
+export function pieceAvailability(state: HeadlessState, orig: cg.Selectable, fromPocket: boolean): [cg.Piece | undefined, boolean] {
   let piece: cg.Piece | undefined;
   let available = false;
   if (isKey(orig)) {

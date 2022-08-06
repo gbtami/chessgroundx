@@ -72,10 +72,6 @@ function renderPiece(state: HeadlessState, el: HTMLElement) {
   } else {
     el.classList.remove('premove');
   }
-
-  const dragCurrent = state.draggable.current;
-  if (!dragCurrent?.fromPocket || !util.samePiece(dragCurrent.piece, piece))
-    el.classList.remove('dragging');
 }
 
 export function drag(s: State, e: cg.MouchEvent): void {
@@ -103,38 +99,21 @@ export function drag(s: State, e: cg.MouchEvent): void {
   board.select(s, piece);
   const selected = s.selectable.selected;
   const stillSelected = selected && util.isPiece(selected) && selected.role === piece.role && selected.color === piece.color;
-  const element = pieceElementInPocket(s, piece);
-  if (element && stillSelected && board.isDraggable(s, piece, true)) {
+  if (stillSelected && board.isDraggable(s, piece, true)) {
     s.draggable.current = {
       piece,
       origPos: position,
       pos: position,
       started: true,
-      element,
+      element: () => undefined, // TODO
       previouslySelected,
       originTarget: e.target,
       fromPocket: true,
       keyHasChanged: false,
     };
-    element.cgDragging = true;
-    element.classList.add('dragging');
     processDrag(s);
   } else {
     if (hadPremove) board.unsetPremove(s);
   }
   s.dom.redraw();
-}
-
-function pieceElementInPocket(s: State, piece: cg.Piece): cg.PieceNode | undefined {
-  let el = s.dom.elements.pocketTop?.firstChild;
-  while (el) {
-    if ((el as HTMLElement).getAttribute('data-role') === piece.role && (el as HTMLElement).getAttribute('data-color') === piece.color && (el as cg.KeyedNode).tagName === 'PIECE') return el as cg.PieceNode;
-    el = el.nextSibling;
-  }
-  el = s.dom.elements.pocketBottom?.firstChild;
-  while (el) {
-    if ((el as HTMLElement).getAttribute('data-role') === piece.role && (el as HTMLElement).getAttribute('data-color') === piece.color && (el as cg.KeyedNode).tagName === 'PIECE') return el as cg.PieceNode;
-    el = el.nextSibling;
-  }
-  return;
 }
