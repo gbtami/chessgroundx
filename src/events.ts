@@ -90,13 +90,11 @@ const startDragOrDraw =
 const startDragOrDrawPocket =
   (s: State): MouchBind =>
     e => {
-      if (s.draggable.current) {console.log('1');drag.cancel(s);}
-      else if (s.drawable.current) {console.log('2');draw.cancel(s);}
+      if (s.draggable.current) drag.cancel(s);
+      else if (s.drawable.current) draw.cancel(s);
       else if (e.shiftKey || isRightButton(e)) {
-        console.log('3');
         if (s.drawable.enabled) draw.start(s, e);
       } else if (!s.viewOnly) {
-        console.log('4');
         pocket.drag(s, e);
       }
     };
