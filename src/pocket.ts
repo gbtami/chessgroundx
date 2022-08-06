@@ -2,87 +2,65 @@ import * as cg from './types.js';
 import * as util from './util.js';
 import * as board from './board.js';
 import { clear as drawClear } from './draw.js';
+import { processDrag } from './drag.js';
 import { HeadlessState, State } from './state.js';
 
 export function renderPocketsInitial(state: HeadlessState, elements: cg.Elements, pocketTop?: HTMLElement, pocketBottom?: HTMLElement): void {
-
-  function pocketView(pocketEl: HTMLElement, position: cg.PocketPosition) {
-    if (!state.boardState.pockets) return;
-    const color = position === 'top' ? util.opposite(state.orientation) : state.orientation;
-
-    const roles = state.pocketRoles![color];
-    const pl = String(roles.length);
-    const files = String(state.dimensions.width);
-    const ranks = String(state.dimensions.height);
-    // const pocketEl = createEl('div','pocket ' + position + ' usable');
-    pocketEl.setAttribute('style', `--pocketLength: ${pl}; --files: ${files}; --ranks: ${ranks}`);
-    pocketEl.classList.add('pocket', position, 'usable');
-
-    roles.forEach(role => {
-      const pieceName = util.pieceClasses({role: role, color: color} as cg.Piece, state.orientation);
-      const p = util.createEl('piece', pieceName);
-      // todo: next 2 attributes already exist as classes, but need inverse function for util.ts->pieceClasses()
-      p.setAttribute('data-color', color);
-      p.setAttribute('data-role', role);
-
-      renderPiece(state, p);
-
-      /*
-      // TODO: i wonder if events.ts->bindBoard() or something similar is a better place similarly to main board?
-      // todo: in spectators mode movable.color is never set (except in goPly to undefined). Simultaneously
-      //       state.ts->default is "both" and here as well. Effect is that dragging and clicking is disabled, which is
-      //       great, but feels more like an accidental side effect than intention (effectively 'both' means 'none').
-      //       Maybe state.movable.color should be set to undef in roundCtrl ALWAYS when in spectotor mode instead of
-      //       left unset (and with its default). Then below we can handle 'both' properly for sake of clarity
-      cg.eventsDragging.forEach(name =>
-        p.addEventListener(name, (e: cg.MouchEvent) => {
-          if (state.movable.free || state.movable.color === color) drag(state, e);
-        })
-      );
-      cg.eventsClicking.forEach(name =>
-        p.addEventListener(name, (e: cg.MouchEvent) => {
-          // movable.free is synonymous with editor mode, and right now click-drop not supported for pocket pieces
-          if (state.movable.free || state.movable.color === color) click(state, e);
-        })
-      );
-      */
-      pocketEl.appendChild(p);
-    });
-  }
   if (pocketTop) {
     pocketTop.innerHTML='';
     elements.pocketTop = pocketTop;
-    pocketView(elements.pocketTop, "top");
+    pocketView(state, elements.pocketTop, "top");
   }
   if (pocketBottom) {
     pocketBottom.innerHTML='';
     elements.pocketBottom = pocketBottom;
-    pocketView(elements.pocketBottom, "bottom");
+    pocketView(state, elements.pocketBottom, "bottom");
   }
+}
+
+function pocketView(state: HeadlessState, pocketEl: HTMLElement, position: cg.PocketPosition) {
+  if (!state.boardState.pockets) return;
+  const color = position === 'top' ? util.opposite(state.orientation) : state.orientation;
+  const roles = state.pocketRoles![color];
+  const pl = String(roles.length);
+  const files = String(state.dimensions.width);
+  const ranks = String(state.dimensions.height);
+  pocketEl.setAttribute('style', `--pocketLength: ${pl}; --files: ${files}; --ranks: ${ranks}`);
+  pocketEl.classList.add('pocket', position, 'usable');
+  roles.forEach(role => {
+    const pieceName = util.pieceClasses({role: role, color: color}, state.orientation);
+    const p = util.createEl('piece', pieceName);
+    p.setAttribute('data-color', color);
+    p.setAttribute('data-role', role);
+    renderPiece(state, p);
+    pocketEl.appendChild(p);
+  });
 }
 
 /**
  * updates each piece element attributes based on state
  * */
 export function renderPockets(state: State): void {
-  function renderPocket(pocketEl?: HTMLElement){
-    let el: cg.PieceNode | undefined = pocketEl?.firstChild as (cg.PieceNode | undefined);
-    while (el) {
-      renderPiece(state, el);
-      el = el.nextSibling as cg.PieceNode;
-    }
+  renderPocket(state, state.dom.elements.pocketBottom);
+  renderPocket(state, state.dom.elements.pocketTop);
+}
+
+function renderPocket(state: HeadlessState, pocketEl?: HTMLElement) {
+  let el: cg.PieceNode | undefined = pocketEl?.firstChild as (cg.PieceNode | undefined);
+  while (el) {
+    renderPiece(state, el);
+    el = el.nextSibling as cg.PieceNode;
   }
-  renderPocket(state.dom.elements.pocketBottom);
-  renderPocket(state.dom.elements.pocketTop);
 }
 
 function renderPiece(state: HeadlessState, el: HTMLElement) {
   const role = el.getAttribute("data-role") as cg.Role;
   const color = el.getAttribute("data-color") as cg.Color;
   el.setAttribute("data-nb", '' + (state.boardState.pockets![color].get(role) ?? 0));
+  const piece = { role, color };
 
   const selected = state.selectable.selected;
-  if (selected && util.isPiece(selected) && state.selectable.fromPocket && selected.role === role && selected.color === color) {
+  if (selected && util.isPiece(selected) && state.selectable.fromPocket && util.samePiece(selected, piece)) {
     el.classList.add('selected-square');
   } else {
     el.classList.remove('selected-square');
@@ -94,32 +72,11 @@ function renderPiece(state: HeadlessState, el: HTMLElement) {
   } else {
     el.classList.remove('premove');
   }
+
+  const dragCurrent = state.draggable.current;
+  if (!dragCurrent?.fromPocket || !util.samePiece(dragCurrent.piece, piece))
+    el.classList.remove('dragging');
 }
-
-/*
-export function click(state: HeadlessState, e: cg.MouchEvent): void {
-  if (e.button !== undefined && e.button !== 0) return; // only touch or left click
-
-  const el = e.target as HTMLElement,
-    role = el.getAttribute('data-role') as cg.Role,
-    color = el.getAttribute('data-color') as cg.Color,
-    number = el.getAttribute('data-nb');
-  if (number === '0') return;
-  const dropMode = state.dropmode;
-  const dropPiece = state.dropmode.piece;
-
-  const canceledDropMode = el.getAttribute("canceledDropMode");
-  el.setAttribute("canceledDropMode", "");
-
-  if ((!dropMode.active || dropPiece?.role !== role) && canceledDropMode !== "true") {
-    setDropMode(state as State, true, {color, role});
-  } else {
-    cancelDropMode(state);
-  }
-  e.stopPropagation();
-  e.preventDefault();
-}
-*/
 
 export function drag(s: State, e: cg.MouchEvent): void {
   if (!e.isTrusted || (e.button !== undefined && e.button !== 0)) return; // only touch or left click
@@ -140,11 +97,12 @@ export function drag(s: State, e: cg.MouchEvent): void {
     e.cancelable !== false &&
     (!e.touches || s.blockTouchScroll || piece || previouslySelected)
   )
-    e.preventDefault();
+  e.preventDefault();
   const hadPremove = !!s.premovable.current;
   s.stats.ctrlKey = e.ctrlKey;
   board.select(s, piece);
-  const stillSelected = s.selectable.selected === piece;
+  const selected = s.selectable.selected;
+  const stillSelected = selected && util.isPiece(selected) && selected.role === piece.role && selected.color === piece.color;
   const element = pieceElementInPocket(s, piece);
   if (element && stillSelected && board.isDraggable(s, piece)) {
     s.draggable.current = {
@@ -153,12 +111,14 @@ export function drag(s: State, e: cg.MouchEvent): void {
       pos: position,
       started: true,
       element,
+      previouslySelected,
       originTarget: e.target,
       fromPocket: true,
       keyHasChanged: false,
     };
     element.cgDragging = true;
     element.classList.add('dragging');
+    processDrag(s);
   } else {
     if (hadPremove) board.unsetPremove(s);
   }

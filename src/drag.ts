@@ -4,7 +4,6 @@ import * as util from './util.js';
 import { clear as drawClear } from './draw.js';
 import * as cg from './types.js';
 import { anim } from './anim.js';
-//import { predrop } from './predrop.js';
 
 export interface DragCurrent {
   orig?: cg.Key; // orig key of dragging piece
@@ -103,16 +102,10 @@ export function dragNewPiece(s: State, piece: cg.Piece, fromPocket: boolean, e: 
     keyHasChanged: false,
   };
 
-  /*
-  if (board.isPremovable(s, piece)) {
-    s.premovable.dests = predrop(s.boardState.pieces, piece, s.dimensions, s.variant);
-  }
-  */
-
   processDrag(s);
 }
 
-function processDrag(s: State): void {
+export function processDrag(s: State): void {
   requestAnimationFrame(() => {
     const cur = s.draggable.current;
     if (!cur?.orig) return;
@@ -169,18 +162,25 @@ export function end(s: State, e: cg.MouchEvent): void {
   // touchend has no position; so use the last touchmove position instead
   const eventPos = util.eventPosition(e) || cur.pos;
   const dest = board.getKeyAtDomPos(eventPos, board.whitePov(s), s.dom.bounds(), s.dimensions);
+  const target = e.target as HTMLElement;
+  const onPocket = Number((target as HTMLElement).getAttribute('data-nb') ?? -1) >= 0;
+  const targetPiece = onPocket ? { role: target.getAttribute('data-role'), color: target.getAttribute('data-color') } as cg.Piece : undefined;
   if (dest && cur.started && cur.orig !== dest) {
     s.stats.ctrlKey = e.ctrlKey;
     if (board.userMove(s, cur.orig ? cur.orig : cur.piece, dest, !!cur.fromPocket))
       s.stats.dragged = true;
-  } else if (s.draggable.deleteOnDropOff && !dest) {
+  } else if (s.draggable.deleteOnDropOff && !dest && !targetPiece) {
     if (cur.orig)
       s.boardState.pieces.delete(cur.orig);
     else if (cur.fromPocket)
       util.changeNumber(s.boardState.pockets![cur.piece.color], cur.piece.role, -1);
     board.callUserFunction(s.events.change);
   }
-  if (cur.orig && (cur.orig === cur.previouslySelected || cur.keyHasChanged) && (cur.orig === dest || !dest)) board.unselect(s);
+  if (((cur.previouslySelected && (cur.orig === cur.previouslySelected || util.isSame(cur.piece, cur.previouslySelected))) || cur.keyHasChanged) &&
+      (cur.orig === dest || !dest))
+    board.unselect(s);
+  if (!cur.orig && (!targetPiece || !util.samePiece(cur.piece, targetPiece)))
+    board.unselect(s);
   else if (!s.selectable.enabled) board.unselect(s);
 
   removeDragElements(s);
