@@ -54,14 +54,6 @@ export function isSame(lhs: cg.Selectable, rhs: cg.Selectable): boolean {
     return lhs === rhs;
 }
 
-export function kingRoles(variant: cg.Variant): cg.Role[] {
-  switch (variant) {
-    case 'dobutsu': return ['l-piece'];
-    case 'chak': return ['k-piece', 'pk-piece'];
-    default: return ['k-piece'];
-  }
-}
-
 export function changeNumber<T>(map: Map<T, number>, key: T, num: number): void {
     map.set(key, (map.get(key) ?? 0) + num);
 }

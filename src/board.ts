@@ -1,5 +1,5 @@
 import { HeadlessState } from './state.js';
-import { pos2key, key2pos, opposite, distanceSq, allPos, computeSquareCenter, dropOrigOf, kingRoles, changeNumber, isKey, isSame } from './util.js';
+import { pos2key, key2pos, opposite, distanceSq, allPos, computeSquareCenter, dropOrigOf, changeNumber, isKey, isSame } from './util.js';
 import { premove, queen, knight, janggiElephant } from './premove.js';
 import { predrop } from './predrop.js';
 import * as cg from './types.js';
@@ -27,12 +27,11 @@ export function setPieces(state: HeadlessState, pieces: cg.PiecesDiff): void {
 }
 
 export function setCheck(state: HeadlessState, color: cg.Color | boolean): void {
-  const kings = kingRoles(state.variant);
   state.check = undefined;
   if (color === true) color = state.turnColor;
   if (color)
     for (const [k, p] of state.boardState.pieces) {
-      if (kings.includes(p.role) && p.color === color) {
+      if (state.kingRoles.includes(p.role) && p.color === color) {
         state.check = k;
         break;
       }

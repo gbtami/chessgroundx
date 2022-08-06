@@ -87,6 +87,7 @@ export interface HeadlessState {
   variant: cg.Variant;
   chess960: boolean;
   notation: cg.Notation;
+  kingRoles: cg.Role[]; // roles to be marked with check
   pocketRoles?: cg.PocketRoles; // undefined for non-pocket variants. Possible pieces that a pocket can hold for each color
 }
 
@@ -172,5 +173,6 @@ export function defaults(): HeadlessState {
     variant: 'chess',
     chess960: false,
     notation: cg.Notation.ALGEBRAIC,
+    kingRoles: ['k-piece'],
   };
 }
