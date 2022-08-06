@@ -89,15 +89,15 @@ export function drag(s: State, e: cg.MouchEvent): void {
   if (n === 0) return;
   const piece = { role, color };
   const previouslySelected = s.selectable.selected;
-  if (!previouslySelected && s.drawable.enabled && (s.drawable.eraseOnClick || !piece || piece.color !== s.turnColor))
+  if (!previouslySelected && s.drawable.enabled && (s.drawable.eraseOnClick || piece.color !== s.turnColor))
     drawClear(s);
   // Prevent touch scroll and create no corresponding mouse event, if there
   // is an intent to interact with the board.
   if (
     e.cancelable !== false &&
-    (!e.touches || s.blockTouchScroll || piece || previouslySelected)
+    (!e.touches || s.blockTouchScroll || previouslySelected)
   )
-  e.preventDefault();
+    e.preventDefault();
   const hadPremove = !!s.premovable.current;
   s.stats.ctrlKey = e.ctrlKey;
   board.select(s, piece);
