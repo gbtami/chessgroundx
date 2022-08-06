@@ -160,14 +160,14 @@ export interface BoardDimensions {
 }
 
 export const enum Notation {
-  ALGEBRAIC,
-  SHOGI_ENGLET,
-  SHOGI_ARBNUM,
-  // TODO SHOGI_HANNUM,
-  JANGGI,
-  XIANGQI_ARBNUM,
-  // TODO XIANGQI_HANNUM,
-  // TODO THAI_ALGEBRAIC,
+  ALGEBRAIC,        // English letters on bottom, Arabic numbers on side
+  SHOGI_ENGLET,     // Arabic numbers on top, English letters on side
+  SHOGI_ARBNUM,     // Arabic numbers on top and side
+  SHOGI_HANNUM,     // Arabic numbers on top, Kanji numbers on side
+  JANGGI,           // Arabic numbers on bottom and side, with 0 denoting 10th rank
+  XIANGQI_ARBNUM,   // Arabic numbers on top and bottom
+  XIANGQI_HANNUM,   // Arabic numbers on top, Hanzi numbers on bottom
+  THAI_ALGEBRAIC,   // Thai letters on bottom, Thai numbers on side
 }
 
 export const eventsDragging = ['mousedown', 'touchmove'];

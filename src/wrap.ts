@@ -10,9 +10,14 @@ type CoordFormat = {
   noBlackReverse?: boolean; // Don't reverse the direction for black orientation
 };
 
+// Need to support up to 16 ranks or files
+// Since some countries never had variants that big, some letters and numbers here are theoretical
 const LETTER_ENGLISH = letters;
-const NUMBER_ARABIC = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'] as const;
-const NUMBER_JANGGI = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'] as const;
+const LETTER_THAI = ['ก', 'ข', 'ค', 'ง', 'จ', 'ฉ', 'ช', 'ญ', 'ต', 'ถ', 'ท', 'น', 'ป', 'ผ', 'พ', 'ม'] as const;
+const NUMBER_ARABIC = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16'] as const;
+const NUMBER_JANGGI = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '1', '2', '3', '4', '5', '6'] as const;
+const NUMBER_HANZI = ['一', '二', '三', '四', '五', '六', '七', '八', '九', '十', '十一', '十二', '十三', '十四', '十五', '十六'] as const;
+const NUMBER_THAI = ['๑', '๒', '๓', '๔', '๕', '๖', '๗', '๘', '๙', '๑๐', '๑๑', '๑๒', '๑๓', '๑๔', '๑๕', '๑๖'] as const;
 
 const coordFormat: Record<Notation, CoordFormat[]> = {
   [Notation.ALGEBRAIC]: [
@@ -54,6 +59,19 @@ const coordFormat: Record<Notation, CoordFormat[]> = {
     },
   ],
 
+  [Notation.SHOGI_HANNUM]: [
+    {
+      coords: NUMBER_ARABIC,
+      position: 'top',
+      direction: 'backward',
+    },
+    {
+      coords: NUMBER_HANZI,
+      position: 'side',
+      direction: 'backward',
+    },
+  ],
+
   [Notation.JANGGI]: [
     {
       coords: NUMBER_ARABIC,
@@ -79,6 +97,34 @@ const coordFormat: Record<Notation, CoordFormat[]> = {
       position: 'bottom',
       direction: 'backward',
       noBlackReverse: true,
+    },
+  ],
+
+  [Notation.XIANGQI_HANNUM]: [
+    {
+      coords: NUMBER_ARABIC,
+      position: 'top',
+      direction: 'forward',
+      noBlackReverse: true,
+    },
+    {
+      coords: NUMBER_HANZI,
+      position: 'bottom',
+      direction: 'backward',
+      noBlackReverse: true,
+    },
+  ],
+
+  [Notation.THAI_ALGEBRAIC]: [
+    {
+      coords: LETTER_THAI,
+      position: 'bottom',
+      direction: 'forward',
+    },
+    {
+      coords: NUMBER_THAI,
+      position: 'side',
+      direction: 'forward',
     },
   ],
 };
