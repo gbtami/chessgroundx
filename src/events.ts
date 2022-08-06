@@ -54,8 +54,7 @@ export function bindDocument(s: State, onResize: () => void): cg.Unbind {
     const pocketStart = startDragOrDrawPocket(s);
     [pocketTop, pocketBottom].forEach(el => {
       if (el) {
-        for (const ev of ['touchstart', 'mousedown'])
-          unbinds.push(unbindable(el, ev, pocketStart as EventListener));
+        for (const ev of ['touchstart', 'mousedown']) unbinds.push(unbindable(el, ev, pocketStart as EventListener));
         if (s.disableContextMenu || s.drawable.enabled)
           unbinds.push(unbindable(el, 'contextmenu', e => e.preventDefault()));
       }
@@ -77,32 +76,32 @@ function unbindable(
 
 const startDragOrDraw =
   (s: State): MouchBind =>
-    e => {
-      if (s.draggable.current) drag.cancel(s);
-      else if (s.drawable.current) draw.cancel(s);
-      else if (e.shiftKey || isRightButton(e)) {
-        if (s.drawable.enabled) draw.start(s, e);
-      } else if (!s.viewOnly) {
-        drag.start(s, e);
-      }
-    };
+  e => {
+    if (s.draggable.current) drag.cancel(s);
+    else if (s.drawable.current) draw.cancel(s);
+    else if (e.shiftKey || isRightButton(e)) {
+      if (s.drawable.enabled) draw.start(s, e);
+    } else if (!s.viewOnly) {
+      drag.start(s, e);
+    }
+  };
 
 const startDragOrDrawPocket =
   (s: State): MouchBind =>
-    e => {
-      if (s.draggable.current) drag.cancel(s);
-      else if (s.drawable.current) draw.cancel(s);
-      else if (e.shiftKey || isRightButton(e)) {
-        if (s.drawable.enabled) draw.start(s, e);
-      } else if (!s.viewOnly) {
-        pocket.drag(s, e);
-      }
-    };
+  e => {
+    if (s.draggable.current) drag.cancel(s);
+    else if (s.drawable.current) draw.cancel(s);
+    else if (e.shiftKey || isRightButton(e)) {
+      if (s.drawable.enabled) draw.start(s, e);
+    } else if (!s.viewOnly) {
+      pocket.drag(s, e);
+    }
+  };
 
 const dragOrDraw =
   (s: State, withDrag: StateMouchBind, withDraw: StateMouchBind): MouchBind =>
-    e => {
-      if (s.drawable.current) {
-        if (s.drawable.enabled) withDraw(s, e);
-      } else if (!s.viewOnly) withDrag(s, e);
-    };
+  e => {
+    if (s.drawable.current) {
+      if (s.drawable.enabled) withDraw(s, e);
+    } else if (!s.viewOnly) withDrag(s, e);
+  };

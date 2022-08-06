@@ -117,9 +117,7 @@ function rookFilesOfShako(pieces: cg.Pieces, color: cg.Color) {
 }
 
 function pawnNoDoubleStep(color: cg.Color): Mobility {
-  return (x1, y1, x2, y2) =>
-    diff(x1, x2) < 2 &&
-    (color === 'white' ? y2 === y1 + 1 : y2 === y1 - 1);
+  return (x1, y1, x2, y2) => diff(x1, x2) < 2 && (color === 'white' ? y2 === y1 + 1 : y2 === y1 - 1);
 }
 
 // grand pawn (10x10 board, can move two squares on third row)
@@ -213,20 +211,25 @@ function _palace(bd: cg.BoardDimensions, color: cg.Color): Palace {
   const startingRank = color === 'white' ? 0 : bd.height - 3;
 
   return [
-    [middleFile - 1, startingRank + 2], [middleFile, startingRank + 2], [middleFile + 1, startingRank + 2],
-    [middleFile - 1, startingRank + 1], [middleFile, startingRank + 1], [middleFile + 1, startingRank + 1],
-    [middleFile - 1, startingRank], [middleFile, startingRank], [middleFile + 1, startingRank],
+    [middleFile - 1, startingRank + 2],
+    [middleFile, startingRank + 2],
+    [middleFile + 1, startingRank + 2],
+    [middleFile - 1, startingRank + 1],
+    [middleFile, startingRank + 1],
+    [middleFile + 1, startingRank + 1],
+    [middleFile - 1, startingRank],
+    [middleFile, startingRank],
+    [middleFile + 1, startingRank],
   ];
 }
 
 function memoizePalace(): (bd: cg.BoardDimensions, color: cg.Color) => Palace {
-    const cache: Record<string, Palace> = {};
-    return (bd: cg.BoardDimensions, color: cg.Color) => {
-        const key = `${bd.width}x${bd.height}${color.slice(0, 1)}`;
-        if (!(key in cache))
-            cache[key] = _palace(bd, color);
-        return cache[key];
-    };
+  const cache: Record<string, Palace> = {};
+  return (bd: cg.BoardDimensions, color: cg.Color) => {
+    const key = `${bd.width}x${bd.height}${color.slice(0, 1)}`;
+    if (!(key in cache)) cache[key] = _palace(bd, color);
+    return cache[key];
+  };
 }
 
 const palace = memoizePalace();
@@ -299,8 +302,7 @@ function janggiPawn(color: cg.Color, bd: cg.BoardDimensions): Mobility {
       default:
         additionalMobility = () => false;
     }
-    return minixiangqiPawn(color)(x1, y1, x2, y2) ||
-      additionalMobility(x1, y1, x2, y2);
+    return minixiangqiPawn(color)(x1, y1, x2, y2) || additionalMobility(x1, y1, x2, y2);
   };
 }
 
@@ -363,8 +365,10 @@ function janggiKing(color: cg.Color, bd: cg.BoardDimensions): Mobility {
       default:
         additionalMobility = () => false;
     }
-    return (wazir(x1, y1, x2, y2) || additionalMobility(x1, y1, x2, y2)) &&
-      ownPalace.some(point => point[0] === x2 && point[1] === y2);
+    return (
+      (wazir(x1, y1, x2, y2) || additionalMobility(x1, y1, x2, y2)) &&
+      ownPalace.some(point => point[0] === x2 && point[1] === y2)
+    );
   };
 }
 
@@ -490,9 +494,7 @@ function toriEagle(color: cg.Color): Mobility {
 function pawnChak(color: cg.Color): Mobility {
   return (x1, y1, x2, y2) => {
     const xd = diff(x1, x2);
-    return color === 'white'
-      ? y2 >= y1 && y2 - y1 <= 1 && xd <= 1
-      : y1 >= y2 && y1 - y2 <= 1 && xd <= 1;
+    return color === 'white' ? y2 >= y1 && y2 - y1 <= 1 && xd <= 1 : y1 >= y2 && y1 - y2 <= 1 && xd <= 1;
   };
 }
 
@@ -513,10 +515,7 @@ function chakDivineKing(color: cg.Color): Mobility {
 // chennis king
 function kingChennis(color: cg.Color): Mobility {
   return (x1, y1, x2, y2) =>
-    kingNoCastling(x1, y1, x2, y2) &&
-    x2 >= 1 &&
-    x2 <= 5 &&
-    ((color === 'white') ? y2 <= 3 : y2 >= 3);
+    kingNoCastling(x1, y1, x2, y2) && x2 >= 1 && x2 <= 5 && (color === 'white' ? y2 <= 3 : y2 >= 3);
 }
 
 export function premove(

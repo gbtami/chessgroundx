@@ -5,16 +5,21 @@ import { clear as drawClear } from './draw.js';
 import { processDrag } from './drag.js';
 import { HeadlessState, State } from './state.js';
 
-export function renderPocketsInitial(state: HeadlessState, elements: cg.Elements, pocketTop?: HTMLElement, pocketBottom?: HTMLElement): void {
+export function renderPocketsInitial(
+  state: HeadlessState,
+  elements: cg.Elements,
+  pocketTop?: HTMLElement,
+  pocketBottom?: HTMLElement
+): void {
   if (pocketTop) {
-    pocketTop.innerHTML='';
+    pocketTop.innerHTML = '';
     elements.pocketTop = pocketTop;
-    pocketView(state, elements.pocketTop, "top");
+    pocketView(state, elements.pocketTop, 'top');
   }
   if (pocketBottom) {
-    pocketBottom.innerHTML='';
+    pocketBottom.innerHTML = '';
     elements.pocketBottom = pocketBottom;
-    pocketView(state, elements.pocketBottom, "bottom");
+    pocketView(state, elements.pocketBottom, 'bottom');
   }
 }
 
@@ -28,7 +33,7 @@ function pocketView(state: HeadlessState, pocketEl: HTMLElement, position: cg.Po
   pocketEl.setAttribute('style', `--pocketLength: ${pl}; --files: ${files}; --ranks: ${ranks}`);
   pocketEl.classList.add('pocket', position, 'usable');
   roles.forEach(role => {
-    const pieceName = util.pieceClasses({role: role, color: color}, state.orientation);
+    const pieceName = util.pieceClasses({ role: role, color: color }, state.orientation);
     const p = util.createEl('piece', pieceName);
     p.setAttribute('data-color', color);
     p.setAttribute('data-role', role);
@@ -46,7 +51,7 @@ export function renderPockets(state: State): void {
 }
 
 function renderPocket(state: HeadlessState, pocketEl?: HTMLElement) {
-  let el: cg.PieceNode | undefined = pocketEl?.firstChild as (cg.PieceNode | undefined);
+  let el: cg.PieceNode | undefined = pocketEl?.firstChild as cg.PieceNode | undefined;
   while (el) {
     renderPiece(state, el);
     el = el.nextSibling as cg.PieceNode;
@@ -54,9 +59,9 @@ function renderPocket(state: HeadlessState, pocketEl?: HTMLElement) {
 }
 
 function renderPiece(state: HeadlessState, el: HTMLElement) {
-  const role = el.getAttribute("data-role") as cg.Role;
-  const color = el.getAttribute("data-color") as cg.Color;
-  el.setAttribute("data-nb", '' + (state.boardState.pockets![color].get(role) ?? 0));
+  const role = el.getAttribute('data-role') as cg.Role;
+  const color = el.getAttribute('data-color') as cg.Color;
+  el.setAttribute('data-nb', '' + (state.boardState.pockets![color].get(role) ?? 0));
   const piece = { role, color };
 
   const selected = state.selectable.selected;
@@ -89,16 +94,13 @@ export function drag(s: State, e: cg.MouchEvent): void {
     drawClear(s);
   // Prevent touch scroll and create no corresponding mouse event, if there
   // is an intent to interact with the board.
-  if (
-    e.cancelable !== false &&
-    (!e.touches || s.blockTouchScroll || previouslySelected)
-  )
-    e.preventDefault();
+  if (e.cancelable !== false && (!e.touches || s.blockTouchScroll || previouslySelected)) e.preventDefault();
   const hadPremove = !!s.premovable.current;
   s.stats.ctrlKey = e.ctrlKey;
   board.select(s, piece);
   const selected = s.selectable.selected;
-  const stillSelected = selected && util.isPiece(selected) && selected.role === piece.role && selected.color === piece.color;
+  const stillSelected =
+    selected && util.isPiece(selected) && selected.role === piece.role && selected.color === piece.color;
   if (stillSelected && board.isDraggable(s, piece, true)) {
     s.draggable.current = {
       piece,

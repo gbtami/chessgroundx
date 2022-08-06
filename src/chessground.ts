@@ -10,7 +10,12 @@ import * as svg from './svg.js';
 import * as util from './util.js';
 import { renderPockets, renderPocketsInitial } from './pocket.js';
 
-export function Chessground(element: HTMLElement, config?: Config, pocketTop?: HTMLElement, pocketBottom?: HTMLElement): Api {
+export function Chessground(
+  element: HTMLElement,
+  config?: Config,
+  pocketTop?: HTMLElement,
+  pocketBottom?: HTMLElement
+): Api {
   const maybeState: State | HeadlessState = defaults();
   configure(maybeState, config || {});
 

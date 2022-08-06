@@ -1,5 +1,16 @@
 import { HeadlessState } from './state.js';
-import { pos2key, key2pos, opposite, distanceSq, allPos, computeSquareCenter, dropOrigOf, changeNumber, isKey, isSame } from './util.js';
+import {
+  pos2key,
+  key2pos,
+  opposite,
+  distanceSq,
+  allPos,
+  computeSquareCenter,
+  dropOrigOf,
+  changeNumber,
+  isKey,
+  isSame,
+} from './util.js';
 import { premove, queen, knight, janggiElephant } from './premove.js';
 import { predrop } from './predrop.js';
 import * as cg from './types.js';
@@ -96,7 +107,13 @@ export function baseMove(state: HeadlessState, orig: cg.Key, dest: cg.Key): cg.P
   return captured || true;
 }
 
-export function baseNewPiece(state: HeadlessState, piece: cg.Piece, dest: cg.Key, fromPocket: boolean, force?: boolean): boolean {
+export function baseNewPiece(
+  state: HeadlessState,
+  piece: cg.Piece,
+  dest: cg.Key,
+  fromPocket: boolean,
+  force?: boolean
+): boolean {
   if (state.boardState.pieces.has(dest)) {
     if (force) state.boardState.pieces.delete(dest);
     else return false;
@@ -112,11 +129,14 @@ export function baseNewPiece(state: HeadlessState, piece: cg.Piece, dest: cg.Key
   return true;
 }
 
-function baseUserMove(state: HeadlessState, orig: cg.Selectable, dest: cg.Key, fromPocket: boolean, force?: boolean): cg.Piece | boolean {
-  const result = isKey(orig) ?
-    baseMove(state, orig, dest) :
-    baseNewPiece(state, orig, dest, fromPocket, force)
-  ;
+function baseUserMove(
+  state: HeadlessState,
+  orig: cg.Selectable,
+  dest: cg.Key,
+  fromPocket: boolean,
+  force?: boolean
+): cg.Piece | boolean {
+  const result = isKey(orig) ? baseMove(state, orig, dest) : baseNewPiece(state, orig, dest, fromPocket, force);
   if (result) {
     state.movable.dests = undefined;
     state.turnColor = opposite(state.turnColor);
@@ -125,7 +145,13 @@ function baseUserMove(state: HeadlessState, orig: cg.Selectable, dest: cg.Key, f
   return result;
 }
 
-export function userMove(state: HeadlessState, orig: cg.Selectable, dest: cg.Key, fromPocket: boolean, force?: boolean): boolean {
+export function userMove(
+  state: HeadlessState,
+  orig: cg.Selectable,
+  dest: cg.Key,
+  fromPocket: boolean,
+  force?: boolean
+): boolean {
   if (canMove(state, orig, dest, fromPocket) || force) {
     const result = baseUserMove(state, orig, dest, fromPocket, force);
     if (result) {
@@ -137,10 +163,8 @@ export function userMove(state: HeadlessState, orig: cg.Selectable, dest: cg.Key
         holdTime,
       };
       if (result !== true) metadata.captured = result;
-      if (isKey(orig))
-        callUserFunction(state.movable.events.after, orig, dest, metadata);
-      else
-        callUserFunction(state.movable.events.afterNewPiece, orig, dest, metadata);
+      if (isKey(orig)) callUserFunction(state.movable.events.after, orig, dest, metadata);
+      else callUserFunction(state.movable.events.afterNewPiece, orig, dest, metadata);
       return true;
     }
   } else if (canPremove(state, orig, dest, fromPocket)) {
@@ -155,10 +179,8 @@ export function userMove(state: HeadlessState, orig: cg.Selectable, dest: cg.Key
 }
 
 export function select(state: HeadlessState, selected: cg.Selectable, force?: boolean): void {
-  if (isKey(selected))
-    callUserFunction(state.events.select, selected);
-  else
-    callUserFunction(state.events.selectPocket, selected);
+  if (isKey(selected)) callUserFunction(state.events.select, selected);
+  else callUserFunction(state.events.selectPocket, selected);
   if (state.selectable.selected) {
     if (isSame(state.selectable.selected, selected) && !state.draggable.enabled) {
       unselect(state);
@@ -171,17 +193,18 @@ export function select(state: HeadlessState, selected: cg.Selectable, force?: bo
       }
     }
   }
-  if ((state.selectable.enabled || state.draggable.enabled) && (isMovable(state, selected, true) || isPremovable(state, selected, true))) {
+  if (
+    (state.selectable.enabled || state.draggable.enabled) &&
+    (isMovable(state, selected, true) || isPremovable(state, selected, true))
+  ) {
     setSelected(state, selected, true);
     state.hold.start();
   }
 }
 
 export function setSelected(state: HeadlessState, selected: cg.Selectable, fromPocket?: boolean): void {
-  if (isKey(selected))
-    setSelectedKey(state, selected);
-  else
-    setDropMode(state, selected, !!fromPocket);
+  if (isKey(selected)) setSelectedKey(state, selected);
+  else setDropMode(state, selected, !!fromPocket);
 }
 
 export function setSelectedKey(state: HeadlessState, key: cg.Key): void {
@@ -194,7 +217,7 @@ export function setSelectedKey(state: HeadlessState, key: cg.Key): void {
       state.premovable.castle,
       state.dimensions,
       state.variant,
-      state.chess960,
+      state.chess960
     );
   } else {
     state.premovable.dests = undefined;
@@ -205,12 +228,7 @@ export function setDropMode(state: HeadlessState, piece: cg.Piece, fromPocket: b
   state.selectable.selected = piece;
   state.selectable.fromPocket = fromPocket;
   if (isPremovable(state, piece, fromPocket)) {
-    state.premovable.dests = predrop(
-      state.boardState.pieces,
-      piece,
-      state.dimensions,
-      state.variant,
-    );
+    state.premovable.dests = predrop(state.boardState.pieces, piece, state.dimensions, state.variant);
   } else {
     state.premovable.dests = undefined;
   }
@@ -222,7 +240,11 @@ export function unselect(state: HeadlessState): void {
   state.hold.cancel();
 }
 
-export function pieceAvailability(state: HeadlessState, orig: cg.Selectable, fromPocket: boolean): [cg.Piece | undefined, boolean] {
+export function pieceAvailability(
+  state: HeadlessState,
+  orig: cg.Selectable,
+  fromPocket: boolean
+): [cg.Piece | undefined, boolean] {
   let piece: cg.Piece | undefined;
   let available = false;
   if (isKey(orig)) {
@@ -237,7 +259,7 @@ export function pieceAvailability(state: HeadlessState, orig: cg.Selectable, fro
 }
 
 function isMovable(state: HeadlessState, orig: cg.Selectable, fromPocket: boolean): boolean {
-  const [ piece, available ] = pieceAvailability(state, orig, fromPocket);
+  const [piece, available] = pieceAvailability(state, orig, fromPocket);
   return (
     available &&
     (state.movable.color === 'both' || (state.movable.color === piece!.color && state.turnColor === piece!.color))
@@ -250,20 +272,32 @@ export const canMove = (state: HeadlessState, orig: cg.Selectable, dest: cg.Key,
   (state.movable.free || !!state.movable.dests?.get(isKey(orig) ? orig : dropOrigOf(orig.role))?.includes(dest));
 
 function isPremovable(state: HeadlessState, orig: cg.Selectable, fromPocket: boolean): boolean {
-  const [ piece, available ] = pieceAvailability(state, orig, fromPocket);
-  return fromPocket && available && state.premovable.enabled && state.movable.color === piece!.color && state.turnColor !== piece!.color;
+  const [piece, available] = pieceAvailability(state, orig, fromPocket);
+  return (
+    fromPocket &&
+    available &&
+    state.premovable.enabled &&
+    state.movable.color === piece!.color &&
+    state.turnColor !== piece!.color
+  );
 }
 
 const canPremove = (state: HeadlessState, orig: cg.Selectable, dest: cg.Key, fromPocket: boolean): boolean =>
   orig !== dest &&
   isPremovable(state, orig, fromPocket) &&
-  (isKey(orig) ?
-    premove(state.boardState.pieces, orig, state.premovable.castle, state.dimensions, state.variant, state.chess960).includes(dest) :
-    predrop(state.boardState.pieces, orig, state.dimensions, state.variant).includes(dest)
-  );
+  (isKey(orig)
+    ? premove(
+        state.boardState.pieces,
+        orig,
+        state.premovable.castle,
+        state.dimensions,
+        state.variant,
+        state.chess960
+      ).includes(dest)
+    : predrop(state.boardState.pieces, orig, state.dimensions, state.variant).includes(dest));
 
 export function isDraggable(state: HeadlessState, orig: cg.Selectable, fromPocket: boolean): boolean {
-  const [ piece, available ] = pieceAvailability(state, orig, fromPocket);
+  const [piece, available] = pieceAvailability(state, orig, fromPocket);
   return (
     available &&
     state.draggable.enabled &&
@@ -283,10 +317,8 @@ export function playPremove(state: HeadlessState): boolean {
     if (result) {
       const metadata: cg.MoveMetadata = { premove: true };
       if (result !== true) metadata.captured = result;
-      if (isKey(orig))
-        callUserFunction(state.movable.events.after, orig, dest, metadata);
-      else
-        callUserFunction(state.movable.events.afterNewPiece, orig, dest, metadata);
+      if (isKey(orig)) callUserFunction(state.movable.events.after, orig, dest, metadata);
+      else callUserFunction(state.movable.events.afterNewPiece, orig, dest, metadata);
       success = true;
     }
   }
@@ -308,7 +340,7 @@ export function getKeyAtDomPos(
   pos: cg.NumberPair,
   asWhite: boolean,
   bounds: ClientRect,
-  bd: cg.BoardDimensions,
+  bd: cg.BoardDimensions
 ): cg.Key | undefined {
   let file = Math.floor((bd.width * (pos[0] - bounds.left)) / bounds.width);
   if (!asWhite) file = bd.width - 1 - file;
@@ -322,14 +354,16 @@ export function getSnappedKeyAtDomPos(
   pos: cg.NumberPair,
   asWhite: boolean,
   bounds: ClientRect,
-  bd: cg.BoardDimensions,
+  bd: cg.BoardDimensions
 ): cg.Key | undefined {
   const origPos = key2pos(orig);
   const validSnapPos = allPos(bd).filter(pos2 => {
-    return  queen(origPos[0], origPos[1], pos2[0], pos2[1]) ||
-            knight(origPos[0], origPos[1], pos2[0], pos2[1]) ||
-            // Only apply this to 9x10 board to avoid interfering with other variants beside Janggi
-            (bd.width === 9 && bd.height === 10 && janggiElephant(origPos[0], origPos[1], pos2[0], pos2[1]));
+    return (
+      queen(origPos[0], origPos[1], pos2[0], pos2[1]) ||
+      knight(origPos[0], origPos[1], pos2[0], pos2[1]) ||
+      // Only apply this to 9x10 board to avoid interfering with other variants beside Janggi
+      (bd.width === 9 && bd.height === 10 && janggiElephant(origPos[0], origPos[1], pos2[0], pos2[1]))
+    );
   });
   const validSnapCenters = validSnapPos.map(pos2 => computeSquareCenter(pos2key(pos2), asWhite, bounds, bd));
   const validSnapDistances = validSnapCenters.map(pos2 => distanceSq(pos, pos2));

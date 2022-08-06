@@ -16,7 +16,7 @@ export function read(fen: cg.FEN, bd: cg.BoardDimensions): cg.BoardState {
     const ranks = piecesPart.split('/');
     boardPart = ranks.slice(0, bd.height).join('/');
     // Handle "pocket after an extra slash" format
-    pocketPart = (ranks.length > bd.height) ? ranks[bd.height] : undefined;
+    pocketPart = ranks.length > bd.height ? ranks[bd.height] : undefined;
   }
 
   return {
@@ -86,10 +86,8 @@ function readPockets(pocketStr: string | undefined): cg.Pockets | undefined {
 
     for (const p of pocketStr) {
       const role = roleOf(p as cg.PieceLetter);
-      if (/[A-Z]/.test(p))
-        changeNumber(whitePocket, role, 1);
-      else if (/[a-z]/.test(p))
-        changeNumber(blackPocket, role, 1);
+      if (/[A-Z]/.test(p)) changeNumber(whitePocket, role, 1);
+      else if (/[a-z]/.test(p)) changeNumber(blackPocket, role, 1);
     }
 
     return {
@@ -126,15 +124,12 @@ export function writeBoard(pieces: cg.Pieces, bd: cg.BoardDimensions): cg.FEN {
 }
 
 function writePockets(pockets: cg.Pockets | undefined): string {
-  if (pockets)
-    return '[' + writePocket(pockets.white, true) + writePocket(pockets.black, false) + ']';
-  else
-    return '';
+  if (pockets) return '[' + writePocket(pockets.white, true) + writePocket(pockets.black, false) + ']';
+  else return '';
 }
 
 function writePocket(pocket: cg.Pocket, asWhite: boolean): string {
   const letters: string[] = [];
-  for (const [r, n] of pocket.entries())
-    letters.push(letterOf(r, asWhite).repeat(n));
+  for (const [r, n] of pocket.entries()) letters.push(letterOf(r, asWhite).repeat(n));
   return letters.join('');
 }

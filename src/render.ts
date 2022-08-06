@@ -234,8 +234,7 @@ function computeSquareClasses(s: State): SquareClasses {
   if (s.check && s.highlight.check) addSquare(squares, s.check, 'check');
   const selected = s.selectable.selected;
   if (selected) {
-    if (isKey(selected))
-      addSquare(squares, selected, 'selected');
+    if (isKey(selected)) addSquare(squares, selected, 'selected');
     if (s.movable.showDests) {
       const dests = s.movable.dests?.get(isKey(selected) ? selected : dropOrigOf(selected.role));
       if (dests)
@@ -250,10 +249,7 @@ function computeSquareClasses(s: State): SquareClasses {
     }
   }
   const premove = s.premovable.current;
-  if (premove)
-    for (const k of premove)
-      if (isKey(k))
-        addSquare(squares, k, 'current-premove');
+  if (premove) for (const k of premove) if (isKey(k)) addSquare(squares, k, 'current-premove');
 
   const o = s.exploding;
   if (o) for (const k of o.keys) addSquare(squares, k, 'exploding' + o.stage);

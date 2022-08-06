@@ -40,22 +40,20 @@ export function isDropOrig(orig: cg.Orig): orig is cg.DropOrig {
 }
 
 export function isKey(selectable: cg.Selectable | cg.Orig): selectable is cg.Key {
-  return typeof(selectable) === 'string' && selectable[0] === selectable[0].toLowerCase();
+  return typeof selectable === 'string' && selectable[0] === selectable[0].toLowerCase();
 }
 
 export function isPiece(selectable: cg.Selectable): selectable is cg.Piece {
-  return typeof(selectable) !== 'string';
+  return typeof selectable !== 'string';
 }
 
 export function isSame(lhs: cg.Selectable, rhs: cg.Selectable): boolean {
-  if (isPiece(lhs) && isPiece(rhs))
-    return samePiece(lhs, rhs);
-  else
-    return lhs === rhs;
+  if (isPiece(lhs) && isPiece(rhs)) return samePiece(lhs, rhs);
+  else return lhs === rhs;
 }
 
 export function changeNumber<T>(map: Map<T, number>, key: T, num: number): void {
-    map.set(key, (map.get(key) ?? 0) + num);
+  map.set(key, (map.get(key) ?? 0) + num);
 }
 
 // TODO cover two-digit numbers

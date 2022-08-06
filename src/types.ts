@@ -30,8 +30,8 @@ export type Pockets = Record<Color, Pocket>;
 export type PocketRoles = Record<Color, Role[]>;
 
 export type BoardState = {
-  pieces: Pieces,
-  pockets?: Pockets,
+  pieces: Pieces;
+  pockets?: Pockets;
 };
 
 export type Selectable = Key | Piece;

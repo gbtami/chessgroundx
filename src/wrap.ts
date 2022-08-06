@@ -4,10 +4,10 @@ import { colors, letters, Elements, Notation } from './types.js';
 import { createElement as createSVG, setAttributes } from './svg.js';
 
 type CoordFormat = {
-  coords: readonly string[],
-  position: 'top' | 'bottom' | 'side',
-  direction: 'forward' | 'backward',  // "Forward" means bottom to top / left to right
-  noBlackReverse?: boolean,           // Don't reverse the direction for black orientation
+  coords: readonly string[];
+  position: 'top' | 'bottom' | 'side';
+  direction: 'forward' | 'backward'; // "Forward" means bottom to top / left to right
+  noBlackReverse?: boolean; // Don't reverse the direction for black orientation
 };
 
 const LETTER_ENGLISH = letters;
@@ -15,57 +15,72 @@ const NUMBER_ARABIC = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'] as con
 const NUMBER_JANGGI = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'] as const;
 
 const coordFormat: Record<Notation, CoordFormat[]> = {
-  [Notation.ALGEBRAIC]: [{
-    coords: LETTER_ENGLISH,
-    position: 'bottom',
-    direction: 'forward',
-  }, {
-    coords: NUMBER_ARABIC,
-    position: 'side',
-    direction: 'forward',
-  }],
+  [Notation.ALGEBRAIC]: [
+    {
+      coords: LETTER_ENGLISH,
+      position: 'bottom',
+      direction: 'forward',
+    },
+    {
+      coords: NUMBER_ARABIC,
+      position: 'side',
+      direction: 'forward',
+    },
+  ],
 
-  [Notation.SHOGI_ENGLET]: [{
-    coords: NUMBER_ARABIC,
-    position: 'top',
-    direction: 'backward',
-  }, {
-    coords: LETTER_ENGLISH,
-    position: 'side',
-    direction: 'backward',
-  }],
+  [Notation.SHOGI_ENGLET]: [
+    {
+      coords: NUMBER_ARABIC,
+      position: 'top',
+      direction: 'backward',
+    },
+    {
+      coords: LETTER_ENGLISH,
+      position: 'side',
+      direction: 'backward',
+    },
+  ],
 
-  [Notation.SHOGI_ARBNUM]: [{
-    coords: NUMBER_ARABIC,
-    position: 'top',
-    direction: 'backward',
-  }, {
-    coords: NUMBER_ARABIC,
-    position: 'side',
-    direction: 'backward',
-  }],
+  [Notation.SHOGI_ARBNUM]: [
+    {
+      coords: NUMBER_ARABIC,
+      position: 'top',
+      direction: 'backward',
+    },
+    {
+      coords: NUMBER_ARABIC,
+      position: 'side',
+      direction: 'backward',
+    },
+  ],
 
-  [Notation.JANGGI]: [{
-    coords: NUMBER_ARABIC,
-    position: 'bottom',
-    direction: 'forward',
-  }, {
-    coords: NUMBER_JANGGI,
-    position: 'side',
-    direction: 'backward',
-  }],
+  [Notation.JANGGI]: [
+    {
+      coords: NUMBER_ARABIC,
+      position: 'bottom',
+      direction: 'forward',
+    },
+    {
+      coords: NUMBER_JANGGI,
+      position: 'side',
+      direction: 'backward',
+    },
+  ],
 
-  [Notation.XIANGQI_ARBNUM]: [{
-    coords: NUMBER_ARABIC,
-    position: 'top',
-    direction: 'forward',
-    noBlackReverse: true,
-  }, {
-    coords: NUMBER_ARABIC,
-    position: 'bottom',
-    direction: 'backward',
-    noBlackReverse: true,
-  }],
+  [Notation.XIANGQI_ARBNUM]: [
+    {
+      coords: NUMBER_ARABIC,
+      position: 'top',
+      direction: 'forward',
+      noBlackReverse: true,
+    },
+    {
+      coords: NUMBER_ARABIC,
+      position: 'bottom',
+      direction: 'backward',
+      noBlackReverse: true,
+    },
+  ],
 };
 
 export function renderWrap(element: HTMLElement, s: HeadlessState): Elements {
@@ -145,7 +160,9 @@ export function renderWrap(element: HTMLElement, s: HeadlessState): Elements {
       const max = f.position === 'side' ? s.dimensions.height : s.dimensions.width;
       const pos = f.position; // TODO pos = f.position === 'side' ? s.ranksPosition : f.position;
       const coords = f.coords.slice(0, max);
-      container.appendChild(renderCoords(coords, `${pos} ${f.direction}${f.noBlackReverse ? '' : ' ' + s.orientation}`));
+      container.appendChild(
+        renderCoords(coords, `${pos} ${f.direction}${f.noBlackReverse ? '' : ' ' + s.orientation}`)
+      );
     });
   }
 

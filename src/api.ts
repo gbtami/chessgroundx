@@ -122,10 +122,8 @@ export function start(state: State, redrawAll: cg.Redraw): Api {
     },
 
     move(orig, dest): void {
-      if (isDropOrig(orig))
-        board.baseNewPiece(state, { role: roleOf(orig), color: state.turnColor }, dest, true);
-      else
-        anim(state => board.baseMove(state, orig, dest), state);
+      if (isDropOrig(orig)) board.baseNewPiece(state, { role: roleOf(orig), color: state.turnColor }, dest, true);
+      else anim(state => board.baseMove(state, orig, dest), state);
     },
 
     newPiece(piece, key, fromPocket): void {

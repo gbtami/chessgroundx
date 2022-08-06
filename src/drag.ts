@@ -112,7 +112,7 @@ export function processDrag(s: State): void {
     // cancel animations while dragging
     if (cur.orig && s.animation.current?.plan.anims.has(cur.orig)) s.animation.current = undefined;
     // if moving piece is gone, cancel
-    const [ origPiece, available ] = board.pieceAvailability(s, cur.orig ?? cur.piece, !!cur.fromPocket);
+    const [origPiece, available] = board.pieceAvailability(s, cur.orig ?? cur.piece, !!cur.fromPocket);
     if (!available || !util.samePiece(origPiece!, cur.piece)) cancel(s);
     else {
       if (!cur.started && util.distanceSq(cur.pos, cur.origPos) >= Math.pow(s.draggable.distance, 2))
@@ -164,23 +164,25 @@ export function end(s: State, e: cg.MouchEvent): void {
   const dest = board.getKeyAtDomPos(eventPos, board.whitePov(s), s.dom.bounds(), s.dimensions);
   const target = e.target as HTMLElement;
   const onPocket = Number((target as HTMLElement).getAttribute('data-nb') ?? -1) >= 0;
-  const targetPiece = onPocket ? { role: target.getAttribute('data-role'), color: target.getAttribute('data-color') } as cg.Piece : undefined;
+  const targetPiece = onPocket
+    ? ({ role: target.getAttribute('data-role'), color: target.getAttribute('data-color') } as cg.Piece)
+    : undefined;
   if (dest && cur.started && cur.orig !== dest) {
     s.stats.ctrlKey = e.ctrlKey;
-    if (board.userMove(s, cur.orig ? cur.orig : cur.piece, dest, !!cur.fromPocket))
-      s.stats.dragged = true;
+    if (board.userMove(s, cur.orig ? cur.orig : cur.piece, dest, !!cur.fromPocket)) s.stats.dragged = true;
   } else if (s.draggable.deleteOnDropOff && !dest && !targetPiece) {
-    if (cur.orig)
-      s.boardState.pieces.delete(cur.orig);
-    else if (cur.fromPocket)
-      util.changeNumber(s.boardState.pockets![cur.piece.color], cur.piece.role, -1);
+    if (cur.orig) s.boardState.pieces.delete(cur.orig);
+    else if (cur.fromPocket) util.changeNumber(s.boardState.pockets![cur.piece.color], cur.piece.role, -1);
     board.callUserFunction(s.events.change);
   }
-  if (((cur.previouslySelected && (cur.orig === cur.previouslySelected || util.isSame(cur.piece, cur.previouslySelected))) || cur.keyHasChanged) &&
-      (cur.orig === dest || !dest))
+  if (
+    ((cur.previouslySelected &&
+      (cur.orig === cur.previouslySelected || util.isSame(cur.piece, cur.previouslySelected))) ||
+      cur.keyHasChanged) &&
+    (cur.orig === dest || !dest)
+  )
     board.unselect(s);
-  if (!cur.orig && (!targetPiece || !util.samePiece(cur.piece, targetPiece)))
-    board.unselect(s);
+  if (!cur.orig && (!targetPiece || !util.samePiece(cur.piece, targetPiece))) board.unselect(s);
   else if (!s.selectable.enabled) board.unselect(s);
 
   removeDragElements(s);
