@@ -46,7 +46,7 @@ export function start(s: State, e: cg.MouchEvent): void {
   }
   const stillSelected = s.selectable.selected === orig;
   const element = pieceElementByKey(s, orig);
-  if (piece && element && stillSelected && board.isDraggable(s, orig)) {
+  if (piece && element && stillSelected && board.isDraggable(s, orig, false)) {
     s.draggable.current = {
       orig,
       piece,

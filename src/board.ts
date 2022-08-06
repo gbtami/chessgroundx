@@ -223,19 +223,24 @@ export function unselect(state: HeadlessState): void {
   state.hold.cancel();
 }
 
-function isMovable(state: HeadlessState, orig: cg.Selectable, fromPocket: boolean): boolean {
+function pieceAvailability(state: HeadlessState, orig: cg.Selectable, fromPocket: boolean): [cg.Piece | undefined, boolean] {
   let piece: cg.Piece | undefined;
-  let pieceAvailable: boolean = false;
+  let available = false;
   if (isKey(orig)) {
     piece = state.boardState.pieces.get(orig);
-    pieceAvailable = !!piece;
+    available = !!piece;
   } else {
     piece = orig;
     const num = state.boardState.pockets?.[piece.color].get(piece.role) ?? 0;
-    pieceAvailable = !fromPocket || num > 0;
+    available = !fromPocket || num > 0;
   }
+  return [piece, available];
+}
+
+function isMovable(state: HeadlessState, orig: cg.Selectable, fromPocket: boolean): boolean {
+  const [ piece, available ] = pieceAvailability(state, orig, fromPocket);
   return (
-    pieceAvailable &&
+    available &&
     (state.movable.color === 'both' || (state.movable.color === piece!.color && state.turnColor === piece!.color))
   );
 }
@@ -246,17 +251,8 @@ export const canMove = (state: HeadlessState, orig: cg.Selectable, dest: cg.Key,
   (state.movable.free || !!state.movable.dests?.get(isKey(orig) ? orig : dropOrigOf(orig.role))?.includes(dest));
 
 function isPremovable(state: HeadlessState, orig: cg.Selectable, fromPocket: boolean): boolean {
-  let piece: cg.Piece | undefined;
-  let pieceAvailable: boolean = false;
-  if (isKey(orig)) {
-    piece = state.boardState.pieces.get(orig);
-    pieceAvailable = !!piece;
-  } else {
-    piece = orig;
-    const num = state.boardState.pockets?.[piece.color].get(piece.role) ?? 0;
-    pieceAvailable = fromPocket && num > 0;
-  }
-  return pieceAvailable && state.premovable.enabled && state.movable.color === piece!.color && state.turnColor !== piece!.color;
+  const [ piece, available ] = pieceAvailability(state, orig, fromPocket);
+  return fromPocket && available && state.premovable.enabled && state.movable.color === piece!.color && state.turnColor !== piece!.color;
 }
 
 const canPremove = (state: HeadlessState, orig: cg.Selectable, dest: cg.Key, fromPocket: boolean): boolean =>
@@ -267,19 +263,10 @@ const canPremove = (state: HeadlessState, orig: cg.Selectable, dest: cg.Key, fro
     predrop(state.boardState.pieces, orig, state.dimensions, state.variant).includes(dest)
   );
 
-export function isDraggable(state: HeadlessState, orig: cg.Key | cg.Piece): boolean {
-  let piece: cg.Piece | undefined;
-  let pieceAvailable: boolean = false;
-  if (isKey(orig)) {
-    piece = state.boardState.pieces.get(orig);
-    pieceAvailable = !!piece;
-  } else {
-    piece = orig;
-    const num = state.boardState.pockets?.[piece.color].get(piece.role) ?? 0;
-    pieceAvailable = num > 0;
-  }
+export function isDraggable(state: HeadlessState, orig: cg.Selectable, fromPocket: boolean): boolean {
+  const [ piece, available ] = pieceAvailability(state, orig, fromPocket);
   return (
-    pieceAvailable &&
+    available &&
     state.draggable.enabled &&
     (state.movable.color === 'both' ||
       (state.movable.color === piece!.color && (state.turnColor === piece!.color || state.premovable.enabled)))

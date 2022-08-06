@@ -104,7 +104,7 @@ export function drag(s: State, e: cg.MouchEvent): void {
   const selected = s.selectable.selected;
   const stillSelected = selected && util.isPiece(selected) && selected.role === piece.role && selected.color === piece.color;
   const element = pieceElementInPocket(s, piece);
-  if (element && stillSelected && board.isDraggable(s, piece)) {
+  if (element && stillSelected && board.isDraggable(s, piece, true)) {
     s.draggable.current = {
       piece,
       origPos: position,
