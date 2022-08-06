@@ -47,6 +47,13 @@ export function isPiece(selectable: cg.Selectable): selectable is cg.Piece {
   return typeof(selectable) !== 'string';
 }
 
+export function isSame(lhs: cg.Selectable, rhs: cg.Selectable): boolean {
+  if (isPiece(lhs) && isPiece(rhs))
+    return samePiece(lhs, rhs);
+  else
+    return lhs === rhs;
+}
+
 export function kingRoles(variant: cg.Variant): cg.Role[] {
   switch (variant) {
     case 'dobutsu': return ['l-piece'];
@@ -101,7 +108,7 @@ export const timer = (): cg.Timer => {
 export const opposite = (c: cg.Color): cg.Color => (c === 'white' ? 'black' : 'white');
 
 export const samePiece = (p1: cg.Piece, p2: cg.Piece): boolean =>
-  p1.role === p2.role && p1.color === p2.color && p1.promoted === p2.promoted;
+  p1.role === p2.role && p1.color === p2.color && !!p1.promoted === !!p2.promoted;
 
 export const pieceSide = (p: cg.Piece, o: cg.Color): cg.PieceSide => (p.color === o ? 'ally' : 'enemy');
 

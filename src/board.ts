@@ -1,5 +1,5 @@
 import { HeadlessState } from './state.js';
-import { pos2key, key2pos, opposite, distanceSq, allPos, computeSquareCenter, dropOrigOf, kingRoles, changeNumber, isKey } from './util.js';
+import { pos2key, key2pos, opposite, distanceSq, allPos, computeSquareCenter, dropOrigOf, kingRoles, changeNumber, isKey, isSame } from './util.js';
 import { premove, queen, knight, janggiElephant } from './premove.js';
 import { predrop } from './predrop.js';
 import * as cg from './types.js';
@@ -161,7 +161,7 @@ export function select(state: HeadlessState, selected: cg.Selectable, force?: bo
   else
     callUserFunction(state.events.selectPocket, selected);
   if (state.selectable.selected) {
-    if (state.selectable.selected === selected && !state.draggable.enabled) {
+    if (isSame(state.selectable.selected, selected) && !state.draggable.enabled) {
       unselect(state);
       state.hold.cancel();
       return;
@@ -173,10 +173,27 @@ export function select(state: HeadlessState, selected: cg.Selectable, force?: bo
     }
   }
   if ((state.selectable.enabled || state.draggable.enabled) && (isMovable(state, selected, true) || isPremovable(state, selected, true))) {
-    setSelected(state, selected, true);
+    setSelected(state, selected);
     state.hold.start();
   }
 }
+
+/*
+export function selectPocket(state: HeadlessState, piece: cg.Piece): void {
+  callUserFunction(state.events.selectPocket, piece);
+  if (state.selectable.selected) {
+    if (isPiece(state.selectable.selected) && state.selectable.selected.role === piece.role && state.selectable.selected.color === piece.color && !state.draggable.enabled) {
+      unselect(state);
+      state.hold.cancel();
+      return;
+    }
+  }
+  if ((state.selectable.enabled || state.draggable.enabled) && (isMovable(state, piece, true) || isPremovable(state, piece, true))) {
+    setDropMode(state, piece, true);
+    state.hold.start();
+  }
+}
+*/
 
 export function setSelected(state: HeadlessState, selected: cg.Selectable, fromPocket?: boolean): void {
   if (isKey(selected))

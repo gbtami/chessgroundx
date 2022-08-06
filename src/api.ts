@@ -34,7 +34,7 @@ export interface Api {
   selectSquare(key: cg.Key | null, force?: boolean): void;
 
   // click a pocket piece programmatically
-  selectPocket(piece: cg.Piece | null, force?: boolean): void;
+  selectPocket(piece: cg.Piece | null): void;
 
   // unselect everything programmatically
   unselect(): void;
@@ -109,8 +109,8 @@ export function start(state: State, redrawAll: cg.Redraw): Api {
       }
     },
 
-    selectPocket(piece, force): void {
-      if (piece) anim(state => board.select(state, piece, force), state);
+    selectPocket(piece): void {
+      if (piece) anim(state => board.select(state, piece), state);
       else if (state.selectable.selected) {
         board.unselect(state);
         state.dom.redraw();
