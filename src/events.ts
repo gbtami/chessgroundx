@@ -30,31 +30,6 @@ export function bindBoard(s: State, onResize: () => void): void {
   }
 }
 
-export function bindPockets(s: State): void {
-  const pocketTop = s.dom.elements.pocketTop;
-  const pocketBottom = s.dom.elements.pocketBottom;
-
-  if (s.viewOnly) return;
-
-  // Cannot be passive, because we prevent touch scrolling and dragging of
-  // selected elements.
-  const onStart = startDragOrDrawPocket(s);
-  [pocketTop, pocketBottom].forEach(el => {
-    if (el) {
-      el.addEventListener('touchstart', onStart as EventListener, {
-        passive: false,
-      });
-      el.addEventListener('mousedown', onStart as EventListener, {
-        passive: false,
-      });
-
-      if (s.disableContextMenu || s.drawable.enabled) {
-        el.addEventListener('contextmenu', e => e.preventDefault());
-      }
-    }
-  });
-}
-
 // returns the unbind function
 export function bindDocument(s: State, onResize: () => void): cg.Unbind {
   const unbinds: cg.Unbind[] = [];
@@ -73,6 +48,18 @@ export function bindDocument(s: State, onResize: () => void): cg.Unbind {
     const onScroll = () => s.dom.bounds.clear();
     unbinds.push(unbindable(document, 'scroll', onScroll, { capture: true, passive: true }));
     unbinds.push(unbindable(window, 'resize', onScroll, { passive: true }));
+
+    const pocketTop = s.dom.elements.pocketTop;
+    const pocketBottom = s.dom.elements.pocketBottom;
+    const pocketStart = startDragOrDrawPocket(s);
+    [pocketTop, pocketBottom].forEach(el => {
+      if (el) {
+        for (const ev of ['touchstart', 'mousedown'])
+          unbinds.push(unbindable(el, ev, pocketStart as EventListener));
+        if (s.disableContextMenu || s.drawable.enabled)
+          unbinds.push(unbindable(el, 'contextmenu', e => e.preventDefault()));
+      }
+    });
   }
 
   return () => unbinds.forEach(f => f());
@@ -103,11 +90,13 @@ const startDragOrDraw =
 const startDragOrDrawPocket =
   (s: State): MouchBind =>
     e => {
-      if (s.draggable.current) drag.cancel(s);
-      else if (s.drawable.current) draw.cancel(s);
+      if (s.draggable.current) {console.log('1');drag.cancel(s);}
+      else if (s.drawable.current) {console.log('2');draw.cancel(s);}
       else if (e.shiftKey || isRightButton(e)) {
+        console.log('3');
         if (s.drawable.enabled) draw.start(s, e);
       } else if (!s.viewOnly) {
+        console.log('4');
         pocket.drag(s, e);
       }
     };

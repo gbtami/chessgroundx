@@ -46,7 +46,6 @@ export function Chessground(element: HTMLElement, config?: Config, pocketTop?: H
     updateBounds(state);
     redrawNow(false);
     events.bindBoard(state, onResize);
-    events.bindPockets(state);
     if (!prevUnbind) state.dom.unbind = events.bindDocument(state, onResize);
     state.events.insert && state.events.insert(elements);
     return state;
