@@ -209,6 +209,8 @@ export function setSelected(state: HeadlessState, selected: cg.Selectable, fromP
 export function setSelectedKey(state: HeadlessState, key: cg.Key): void {
   state.selectable.selected = key;
   state.selectable.fromPocket = false;
+  console.log(state.premovable);
+  console.log(isPremovable(state, key, false));
   if (isPremovable(state, key, false)) {
     state.premovable.dests = state.premovable.premoveFunc(state.boardState, key, state.premovable.castle);
   } else {
@@ -266,7 +268,6 @@ export const canMove = (state: HeadlessState, orig: cg.Selectable, dest: cg.Key,
 function isPremovable(state: HeadlessState, orig: cg.Selectable, fromPocket: boolean): boolean {
   const [piece, available] = pieceAvailability(state, orig, fromPocket);
   return (
-    fromPocket &&
     available &&
     state.premovable.enabled &&
     state.movable.color === piece!.color &&
