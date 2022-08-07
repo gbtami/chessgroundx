@@ -53,20 +53,18 @@ function rookFilesOf(pieces: cg.Pieces, color: cg.Color) {
   return files;
 }
 
-/* TODO add and make use of these
-
-function and(m1: Mobility, m2: Mobility): Mobility {
-    return (x1, y1, x2, y2) => m1(x1, y1, x2, y2) && m2(x1, y1, x2, y2);
+/* TODO make use of these
+function and(...ms: Mobility[]): Mobility {
+  return (x1, y1, x2, y2) => ms.map(m => m(x1, y1, x2, y2)).reduce((a, b) => a && b);
 }
 
-function or(m1: Mobility, m2: Mobility): Mobility {
-    return (x1, y1, x2, y2) => m1(x1, y1, x2, y2) || m2(x1, y1, x2, y2);
+function or(...ms: Mobility[]): Mobility {
+  return (x1, y1, x2, y2) => ms.map(m => m(x1, y1, x2, y2)).reduce((a, b) => a || b);
 }
 
 function not(m: Mobility): Mobility {
-    return (x1, y1, x2, y2) => !m(x1, y1, x2, y2);
+  return (x1, y1, x2, y2) => !m(x1, y1, x2, y2);
 }
-
 */
 
 function backrank(color: cg.Color): number {
@@ -518,700 +516,647 @@ function kingChennis(color: cg.Color): Mobility {
     kingNoCastling(x1, y1, x2, y2) && x2 >= 1 && x2 <= 5 && (color === 'white' ? y2 <= 3 : y2 >= 3);
 }
 
-export function premove(
-  pieces: cg.Pieces,
-  key: cg.Key,
-  canCastle: boolean,
-  bd: cg.BoardDimensions,
-  variant: cg.Variant,
-  chess960: boolean
-): cg.Key[] {
-  const piece = pieces.get(key)!;
-  const role = piece.role;
-  const color = piece.color;
-  const pos = util.key2pos(key);
-  let mobility: Mobility = () => false;
+// cannot premove
+const noMove = () => false;
 
+export function premove(
+  variant: string,
+  chess960: boolean,
+  bd: cg.BoardDimensions,
+): cg.Premove {
+  const mobility = builtinMobility(variant, chess960, bd);
+  return (boardState, key, canCastle) => {
+    const pos = util.key2pos(key);
+    return util
+      .allPos(bd)
+      .filter(pos2 => (pos[0] !== pos2[0] || pos[1] !== pos2[1]) && mobility(key, boardState, canCastle)(pos[0], pos[1], pos2[0], pos2[1]))
+      .map(util.pos2key);
+  }
+}
+
+function builtinMobility(variant: string, chess960: boolean, bd: cg.BoardDimensions): (key: cg.Key, boardState: cg.BoardState, canCastle: boolean) => Mobility {
   switch (variant) {
     case 'xiangqi':
     case 'manchu':
-      switch (role) {
-        case 'p-piece':
-          mobility = xiangqiPawn(color);
-          break; // pawn
-        case 'c-piece': // cannon
-        case 'r-piece':
-          mobility = rook;
-          break; // rook
-        case 'n-piece':
-          mobility = knight;
-          break; // horse
-        case 'b-piece':
-          mobility = xiangqiElephant(color);
-          break; // elephant
-        case 'a-piece':
-          mobility = xiangqiAdvisor(color, bd);
-          break; // advisor
-        case 'k-piece':
-          mobility = xiangqiKing(color, bd);
-          break; // king
-        case 'm-piece':
-          mobility = chancellor;
-          break; // banner
-      }
-      break;
-
-    case 'janggi':
-      switch (piece.role) {
-        case 'p-piece':
-          mobility = janggiPawn(color, bd);
-          break; // pawn
-        case 'c-piece': // cannon
-        case 'r-piece':
-          mobility = janggiRook(bd);
-          break; // rook
-        case 'n-piece':
-          mobility = knight;
-          break; // horse
-        case 'b-piece':
-          mobility = janggiElephant;
-          break; // elephant
-        case 'a-piece': // advisor
-        case 'k-piece':
-          mobility = janggiKing(color, bd);
-          break; // king
-      }
-      break;
-
-    case 'minixiangqi':
-      {
-        switch (piece.role) {
-          case 'p-piece':
-            mobility = minixiangqiPawn(color);
-            break; // pawn
+      return (key, boardState) => {
+        const piece = boardState.pieces.get(key)!;
+        const role = piece.role;
+        const color = piece.color;
+        switch (role) {
+          case 'p-piece': // pawn (soldier)
+            return xiangqiPawn(color);
           case 'c-piece': // cannon
-          case 'r-piece':
-            mobility = rook;
-            break; // rook
-          case 'n-piece':
-            mobility = knight;
-            break; // horse
-          case 'k-piece':
-            mobility = xiangqiKing(color, bd);
-            break; // king
+          case 'r-piece': // chariot
+            return rook;
+          case 'n-piece': // horse
+            return knight;
+          case 'b-piece': // elephant
+            return xiangqiElephant(color);
+          case 'a-piece': // advisor
+            return xiangqiAdvisor(color, bd);
+          case 'k-piece': // king
+            return xiangqiKing(color, bd);
+          case 'm-piece': // banner
+            return chancellor;
+          default:
+            return noMove;
         }
       }
-      break;
+
+    case 'janggi':
+      return (key, boardState) => {
+        const piece = boardState.pieces.get(key)!;
+        const role = piece.role;
+        const color = piece.color;
+        switch (role) {
+          case 'p-piece': // pawn (soldier)
+            return janggiPawn(color, bd);
+          case 'c-piece': // cannon
+          case 'r-piece': // chariot
+            return janggiRook(bd);
+          case 'n-piece': // horse
+            return knight;
+          case 'b-piece': // elephant
+            return janggiElephant;
+          case 'a-piece': // advisor
+          case 'k-piece': // king
+            return janggiKing(color, bd);
+          default:
+            return noMove;
+        }
+      }
+
+    case 'minixiangqi':
+      return (key, boardState) => {
+        const piece = boardState.pieces.get(key)!;
+        const role = piece.role;
+        const color = piece.color;
+        switch (role) {
+          case 'p-piece': // pawn (soldier
+            return minixiangqiPawn(color);
+          case 'c-piece': // cannon
+          case 'r-piece': // chariot
+            return rook;
+          case 'n-piece': // horse
+            return knight;
+          case 'k-piece': // king
+            return xiangqiKing(color, bd);
+          default:
+            return noMove;
+        }
+      }
 
     case 'shogi':
     case 'minishogi':
     case 'gorogoro':
     case 'gorogoroplus':
-      switch (piece.role) {
-        case 'p-piece':
-          mobility = shogiPawn(color);
-          break; // pawn
-        case 'l-piece':
-          mobility = shogiLance(color);
-          break; // lance
-        case 'n-piece':
-          mobility = shogiKnight(color);
-          break; // knight
-        case 'k-piece':
-          mobility = kingNoCastling;
-          break; // king
-        case 's-piece':
-          mobility = shogiSilver(color);
-          break; // silver
-        case 'pp-piece': // tokin
-        case 'pl-piece': // promoted lance
-        case 'pn-piece': // promoted knight
-        case 'ps-piece': // promoted silver
-        case 'g-piece':
-          mobility = shogiGold(color);
-          break; // gold
-        case 'b-piece':
-          mobility = bishop;
-          break; // bishop
-        case 'r-piece':
-          mobility = rook;
-          break; // rook
-        case 'pr-piece':
-          mobility = shogiDragon;
-          break; // dragon
-        case 'pb-piece':
-          mobility = shogiHorse;
-          break; // horse
+      return (key, boardState) => {
+        const piece = boardState.pieces.get(key)!;
+        const role = piece.role;
+        const color = piece.color;
+        switch (role) {
+          case 'p-piece': // pawn
+            return shogiPawn(color);
+          case 'l-piece': // lance
+            return shogiLance(color);
+          case 'n-piece': // knight
+            return shogiKnight(color);
+          case 'k-piece': // king
+            return kingNoCastling;
+          case 's-piece': // silver
+            return shogiSilver(color);
+          case 'g-piece': // gold
+          case 'pp-piece': // tokin
+          case 'pl-piece': // promoted lance
+          case 'pn-piece': // promoted knight
+          case 'ps-piece': // promoted silver
+            return shogiGold(color);
+          case 'b-piece': // bishop
+            return bishop;
+          case 'r-piece': // rook
+            return rook;
+          case 'pr-piece': // dragon (promoted rook)
+            return shogiDragon;
+          case 'pb-piece': // horse (promoted bishop), not to be confused with the knight
+            return shogiHorse;
+          default:
+            return noMove;
+        }
       }
-      break;
 
     case 'kyotoshogi':
-      switch (piece.role) {
-        case 'l-piece':
-          mobility = shogiLance(color);
-          break; // kyoto - lance-tokin
-        case 'pl-piece':
-          mobility = shogiGold(color);
-          break;
-        case 's-piece':
-          mobility = shogiSilver(color);
-          break; // ginkaku - silver-bishop
-        case 'ps-piece':
-          mobility = bishop;
-          break;
-        case 'n-piece':
-          mobility = shogiKnight(color);
-          break; // kinkei - gold-knight
-        case 'pn-piece':
-          mobility = shogiGold(color);
-          break;
-        case 'p-piece':
-          mobility = shogiPawn(color);
-          break; // hifu - rook-pawn
-        case 'pp-piece':
-          mobility = rook;
-          break;
-        case 'k-piece':
-          mobility = kingNoCastling;
-          break; // king
+      return (key, boardState) => {
+        const piece = boardState.pieces.get(key)!;
+        const role = piece.role;
+        const color = piece.color;
+        switch (role) {
+          case 'l-piece': // kyoto - lance-tokin
+            return shogiLance(color);
+          case 'pl-piece':
+            return shogiGold(color);
+          case 's-piece': // ginkaku - silver-bishop
+            return shogiSilver(color);
+          case 'ps-piece':
+            return bishop;
+          case 'n-piece': // kinkei gold-knight
+            return shogiKnight(color);
+          case 'pn-piece':
+            return shogiGold(color);
+          case 'p-piece': // hifu - rook-pawn
+            return shogiPawn(color);
+          case 'pp-piece':
+            return rook;
+          case 'k-piece': // king
+            return kingNoCastling;
+          default:
+            return noMove;
+        }
       }
-      break;
 
     case 'dobutsu':
-      switch (piece.role) {
-        case 'c-piece':
-          mobility = shogiPawn(color);
-          break; // chick
-        case 'e-piece':
-          mobility = ferz;
-          break; // elephant
-        case 'g-piece':
-          mobility = wazir;
-          break; // giraffe
-        case 'l-piece':
-          mobility = kingNoCastling;
-          break; // lion
-        case 'pc-piece':
-          mobility = shogiGold(color);
-          break; // hen
+      return (key, boardState) => {
+        const piece = boardState.pieces.get(key)!;
+        const role = piece.role;
+        const color = piece.color;
+        switch (role) {
+          case 'c-piece': // chick
+            return shogiPawn(color);
+          case 'e-piece': // elephant
+            return ferz;
+          case 'g-piece': // giraffe
+            return wazir;
+          case 'l-piece': // lion
+            return kingNoCastling;
+          case 'pc-piece': // hen (promoted chick)
+            return shogiGold(color);
+          default:
+            return noMove;
+        }
       }
-      break;
 
     case 'torishogi':
-      switch (role) {
-        case 's-piece':
-          mobility = shogiPawn(color);
-          break; // swallow
-        case 'ps-piece':
-          mobility = toriGoose(color);
-          break; // goose
-        case 'l-piece':
-          mobility = toriLeftQuail(color);
-          break; // left quail
-        case 'r-piece':
-          mobility = toriRightQuail(color);
-          break; // right quail
-        case 'p-piece':
-          mobility = toriPheasant(color);
-          break; // pheasant
-        case 'c-piece':
-          mobility = toriCrane;
-          break; // crane
-        case 'f-piece':
-          mobility = toriFalcon(color);
-          break; // falcon
-        case 'pf-piece':
-          mobility = toriEagle(color);
-          break; // eagle
-        case 'k-piece':
-          mobility = kingNoCastling;
-          break; // phoenix
+      return (key, boardState) => {
+        const piece = boardState.pieces.get(key)!;
+        const role = piece.role;
+        const color = piece.color;
+        switch (role) {
+          case 's-piece': // swallow
+            return shogiPawn(color);
+          case 'ps-piece': // goose (promoted swallow)
+            return toriGoose(color);
+          case 'l-piece': // left quail
+            return toriLeftQuail(color);
+          case 'r-piece': // right quail
+            return toriRightQuail(color);
+          case 'p-piece': // pheasant (NOT pawn)
+            return toriPheasant(color);
+          case 'c-piece': // crane
+            return toriCrane;
+          case 'f-piece': // falcon
+            return toriFalcon(color);
+          case 'pf-piece': // eagle (promoted falcon)
+            return toriEagle(color);
+          case 'k-piece': // phoenix
+            return kingNoCastling;
+          default:
+            return noMove;
+        }
       }
-      break;
 
     case 'makruk':
     case 'makpong':
     case 'sittuyin':
     case 'cambodian':
     case 'asean':
-      switch (role) {
-        case 'p-piece':
-          mobility = pawnNoDoubleStep(color);
-          break; // pawn
-        case 'r-piece':
-          mobility = rook;
-          break; // rook
-        case 'n-piece':
-          mobility = knight;
-          break; // knight
-        case 'b-piece': // ASEAN bishop
-        case 's-piece':
-          mobility = shogiSilver(color);
-          break; // khon
-        case 'q-piece': // ASEAN queen
-        case 'f-piece': // Sittuyin ferz
-        case 'm-piece':
-          mobility = ferz;
-          break; // met
-        case 'k-piece':
-          mobility = kingNoCastling;
-          break; // king
+      return (key, boardState) => {
+        const piece = boardState.pieces.get(key)!;
+        const role = piece.role;
+        const color = piece.color;
+        switch (role) {
+          case 'p-piece': // pawn
+            return pawnNoDoubleStep(color);
+          case 'r-piece': // rook
+            return rook;
+          case 'n-piece': // knight
+            return knight;
+          case 'b-piece': // ASEAN khon
+          case 's-piece': // khon
+            return shogiSilver(color);
+          case 'q-piece': // ASEAN met
+          case 'f-piece': // Sittuyin ferz
+          case 'm-piece': // met
+            return ferz;
+          case 'k-piece': // king
+            return kingNoCastling;
+          default:
+            return noMove;
+        }
       }
-      break;
 
     case 'grand':
     case 'grandhouse':
-      switch (role) {
-        case 'p-piece':
-          mobility = pawnGrand(color);
-          break; // pawn
-        case 'r-piece':
-          mobility = rook;
-          break; // rook
-        case 'n-piece':
-          mobility = knight;
-          break; // knight
-        case 'b-piece':
-          mobility = bishop;
-          break; // bishop
-        case 'q-piece':
-          mobility = queen;
-          break; // queen
-        case 'c-piece':
-          mobility = chancellor;
-          break; // chancellor
-        case 'a-piece':
-          mobility = archbishop;
-          break; // archbishop
-        case 'k-piece':
-          mobility = kingNoCastling;
-          break; // king
+      return (key, boardState) => {
+        const piece = boardState.pieces.get(key)!;
+        const role = piece.role;
+        const color = piece.color;
+        switch (role) {
+          case 'p-piece': // pawn
+            return pawnGrand(color);
+          case 'r-piece': // rook
+            return rook;
+          case 'n-piece': // knight
+            return knight;
+          case 'b-piece': // bishop
+            return bishop;
+          case 'q-piece': // queen
+            return queen;
+          case 'c-piece': // chancellor
+            return chancellor;
+          case 'a-piece': // archbishop
+            return archbishop;
+          case 'k-piece': // king
+            return kingNoCastling;
+          default:
+            return noMove;
+        }
       }
-      break;
 
     case 'shako':
-      switch (role) {
-        case 'p-piece':
-          mobility = pawnGrand(color);
-          break; // pawn
-        case 'c-piece': // cannon
-        case 'r-piece':
-          mobility = rook;
-          break; // rook
-        case 'n-piece':
-          mobility = knight;
-          break; // knight
-        case 'b-piece':
-          mobility = bishop;
-          break; // bishop
-        case 'q-piece':
-          mobility = queen;
-          break; // queen
-        case 'e-piece':
-          mobility = shakoElephant;
-          break; // elephant
-        case 'k-piece':
-          mobility = kingShako(color, rookFilesOfShako(pieces, color), canCastle);
-          break; // king
+      return (key, boardState, canCastle) => {
+        const piece = boardState.pieces.get(key)!;
+        const role = piece.role;
+        const color = piece.color;
+        switch (role) {
+          case 'p-piece': // pawn
+            return pawnGrand(color);
+          case 'c-piece': // cannon
+          case 'r-piece': // rook
+            return rook;
+          case 'n-piece': // knight
+            return knight;
+          case 'b-piece': // bishop
+            return bishop;
+          case 'q-piece': // queen
+            return queen;
+          case 'e-piece': // elephant
+            return shakoElephant;
+          case 'k-piece': // king
+            return kingShako(color, rookFilesOfShako(boardState.pieces, color), canCastle);
+          default:
+            return noMove;
+        }
       }
-      break;
 
     case 'shogun':
-      switch (role) {
-        case 'p-piece':
-          mobility = pawn(color);
-          break; // pawn
-        case 'pp-piece':
-          mobility = kingNoCastling;
-          break; // captain
-        case 'r-piece':
-          mobility = rook;
-          break; // rook
-        case 'pr-piece':
-          mobility = chancellor;
-          break; // mortar
-        case 'n-piece':
-          mobility = knight;
-          break; // knight
-        case 'pn-piece':
-          mobility = centaur;
-          break; // general
-        case 'b-piece':
-          mobility = bishop;
-          break; // bishop
-        case 'pb-piece':
-          mobility = archbishop;
-          break; // archbishop
-        case 'f-piece':
-          mobility = ferz;
-          break; // duchess
-        case 'pf-piece':
-          mobility = queen;
-          break; // queen
-        case 'k-piece':
-          mobility = king(color, rookFilesOf(pieces, color), canCastle);
-          break; // king
+      return (key, boardState, canCastle) => {
+        const piece = boardState.pieces.get(key)!;
+        const role = piece.role;
+        const color = piece.color;
+        switch (role) {
+          case 'p-piece': // pawn
+            return pawn(color);
+          case 'pp-piece': // captain
+            return kingNoCastling;
+          case 'r-piece': // rook
+            return rook;
+          case 'pr-piece': // mortar
+            return chancellor;
+          case 'n-piece': // knight
+            return knight;
+          case 'pn-piece': // general
+            return centaur;
+          case 'b-piece': // bishop
+            return bishop;
+          case 'pb-piece': // archbishop
+            return archbishop;
+          case 'f-piece': // duchess
+            return ferz;
+          case 'pf-piece': // queen
+            return queen;
+          case 'k-piece': // king
+            return king(color, rookFilesOf(boardState.pieces, color), canCastle);
+          default:
+            return noMove;
+        }
       }
-      break;
 
     case 'orda':
     case 'ordamirror':
-      switch (role) {
-        case 'p-piece':
-          mobility = pawn(color);
-          break; // pawn
-        case 'r-piece':
-          mobility = rook;
-          break; // rook
-        case 'n-piece':
-          mobility = knight;
-          break; // knight
-        case 'b-piece':
-          mobility = bishop;
-          break; // bishop
-        case 'q-piece':
-          mobility = queen;
-          break; // queen
-        case 'l-piece':
-          mobility = chancellor;
-          break; // lancer
-        case 'h-piece':
-          mobility = centaur;
-          break; // kheshig
-        case 'a-piece':
-          mobility = archbishop;
-          break; // archer
-        case 'y-piece':
-          mobility = shogiSilver(color);
-          break; // yurt
-        case 'f-piece':
-          mobility = amazon;
-          break; // falcon
-        case 'k-piece':
-          mobility = king(color, rookFilesOf(pieces, color), canCastle);
-          break; // king
+      return (key, boardState, canCastle) => {
+        const piece = boardState.pieces.get(key)!;
+        const role = piece.role;
+        const color = piece.color;
+        switch (role) {
+          case 'p-piece': // pawn
+            return pawn(color);
+          case 'r-piece': // rook
+            return rook;
+          case 'n-piece': // knight
+            return knight;
+          case 'b-piece': // bishop
+            return bishop;
+          case 'q-piece': // queen
+            return queen;
+          case 'l-piece': // lancer
+            return chancellor;
+          case 'h-piece': // kheshig
+            return centaur;
+          case 'a-piece': // archer
+            return archbishop;
+          case 'y-piece': // yurt
+            return shogiSilver(color);
+          case 'f-piece': // falcon
+            return amazon;
+          case 'k-piece': // king
+            return king(color, rookFilesOf(boardState.pieces, color), canCastle);
+          default:
+            return noMove;
+        }
       }
-      break;
 
     case 'synochess':
-      switch (role) {
-        case 'p-piece':
-          mobility = pawn(color);
-          break; // pawn
-        case 'c-piece': // cannon
-        case 'r-piece':
-          mobility = rook;
-          break; // rook
-        case 'n-piece':
-          mobility = knight;
-          break; // knight
-        case 'b-piece':
-          mobility = bishop;
-          break; // bishop
-        case 'q-piece':
-          mobility = queen;
-          break; // queen
-        case 's-piece':
-          mobility = minixiangqiPawn(color);
-          break; // soldier
-        case 'e-piece':
-          mobility = shakoElephant;
-          break; // elephant
-        case 'a-piece':
-          mobility = kingNoCastling;
-          break; // advisor
-        case 'k-piece':
-          mobility = king(color, rookFilesOf(pieces, color), canCastle && color === 'white');
-          break; // king
+      return (key, boardState, canCastle) => {
+        const piece = boardState.pieces.get(key)!;
+        const role = piece.role;
+        const color = piece.color;
+        switch (role) {
+          case 'p-piece': // pawn
+            return pawn(color);
+          case 'c-piece': // cannon
+          case 'r-piece': // rook
+            return rook;
+          case 'n-piece': // knight
+            return knight;
+          case 'b-piece': // bishop
+            return bishop;
+          case 'q-piece': // queen
+            return queen;
+          case 's-piece': // soldier
+            return minixiangqiPawn(color);
+          case 'e-piece': // elephant
+            return shakoElephant;
+          case 'a-piece': // advisor
+            return kingNoCastling;
+          case 'k-piece': // king
+            return king(color, rookFilesOf(boardState.pieces, color), canCastle && color === 'white');
+          default:
+            return noMove;
+        }
       }
-      break;
 
     case 'musketeer':
-      switch (role) {
-        case 'p-piece':
-          mobility = pawn(color);
-          break; // pawn
-        case 'r-piece':
-          mobility = rook;
-          break; // rook
-        case 'n-piece':
-          mobility = knight;
-          break; // knight
-        case 'b-piece':
-          mobility = bishop;
-          break; // bishop
-        case 'q-piece':
-          mobility = queen;
-          break; // queen
-        case 'l-piece':
-          mobility = musketeerLeopard;
-          break; // leopard
-        case 'o-piece':
-          mobility = musketeerCannon;
-          break; // cannon
-        case 'u-piece':
-          mobility = musketeerUnicorn;
-          break; // unicorn
-        case 'd-piece':
-          mobility = musketeerDragon;
-          break; // dragon
-        case 'c-piece':
-          mobility = chancellor;
-          break; // chancellor
-        case 'a-piece':
-          mobility = archbishop;
-          break; // archbishop
-        case 'e-piece':
-          mobility = musketeerElephant;
-          break; // elephant
-        case 'h-piece':
-          mobility = musketeerHawk; // hawk
-          break;
-        case 'f-piece':
-          mobility = musketeerFortress; // fortress
-          break;
-        case 's-piece':
-          mobility = musketeerSpider; // spider
-          break;
-        case 'k-piece':
-          mobility = king(color, rookFilesOf(pieces, color), canCastle);
-          break; // king
+      return (key, boardState, canCastle) => {
+        const piece = boardState.pieces.get(key)!;
+        const role = piece.role;
+        const color = piece.color;
+        switch (role) {
+          case 'p-piece': // pawn
+            return pawn(color);
+          case 'r-piece': // rook
+            return rook;
+          case 'n-piece': // knight
+            return knight;
+          case 'b-piece': // bishop
+            return bishop;
+          case 'q-piece': // queen
+            return queen;
+          case 'l-piece': // leopard
+            return musketeerLeopard;
+          case 'o-piece': // cannon
+            return musketeerCannon;
+          case 'u-piece': // unicorn
+            return musketeerUnicorn;
+          case 'd-piece': // dragon
+            return musketeerDragon;
+          case 'c-piece': // chancellor
+            return chancellor;
+          case 'a-piece': // archbishop
+            return archbishop;
+          case 'e-piece': // elephant
+            return musketeerElephant;
+          case 'h-piece': // hawk
+            return musketeerHawk; // hawk
+          case 'f-piece': // fortress
+            return musketeerFortress;
+          case 's-piece': // spider
+            return musketeerSpider;
+          case 'k-piece':
+            return king(color, rookFilesOf(boardState.pieces, color), canCastle);
+          default:
+            return noMove;
+        }
       }
-      break;
 
     case 'hoppelpoppel':
-      switch (role) {
-        case 'p-piece':
-          mobility = pawn(color);
-          break; // pawn
-        case 'r-piece':
-          mobility = rook;
-          break; // rook
-        case 'n-piece': // knight (takes like bishop)
-        case 'b-piece':
-          mobility = archbishop;
-          break; // bishop (takes like knight)
-        case 'q-piece':
-          mobility = queen;
-          break; // queen
-        case 'k-piece':
-          mobility = king(color, rookFilesOf(pieces, color), canCastle);
-          break; // king
+      return (key, boardState, canCastle) => {
+        const piece = boardState.pieces.get(key)!;
+        const role = piece.role;
+        const color = piece.color;
+        switch (role) {
+          case 'p-piece': // pawn
+            return pawn(color);
+          case 'r-piece': // rook
+            return rook;
+          case 'n-piece': // knight (takes like bishop)
+          case 'b-piece': // bishop (takes like knight)
+            return archbishop;
+          case 'q-piece': // queen
+            return queen;
+          case 'k-piece': // king
+            return king(color, rookFilesOf(boardState.pieces, color), canCastle);
+          default:
+            return noMove;
+        }
       }
-      break;
 
     case 'shinobi':
-      switch (role) {
-        case 'p-piece':
-          mobility = pawn(color);
-          break; // pawn
-        case 'pl-piece':
-        case 'r-piece':
-          mobility = rook;
-          break; // rook
-        case 'ph-piece':
-        case 'n-piece':
-          mobility = knight;
-          break; // knight
-        case 'pm-piece':
-        case 'b-piece':
-          mobility = bishop;
-          break; // bishop
-        case 'q-piece':
-          mobility = queen;
-          break; // queen
-        case 'pp-piece':
-        case 'c-piece':
-          mobility = kingNoCastling;
-          break; // captain
-        case 'l-piece':
-          mobility = shogiLance(color);
-          break; // lance
-        case 'h-piece':
-          mobility = shogiKnight(color);
-          break; // horse
-        case 'm-piece':
-          mobility = ferz;
-          break; // monk
-        case 'd-piece':
-          mobility = shogiDragon;
-          break; // dragon
-        case 'j-piece':
-          mobility = archbishop;
-          break; // ninja
-        case 'k-piece':
-          mobility = king(color, rookFilesOf(pieces, color), canCastle);
-          break; // king
+      return (key, boardState, canCastle) => {
+        const piece = boardState.pieces.get(key)!;
+        const role = piece.role;
+        const color = piece.color;
+        switch (role) {
+          case 'p-piece': // pawn
+            return pawn(color);
+          case 'pl-piece':
+          case 'r-piece': // rook
+            return rook;
+          case 'ph-piece':
+          case 'n-piece': // knight
+            return knight;
+          case 'pm-piece':
+          case 'b-piece': // bishop
+            return bishop;
+          case 'q-piece': // queen
+            return queen;
+          case 'pp-piece':
+          case 'c-piece': // captain
+            return kingNoCastling;
+          case 'l-piece': // lance
+            return shogiLance(color);
+          case 'h-piece': // horse
+            return shogiKnight(color);
+          case 'm-piece': // monk
+            return ferz;
+          case 'd-piece': // dragon
+            return shogiDragon;
+          case 'j-piece': // ninja
+            return archbishop;
+          case 'k-piece': // king
+            return king(color, rookFilesOf(boardState.pieces, color), canCastle);
+          default:
+            return noMove;
+        }
       }
-      break;
 
     case 'empire':
-      switch (role) {
-        case 'p-piece':
-          mobility = pawn(color);
-          break; // pawn
-        case 's-piece':
-          mobility = minixiangqiPawn(color);
-          break; // soldier
-        case 'r-piece':
-          mobility = rook;
-          break; // rook
-        case 'n-piece':
-          mobility = knight;
-          break; // knight
-        case 'b-piece':
-          mobility = bishop;
-          break; // bishop
-        case 'd-piece': // duke
-        case 't-piece': // tower
-        case 'c-piece': // cardinal
-        case 'q-piece':
-          mobility = queen;
-          break; // queen
-        case 'e-piece':
-          mobility = amazon;
-          break; // aegle
-        case 'k-piece':
-          mobility = king(color, rookFilesOf(pieces, color), canCastle);
-          break; // king
+      return (key, boardState, canCastle) => {
+        const piece = boardState.pieces.get(key)!;
+        const role = piece.role;
+        const color = piece.color;
+        switch (role) {
+          case 'p-piece': // pawn
+            return pawn(color);
+          case 's-piece': // soldier
+            return minixiangqiPawn(color);
+          case 'r-piece': // rook
+            return rook;
+          case 'n-piece': // knight
+            return knight;
+          case 'b-piece': // bishop
+            return bishop;
+          case 'q-piece': // queen
+          case 'd-piece': // duke
+          case 't-piece': // tower
+          case 'c-piece': // cardinal
+            return queen;
+          case 'e-piece': // eagle
+            return amazon;
+          case 'k-piece': // king
+            return king(color, rookFilesOf(boardState.pieces, color), canCastle);
+          default:
+            return noMove;
+        }
       }
-      break;
 
     case 'chak':
-      switch (role) {
-        case 'p-piece': // pawn
-          mobility = pawnChak(color);
-          break;
-        case 'pp-piece': // warrior
-          mobility = chakWarrior(color);
-          break;
-        case 'r-piece': // serpent
-          mobility = rook;
-          break;
-        case 'v-piece': // vulture
-          mobility = knight;
-          break;
-        case 's-piece': // shaman
-          mobility = toriCrane;
-          break;
-        case 'j-piece': // jaguar
-          mobility = centaur;
-          break;
-        case 'q-piece': // quetzal
-          mobility = queen;
-          break;
-        case 'o-piece': // offering
-          mobility = () => false;
-          break;
-        case 'k-piece': // king
-          mobility = kingNoCastling;
-          break;
-        case 'pk-piece': // divine king
-          mobility = chakDivineKing(color);
-          break;
+      return (key, boardState) => {
+        const piece = boardState.pieces.get(key)!;
+        const role = piece.role;
+        const color = piece.color;
+        switch (role) {
+          case 'p-piece': // pawn
+            return pawnChak(color);
+          case 'pp-piece': // warrior
+            return chakWarrior(color);
+          case 'r-piece': // serpent
+            return rook;
+          case 'v-piece': // vulture
+            return knight;
+          case 's-piece': // shaman
+            return toriCrane;
+          case 'j-piece': // jaguar
+            return centaur;
+          case 'q-piece': // quetzal
+            return queen;
+          case 'k-piece': // king
+            return kingNoCastling;
+          case 'pk-piece': // divine king
+            return chakDivineKing(color);
+          case 'o-piece': // offering
+          default:
+            return noMove;
+        }
       }
-      break;
 
     case 'chennis':
-      switch (role) {
-        case 'p-piece': // pawn
-          mobility = pawnNoDoubleStep(color);
-          break;
-        case 'pp-piece': // rook
-          mobility = rook;
-          break;
-        case 's-piece': // soldier
-          mobility = minixiangqiPawn(color);
-          break;
-        case 'ps-piece': // bishop
-          mobility = bishop;
-          break;
-        case 'f-piece': // ferz
-          mobility = ferz;
-          break;
-        case 'pf-piece': // cannon
-          mobility = rook;
-          break;
-        case 'm-piece': // mann
-          mobility = kingNoCastling;
-          break;
-        case 'pm-piece': // knight
-          mobility = knight;
-          break;
-        case 'k-piece': // king
-          mobility = kingChennis(color);
-          break;
+      return (key, boardState) => {
+        const piece = boardState.pieces.get(key)!;
+        const role = piece.role;
+        const color = piece.color;
+        switch (role) {
+          case 'p-piece': // pawn
+            return pawnNoDoubleStep(color);
+          case 'pp-piece': // rook
+            return rook;
+          case 's-piece': // soldier
+            return minixiangqiPawn(color);
+          case 'ps-piece': // bishop
+            return bishop;
+          case 'f-piece': // ferz
+            return ferz;
+          case 'pf-piece': // cannon
+            return rook;
+          case 'm-piece': // mann
+            return kingNoCastling;
+          case 'pm-piece': // knight
+            return knight;
+          case 'k-piece': // king
+            return kingChennis(color);
+          default:
+            return noMove;
+        }
       }
-      break;
 
     case 'capablanca':
     case 'capahouse':
-      switch (role) {
-        case 'p-piece':
-          mobility = pawn(color);
-          break; // pawn
-        case 'r-piece':
-          mobility = rook;
-          break; // rook
-        case 'n-piece':
-          mobility = knight;
-          break; // knight
-        case 'b-piece':
-          mobility = bishop;
-          break; // bishop
-        case 'q-piece':
-          mobility = queen;
-          break; // queen
-        case 'c-piece':
-          mobility = chancellor;
-          break; // chancellor
-        case 'a-piece':
-          mobility = archbishop;
-          break; // archbishop
-        case 'k-piece':
-          mobility = chess960
-            ? king960(color, rookFilesOf(pieces, color), canCastle)
-            : kingCapa(color, rookFilesOf(pieces, color), canCastle);
-          break; // king
+      return (key, boardState, canCastle) => {
+        const piece = boardState.pieces.get(key)!;
+        const role = piece.role;
+        const color = piece.color;
+        switch (role) {
+          case 'p-piece': // pawn
+            return pawn(color);
+          case 'r-piece': // rook
+            return rook;
+          case 'n-piece': // knight
+            return knight;
+          case 'b-piece': // bishop
+            return bishop;
+          case 'q-piece': // queen
+            return queen;
+          case 'c-piece': // chancellor
+            return chancellor;
+          case 'a-piece': // archbishop
+            return archbishop;
+          case 'k-piece': // king
+            return chess960
+              ? king960(color, rookFilesOf(boardState.pieces, color), canCastle)
+              : kingCapa(color, rookFilesOf(boardState.pieces, color), canCastle);
+          default:
+            return noMove;
+        }
       }
-      break;
 
-    // Variants using standard pieces and additional fairy pieces like S-chess, Capablanca, etc.
+    // Variants using standard pieces and additional fairy pieces like S-chess etc.
     default:
-      switch (role) {
-        case 'p-piece':
-          mobility = pawn(color);
-          break; // pawn
-        case 'r-piece':
-          mobility = rook;
-          break; // rook
-        case 'n-piece':
-          mobility = knight;
-          break; // knight
-        case 'b-piece':
-          mobility = bishop;
-          break; // bishop
-        case 'q-piece':
-          mobility = queen;
-          break; // queen
-        case 'e-piece': // S-chess elephant
-        case 'c-piece':
-          mobility = chancellor;
-          break; // chancellor
-        case 'h-piece': // S-chess hawk
-        case 'a-piece':
-          mobility = archbishop;
-          break; // archbishop
-        case 'k-piece':
-          mobility = chess960
-            ? king960(color, rookFilesOf(pieces, color), canCastle)
-            : king(color, rookFilesOf(pieces, color), canCastle);
-          break; // king
+      return (key, boardState, canCastle) => {
+        const piece = boardState.pieces.get(key)!;
+        const role = piece.role;
+        const color = piece.color;
+        switch (role) {
+          case 'p-piece': // pawn
+            return pawn(color);
+          case 'r-piece': // rook
+            return rook;
+          case 'n-piece': // knight
+            return knight;
+          case 'b-piece': // bishop
+            return bishop;
+          case 'q-piece': // queen
+            return queen;
+          case 'e-piece': // S-chess elephant
+          case 'c-piece': // chancellor
+            return chancellor;
+          case 'h-piece': // S-chess hawk
+          case 'a-piece': // archbishop
+            return archbishop;
+          case 'k-piece': // king
+            return chess960
+              ? king960(color, rookFilesOf(boardState.pieces, color), canCastle)
+              : king(color, rookFilesOf(boardState.pieces, color), canCastle);
+          default:
+            return noMove;
       }
+    }
   }
-
-  return util
-    .allPos(bd)
-    .filter(pos2 => (pos[0] !== pos2[0] || pos[1] !== pos2[1]) && mobility(pos[0], pos[1], pos2[0], pos2[1]))
-    .map(util.pos2key);
 }

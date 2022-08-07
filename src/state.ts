@@ -3,6 +3,8 @@ import { AnimCurrent } from './anim.js';
 import { DragCurrent } from './drag.js';
 import { Drawable } from './draw.js';
 import { timer } from './util.js';
+import { premove } from './premove.js';
+import { predrop } from './predrop.js';
 import * as cg from './types.js';
 
 export interface HeadlessState {
@@ -42,6 +44,8 @@ export interface HeadlessState {
   };
   premovable: {
     enabled: boolean; // allow premoves for color that can not move
+    premoveFunc: cg.Premove; // function for premove destinations
+    predropFunc: cg.Predrop; // function for predrop destinations
     castle: boolean; // whether to allow king castle premoves
     dests?: cg.Key[]; // premove destinations for the current selection
     current?: cg.Move; // keys of the current saved premove ["e2" "e4"]
@@ -84,8 +88,6 @@ export interface HeadlessState {
   exploding?: cg.Exploding;
   hold: cg.Timer;
   dimensions: cg.BoardDimensions; // number of lines and ranks of the board {width: 10, height: 8}
-  variant: cg.Variant;
-  chess960: boolean;
   notation: cg.Notation;
   kingRoles: cg.Role[]; // roles to be marked with check
   pocketRoles?: cg.PocketRoles; // undefined for non-pocket variants. Possible pieces that a pocket can hold for each color
@@ -125,6 +127,8 @@ export function defaults(): HeadlessState {
     },
     premovable: {
       enabled: true,
+      premoveFunc: premove('chess', false, { width: 8, height: 8}),
+      predropFunc: predrop('chess', { width: 8, height: 8}),
       castle: true,
       events: {},
     },
@@ -170,8 +174,6 @@ export function defaults(): HeadlessState {
     },
     hold: timer(),
     dimensions: { width: 8, height: 8 },
-    variant: 'chess',
-    chess960: false,
     notation: cg.Notation.ALGEBRAIC,
     kingRoles: ['k-piece'],
   };

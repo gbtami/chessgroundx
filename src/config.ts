@@ -39,6 +39,8 @@ export interface Config {
   };
   premovable?: {
     enabled?: boolean; // allow premoves for color that can not move
+    premoveFunc?: cg.Premove; // function for premove destinations
+    predropFunc?: cg.Predrop; // function for predrop destinations
     castle?: boolean; // whether to allow king castle premoves
     dests?: cg.Key[]; // premove destinations for the current selection
     events?: {
@@ -80,8 +82,6 @@ export interface Config {
     onChange?: (shapes: DrawShape[]) => void; // called after drawable shapes change
   };
   dimensions?: cg.BoardDimensions;
-  variant?: cg.Variant;
-  chess960?: boolean;
   notation?: cg.Notation; // coord notation style
   kingRoles?: cg.Role[]; // roles to be marked with check
   pocketRoles?: cg.PocketRoles; // what pieces have slots in the pocket for each color

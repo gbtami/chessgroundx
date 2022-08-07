@@ -11,8 +11,7 @@ import {
   isKey,
   isSame,
 } from './util.js';
-import { premove, queen, knight, janggiElephant } from './premove.js';
-import { predrop } from './predrop.js';
+import { queen, knight, janggiElephant } from './premove.js';
 import * as cg from './types.js';
 
 export function callUserFunction<T extends (...args: any[]) => void>(f: T | undefined, ...args: Parameters<T>): void {
@@ -211,14 +210,7 @@ export function setSelectedKey(state: HeadlessState, key: cg.Key): void {
   state.selectable.selected = key;
   state.selectable.fromPocket = false;
   if (isPremovable(state, key, false)) {
-    state.premovable.dests = premove(
-      state.boardState.pieces,
-      key,
-      state.premovable.castle,
-      state.dimensions,
-      state.variant,
-      state.chess960
-    );
+    state.premovable.dests = state.premovable.premoveFunc(state.boardState, key, state.premovable.castle);
   } else {
     state.premovable.dests = undefined;
   }
@@ -228,7 +220,7 @@ export function setDropMode(state: HeadlessState, piece: cg.Piece, fromPocket: b
   state.selectable.selected = piece;
   state.selectable.fromPocket = fromPocket;
   if (isPremovable(state, piece, fromPocket)) {
-    state.premovable.dests = predrop(state.boardState.pieces, piece, state.dimensions, state.variant);
+    state.premovable.dests = state.premovable.predropFunc(state.boardState, piece);
   } else {
     state.premovable.dests = undefined;
   }
@@ -286,15 +278,8 @@ const canPremove = (state: HeadlessState, orig: cg.Selectable, dest: cg.Key, fro
   orig !== dest &&
   isPremovable(state, orig, fromPocket) &&
   (isKey(orig)
-    ? premove(
-        state.boardState.pieces,
-        orig,
-        state.premovable.castle,
-        state.dimensions,
-        state.variant,
-        state.chess960
-      ).includes(dest)
-    : predrop(state.boardState.pieces, orig, state.dimensions, state.variant).includes(dest));
+    ? state.premovable.premoveFunc(state.boardState, orig, state.premovable.castle).includes(dest)
+    : state.premovable.predropFunc(state.boardState, orig).includes(dest));
 
 export function isDraggable(state: HeadlessState, orig: cg.Selectable, fromPocket: boolean): boolean {
   const [piece, available] = pieceAvailability(state, orig, fromPocket);
