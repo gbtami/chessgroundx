@@ -27,6 +27,15 @@ Be careful not to use a lowercase letter for the piece though. The `@` is also u
 # New Config types
 
 ```
+premovable?: {
+  premoveFunc?: cg.Premove;
+  predropFunc?: cg.Predrop;
+}
+```
+
+Premove and predrop functions. Takes the game's board state and the square being premoved, or piece being predropped, and returns a list of squares eligible for premoving. Defaults to orthodox chess behavior. Some variants, particularly those on [PyChess](https://www.pychess.org), have their premove functions implemented in `premove.ts` and `predrop.ts`.
+
+```
 dimensions?: cg.BoardDimensions;
 ```
 
