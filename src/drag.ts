@@ -95,7 +95,7 @@ export function dragNewPiece(s: State, piece: cg.Piece, fromPocket: boolean, e: 
     origPos: position,
     pos: position,
     started: true,
-    element: () => undefined,
+    element: () => s.dom.elements.draggedPiece as cg.PieceNode, // TODO New a0
     originTarget: e.target,
     fromPocket: fromPocket,
     force: !!force,

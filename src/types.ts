@@ -56,6 +56,7 @@ export interface Elements {
   board: HTMLElement;
   pocketTop?: HTMLElement;
   pocketBottom?: HTMLElement;
+  draggedPiece?: HTMLElement;
   wrap: HTMLElement;
   container: HTMLElement;
   ghost?: HTMLElement;
