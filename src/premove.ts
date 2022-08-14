@@ -528,7 +528,7 @@ export function premove(variant: string, chess960: boolean, bd: cg.BoardDimensio
       .filter(
         pos2 =>
           (pos[0] !== pos2[0] || pos[1] !== pos2[1]) &&
-          mobility(key, boardState, canCastle)(pos[0], pos[1], pos2[0], pos2[1])
+          mobility(boardState, key, canCastle)(pos[0], pos[1], pos2[0], pos2[1])
       )
       .map(util.pos2key);
   };
@@ -538,11 +538,11 @@ function builtinMobility(
   variant: string,
   chess960: boolean,
   bd: cg.BoardDimensions
-): (key: cg.Key, boardState: cg.BoardState, canCastle: boolean) => Mobility {
+): (boardState: cg.BoardState, key: cg.Key, canCastle: boolean) => Mobility {
   switch (variant) {
     case 'xiangqi':
     case 'manchu':
-      return (key, boardState) => {
+      return (boardState, key) => {
         const piece = boardState.pieces.get(key)!;
         const role = piece.role;
         const color = piece.color;
@@ -568,7 +568,7 @@ function builtinMobility(
       };
 
     case 'janggi':
-      return (key, boardState) => {
+      return (boardState, key) => {
         const piece = boardState.pieces.get(key)!;
         const role = piece.role;
         const color = piece.color;
@@ -591,7 +591,7 @@ function builtinMobility(
       };
 
     case 'minixiangqi':
-      return (key, boardState) => {
+      return (boardState, key) => {
         const piece = boardState.pieces.get(key)!;
         const role = piece.role;
         const color = piece.color;
@@ -614,7 +614,7 @@ function builtinMobility(
     case 'minishogi':
     case 'gorogoro':
     case 'gorogoroplus':
-      return (key, boardState) => {
+      return (boardState, key) => {
         const piece = boardState.pieces.get(key)!;
         const role = piece.role;
         const color = piece.color;
@@ -649,7 +649,7 @@ function builtinMobility(
       };
 
     case 'kyotoshogi':
-      return (key, boardState) => {
+      return (boardState, key) => {
         const piece = boardState.pieces.get(key)!;
         const role = piece.role;
         const color = piece.color;
@@ -678,7 +678,7 @@ function builtinMobility(
       };
 
     case 'dobutsu':
-      return (key, boardState) => {
+      return (boardState, key) => {
         const piece = boardState.pieces.get(key)!;
         const role = piece.role;
         const color = piece.color;
@@ -699,7 +699,7 @@ function builtinMobility(
       };
 
     case 'torishogi':
-      return (key, boardState) => {
+      return (boardState, key) => {
         const piece = boardState.pieces.get(key)!;
         const role = piece.role;
         const color = piece.color;
@@ -732,7 +732,7 @@ function builtinMobility(
     case 'sittuyin':
     case 'cambodian':
     case 'asean':
-      return (key, boardState) => {
+      return (boardState, key) => {
         const piece = boardState.pieces.get(key)!;
         const role = piece.role;
         const color = piece.color;
@@ -759,7 +759,7 @@ function builtinMobility(
 
     case 'grand':
     case 'grandhouse':
-      return (key, boardState) => {
+      return (boardState, key) => {
         const piece = boardState.pieces.get(key)!;
         const role = piece.role;
         const color = piece.color;
@@ -786,7 +786,7 @@ function builtinMobility(
       };
 
     case 'shako':
-      return (key, boardState, canCastle) => {
+      return (boardState, key, canCastle) => {
         const piece = boardState.pieces.get(key)!;
         const role = piece.role;
         const color = piece.color;
@@ -812,7 +812,7 @@ function builtinMobility(
       };
 
     case 'shogun':
-      return (key, boardState, canCastle) => {
+      return (boardState, key, canCastle) => {
         const piece = boardState.pieces.get(key)!;
         const role = piece.role;
         const color = piece.color;
@@ -846,7 +846,7 @@ function builtinMobility(
 
     case 'orda':
     case 'ordamirror':
-      return (key, boardState, canCastle) => {
+      return (boardState, key, canCastle) => {
         const piece = boardState.pieces.get(key)!;
         const role = piece.role;
         const color = piece.color;
@@ -879,7 +879,7 @@ function builtinMobility(
       };
 
     case 'synochess':
-      return (key, boardState, canCastle) => {
+      return (boardState, key, canCastle) => {
         const piece = boardState.pieces.get(key)!;
         const role = piece.role;
         const color = piece.color;
@@ -909,7 +909,7 @@ function builtinMobility(
       };
 
     case 'musketeer':
-      return (key, boardState, canCastle) => {
+      return (boardState, key, canCastle) => {
         const piece = boardState.pieces.get(key)!;
         const role = piece.role;
         const color = piece.color;
@@ -952,7 +952,7 @@ function builtinMobility(
       };
 
     case 'hoppelpoppel':
-      return (key, boardState, canCastle) => {
+      return (boardState, key, canCastle) => {
         const piece = boardState.pieces.get(key)!;
         const role = piece.role;
         const color = piece.color;
@@ -974,7 +974,7 @@ function builtinMobility(
       };
 
     case 'shinobi':
-      return (key, boardState, canCastle) => {
+      return (boardState, key, canCastle) => {
         const piece = boardState.pieces.get(key)!;
         const role = piece.role;
         const color = piece.color;
@@ -1013,7 +1013,7 @@ function builtinMobility(
       };
 
     case 'empire':
-      return (key, boardState, canCastle) => {
+      return (boardState, key, canCastle) => {
         const piece = boardState.pieces.get(key)!;
         const role = piece.role;
         const color = piece.color;
@@ -1043,7 +1043,7 @@ function builtinMobility(
       };
 
     case 'chak':
-      return (key, boardState) => {
+      return (boardState, key) => {
         const piece = boardState.pieces.get(key)!;
         const role = piece.role;
         const color = piece.color;
@@ -1073,7 +1073,7 @@ function builtinMobility(
       };
 
     case 'chennis':
-      return (key, boardState) => {
+      return (boardState, key) => {
         const piece = boardState.pieces.get(key)!;
         const role = piece.role;
         const color = piece.color;
@@ -1103,7 +1103,7 @@ function builtinMobility(
 
     case 'capablanca':
     case 'capahouse':
-      return (key, boardState, canCastle) => {
+      return (boardState, key, canCastle) => {
         const piece = boardState.pieces.get(key)!;
         const role = piece.role;
         const color = piece.color;
@@ -1133,7 +1133,7 @@ function builtinMobility(
 
     // Variants using standard pieces and additional fairy pieces like S-chess etc.
     default:
-      return (key, boardState, canCastle) => {
+      return (boardState, key, canCastle) => {
         const piece = boardState.pieces.get(key)!;
         const role = piece.role;
         const color = piece.color;
