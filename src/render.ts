@@ -173,17 +173,6 @@ export function render(s: State): void {
     }
   }
 
-  /*
-  // TODO render the dragged piece from outside the board
-  if (curDrag && !curDrag.orig) {
-  } else {
-    s.dom.elements.draggedPiece = undefined;
-  }
-  */
-  if (!curDrag || curDrag.orig) {
-    s.dom.elements.draggedPiece = undefined;
-  }
-
   // remove any element that remains in the moved sets
   for (const nodes of movedPieces.values()) removeNodes(s, nodes);
   for (const nodes of movedSquares.values()) removeNodes(s, nodes);

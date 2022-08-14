@@ -176,7 +176,7 @@ export function start(state: State, redrawAll: cg.Redraw): Api {
     redrawAll,
 
     dragNewPiece(piece, fromPocket, event, force): void {
-      dragNewPiece(state, piece, fromPocket, event, force);
+      dragNewPiece(state, piece, fromPocket, event, undefined, force);
     },
 
     destroy(): void {

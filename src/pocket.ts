@@ -2,7 +2,7 @@ import * as cg from './types.js';
 import * as util from './util.js';
 import * as board from './board.js';
 import { clear as drawClear } from './draw.js';
-import { processDrag } from './drag.js';
+import { dragNewPiece } from './drag.js';
 import { HeadlessState, State } from './state.js';
 
 export function renderPocketsInitial(
@@ -86,7 +86,6 @@ export function drag(s: State, e: cg.MouchEvent): void {
     role = el.getAttribute('data-role') as cg.Role,
     color = el.getAttribute('data-color') as cg.Color,
     n = Number(el.getAttribute('data-nb'));
-  const position = util.eventPosition(e)!;
   if (n === 0) return;
   const piece = { role, color };
   const previouslySelected = s.selectable.selected;
@@ -100,23 +99,8 @@ export function drag(s: State, e: cg.MouchEvent): void {
   board.select(s, piece);
   const selected = s.selectable.selected;
   const stillSelected = selected && util.isSame(selected, piece);
-  s.dom.elements.draggedPiece = util.createEl('piece', util.pieceClasses(piece, s.orientation));
-  const element = s.dom.elements.draggedPiece as cg.PieceNode;
   if (stillSelected && board.isDraggable(s, piece, true)) {
-    s.draggable.current = {
-      piece,
-      origPos: position,
-      pos: position,
-      started: s.draggable.autoDistance && s.stats.dragged,
-      element: () => s.dom.elements.draggedPiece as cg.PieceNode, // TODO New a0
-      previouslySelected,
-      originTarget: e.target,
-      fromPocket: true,
-      keyHasChanged: false,
-    };
-    element.cgDragging = true;
-    element.classList.add('dragging');
-    processDrag(s);
+    dragNewPiece(s, piece, true, e, previouslySelected);
   } else {
     if (hadPremove) board.unsetPremove(s);
   }
