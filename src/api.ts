@@ -6,6 +6,7 @@ import { anim, render } from './anim.js';
 import { cancel as dragCancel, dragNewPiece } from './drag.js';
 import { DrawShape } from './draw.js';
 import { explosion } from './explosion.js';
+import { roleOf, isDropOrig } from './util.js';
 import * as cg from './types.js';
 
 export interface Api {
@@ -24,7 +25,7 @@ export interface Api {
   toggleOrientation(): void;
 
   // perform a move programmatically
-  move(orig: cg.Key, dest: cg.Key): void;
+  move(orig: cg.Orig, dest: cg.Key): void;
 
   // add and/or remove arbitrary pieces on the board
   setPieces(pieces: cg.PiecesDiff): void;
@@ -32,20 +33,20 @@ export interface Api {
   // click a square programmatically
   selectSquare(key: cg.Key | null, force?: boolean): void;
 
+  // click a pocket piece programmatically
+  selectPocket(piece: cg.Piece | null): void;
+
+  // unselect everything programmatically
+  unselect(): void;
+
   // put a new piece on the board
-  newPiece(piece: cg.Piece, key: cg.Key): void;
+  newPiece(piece: cg.Piece, dest: cg.Key, fromPocket: boolean): void;
 
   // play the current premove, if any; returns true if premove was played
   playPremove(): boolean;
 
   // cancel the current premove, if any
   cancelPremove(): void;
-
-  // play the current predrop, if any; returns true if premove was played
-  playPredrop(): boolean;
-
-  // cancel the current predrop, if any
-  cancelPredrop(): void;
 
   // cancel the current move being made
   cancelMove(): void;
@@ -69,7 +70,7 @@ export interface Api {
   redrawAll: cg.Redraw;
 
   // for crazyhouse and board editors
-  dragNewPiece(piece: cg.Piece, event: cg.MouchEvent, force?: boolean): void;
+  dragNewPiece(piece: cg.Piece, fromPocket: boolean, event: cg.MouchEvent, force?: boolean): void;
 
   // unbinds all events
   // (important for document-wide events like scroll and mousemove)
@@ -101,19 +102,32 @@ export function start(state: State, redrawAll: cg.Redraw): Api {
     },
 
     selectSquare(key, force): void {
-      if (key) anim(state => board.selectSquare(state, key, force), state);
-      else if (state.selected) {
+      if (key) anim(state => board.select(state, key, force), state);
+      else if (state.selectable.selected) {
         board.unselect(state);
         state.dom.redraw();
       }
     },
 
-    move(orig, dest): void {
-      anim(state => board.baseMove(state, orig, dest), state);
+    selectPocket(piece): void {
+      if (piece) anim(state => board.select(state, piece), state);
+      else if (state.selectable.selected) {
+        board.unselect(state);
+        state.dom.redraw();
+      }
     },
 
-    newPiece(piece, key): void {
-      anim(state => board.baseNewPiece(state, piece, key), state);
+    unselect(): void {
+      board.unselect(state);
+    },
+
+    move(orig, dest): void {
+      if (isDropOrig(orig)) board.baseNewPiece(state, { role: roleOf(orig), color: state.turnColor }, dest, true);
+      else anim(state => board.baseMove(state, orig, dest), state);
+    },
+
+    newPiece(piece, key, fromPocket): void {
+      anim(state => board.baseNewPiece(state, piece, key, fromPocket), state);
     },
 
     playPremove(): boolean {
@@ -125,21 +139,8 @@ export function start(state: State, redrawAll: cg.Redraw): Api {
       return false;
     },
 
-    playPredrop(): boolean {
-      if (state.predroppable.current) {
-        const result = board.playPredrop(state);
-        state.dom.redraw();
-        return result;
-      }
-      return false;
-    },
-
     cancelPremove(): void {
       render(board.unsetPremove, state);
-    },
-
-    cancelPredrop(): void {
-      render(board.unsetPredrop, state);
     },
 
     cancelMove(): void {
@@ -174,8 +175,8 @@ export function start(state: State, redrawAll: cg.Redraw): Api {
 
     redrawAll,
 
-    dragNewPiece(piece, event, force): void {
-      dragNewPiece(state, piece, event, force);
+    dragNewPiece(piece, fromPocket, event, force): void {
+      dragNewPiece(state, piece, fromPocket, event, undefined, force);
     },
 
     destroy(): void {

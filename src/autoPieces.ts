@@ -1,5 +1,11 @@
 import { State } from './state.js';
-import { key2pos, createEl, posToTranslate as posToTranslateFromBounds, translateAndScale, pieceClasses as pieceNameOf } from './util.js';
+import {
+  key2pos,
+  createEl,
+  posToTranslate as posToTranslateFromBounds,
+  translateAndScale,
+  pieceClasses as pieceNameOf,
+} from './util.js';
 import { whitePov } from './board.js';
 import * as cg from './types.js';
 import { DrawShape } from './draw.js';
@@ -37,7 +43,11 @@ function renderShape(state: State, { shape, hash }: SyncableShape, bounds: Clien
     pieceEl.setAttribute('cgHash', hash);
     pieceEl.cgKey = orig;
     pieceEl.cgScale = scale;
-    translateAndScale(pieceEl, posToTranslateFromBounds(bounds, state.dimensions)(key2pos(orig), whitePov(state)), scale);
+    translateAndScale(
+      pieceEl,
+      posToTranslateFromBounds(bounds, state.dimensions)(key2pos(orig), whitePov(state)),
+      scale
+    );
 
     return pieceEl;
   } else {

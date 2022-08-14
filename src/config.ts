@@ -3,7 +3,6 @@ import { setCheck, setSelected } from './board.js';
 import { read as fenRead } from './fen.js';
 import { DrawShape, DrawBrushes } from './draw.js';
 import * as cg from './types.js';
-import { setPredropDests } from './pocket.js';
 
 export interface Config {
   fen?: cg.FEN; // chess position in Forsyth notation
@@ -11,7 +10,6 @@ export interface Config {
   turnColor?: cg.Color; // turn to play. white | black
   check?: cg.Color | boolean; // true for current color, false to unset
   lastMove?: cg.Key[]; // squares part of the last move ["c3", "c4"]
-  selected?: cg.Key; // square currently selected "a1"
   coordinates?: boolean; // include coords attributes
   autoCastle?: boolean; // immediately complete the castle by moving the rook after king move
   viewOnly?: boolean; // don't bind events: the user will never be able to move pieces around
@@ -35,29 +33,19 @@ export interface Config {
     showDests?: boolean; // whether to add the move-dest class on squares
     events?: {
       after?: (orig: cg.Key, dest: cg.Key, metadata: cg.MoveMetadata) => void; // called after the move has been played
-      afterNewPiece?: (role: cg.Role, key: cg.Key, metadata: cg.MoveMetadata) => void; // called after a new piece is dropped on the board
+      afterNewPiece?: (piece: cg.Piece, key: cg.Key, metadata: cg.MoveMetadata) => void; // called after a new piece is dropped on the board
     };
     rookCastle?: boolean; // castle by moving the king to the rook
   };
   premovable?: {
     enabled?: boolean; // allow premoves for color that can not move
+    premoveFunc?: cg.Premove; // function for premove destinations
+    predropFunc?: cg.Predrop; // function for predrop destinations
     castle?: boolean; // whether to allow king castle premoves
     dests?: cg.Key[]; // premove destinations for the current selection
     events?: {
-      set?: (orig: cg.Key, dest: cg.Key, metadata?: cg.SetPremoveMetadata) => void; // called after the premove has been set
+      set?: (orig: cg.Selectable, dest: cg.Key, metadata?: cg.SetPremoveMetadata) => void; // called after the premove has been set
       unset?: () => void; // called after the premove has been unset
-    };
-  };
-  predroppable?: {
-    enabled?: boolean; // allow predrops for color that can not move
-    current?: {
-      // See corresponding type in state.ts for more comments
-      role: cg.Role;
-      key: cg.Key;
-    };
-    events?: {
-      set?: (role: cg.Role, key: cg.Key) => void; // called after the predrop has been set
-      unset?: () => void; // called after the predrop has been unset
     };
   };
   draggable?: {
@@ -68,8 +56,9 @@ export interface Config {
     deleteOnDropOff?: boolean; // delete a piece when it is dropped off the board
   };
   selectable?: {
-    // disable to enforce dragging over click-click move
-    enabled?: boolean;
+    enabled?: boolean; // disable to enforce dragging over click-click move
+    selected?: cg.Selectable; // square or piece currently selected "a1"
+    fromPocket?: boolean; // whether the selected piece is from the pocket
   };
   events?: {
     change?: () => void; // called after the situation changes on the board
@@ -79,10 +68,6 @@ export interface Config {
     dropNewPiece?: (piece: cg.Piece, key: cg.Key) => void;
     select?: (key: cg.Key) => void; // called when a square is selected
     insert?: (elements: cg.Elements) => void; // when the board DOM has been (re)inserted
-  };
-  dropmode?: {
-    active?: boolean;
-    piece?: cg.Piece;
   };
   drawable?: {
     enabled?: boolean; // can draw
@@ -97,9 +82,8 @@ export interface Config {
     onChange?: (shapes: DrawShape[]) => void; // called after drawable shapes change
   };
   dimensions?: cg.BoardDimensions;
-  variant?: cg.Variant;
-  chess960?: boolean;
   notation?: cg.Notation; // coord notation style
+  kingRoles?: cg.Role[]; // roles to be marked with check
   pocketRoles?: cg.PocketRoles; // what pieces have slots in the pocket for each color
 }
 
@@ -129,7 +113,7 @@ export function configure(state: HeadlessState, config: Config): void {
   }
 
   // apply config values that could be undefined yet meaningful
-  if ('check' in config) setCheck(state, config.check || false);
+  if ('check' in config || 'kingRoles' in config) setCheck(state, config.check || false);
   if ('lastMove' in config && !config.lastMove) state.lastMove = undefined;
   // in case of ZH drop last move, there's a single square.
   // if the previous last move had two squares,
@@ -137,8 +121,7 @@ export function configure(state: HeadlessState, config: Config): void {
   else if (config.lastMove) state.lastMove = config.lastMove;
 
   // fix move/premove dests
-  if (state.selected) setSelected(state, state.selected);
-  setPredropDests(state); // TODO: integrate pocket with the "selected" infrastructure and move this in setSelected()
+  if (state.selectable.selected) setSelected(state, state.selectable.selected, state.selectable.fromPocket);
 
   applyAnimation(state, config);
 

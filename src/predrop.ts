@@ -26,100 +26,74 @@ function rankRange(from: number, to: number, color: cg.Color, bd: cg.BoardDimens
   };
 }
 
-export function predrop(pieces: cg.Pieces, piece: cg.Piece, bd: cg.BoardDimensions, variant: cg.Variant): cg.Key[] {
-  const role = piece.role;
-  const color = piece.color;
+export function predrop(variant: string, bd: cg.BoardDimensions): cg.Predrop {
+  const mobility = builtinMobility(variant, bd);
+  return (boardState, piece) =>
+    util
+      .allPos(bd)
+      .filter(pos => boardState.pieces.get(util.pos2key(pos))?.color !== piece.color && mobility(piece)(pos[0], pos[1]))
+      .map(util.pos2key);
+}
 
-  // Pieces can be dropped anywhere on the board by default.
-  // Mobility will be modified based on variant and piece to match the game rule.
-  let mobility: DropMobility = wholeBoard;
-
+function builtinMobility(variant: string, bd: cg.BoardDimensions): (piece: cg.Piece) => DropMobility {
   switch (variant) {
     case 'crazyhouse':
     case 'shouse':
     case 'capahouse':
     case 'gothhouse':
-      switch (role) {
-        case 'p-piece': // pawns can't be dropped on the first rank or last rank
-          mobility = rankRange(1, -1, color, bd);
-          break;
-      }
-      break;
+      // pawns can't be dropped on the first or last rank
+      return piece => (piece.role === 'p-piece' ? rankRange(1, -1, piece.color, bd) : wholeBoard);
 
     case 'placement':
       // the "drop" is the placement phase where pieces can only be placed on the first rank
-      mobility = rankRange(0, 1, color, bd);
-      break;
+      return piece => rankRange(0, 1, piece.color, bd);
 
     case 'sittuyin':
-      switch (role) {
-        case 'r-piece': // rooks can only be placed on the first rank
-          mobility = rankRange(0, 1, color, bd);
-          break;
-        default: // the "drop" is the placement phase where pieces can be placed on its player's half of the board
-          mobility = rankRange(0, 3, color, bd);
-      }
-      break;
+      // the "drop" is the placement phase where pieces can only be placed on the player's half
+      // rooks can only be dropped on the first rank
+      return piece => (piece.role === 'r-piece' ? rankRange(0, 1, piece.color, bd) : rankRange(0, 3, piece.color, bd));
 
     case 'shogi':
     case 'minishogi':
     case 'gorogoro':
     case 'gorogoroplus':
-      switch (role) {
-        case 'p-piece': // pawns and lances can't be dropped on the last rank
-        case 'l-piece':
-          mobility = rankRange(0, -1, color, bd);
-          break;
-        case 'n-piece': // knights can't be dropped on the last two ranks
-          mobility = rankRange(0, -2, color, bd);
-          break;
-      }
-      break;
-
-    // This code is unnecessary but is here anyway to be explicit
-    case 'kyotoshogi':
-    case 'dobutsu':
-    case 'chennis':
-      mobility = wholeBoard;
-      break;
+      return piece => {
+        switch (piece.role) {
+          case 'p-piece': // pawns and lances can't be dropped on the last rank
+          case 'l-piece':
+            return rankRange(0, -1, piece.color, bd);
+          case 'n-piece': // knights can't be dropped on the last two ranks
+            return rankRange(0, -2, piece.color, bd);
+          default:
+            return wholeBoard;
+        }
+      };
 
     case 'torishogi':
-      switch (role) {
-        case 's-piece': // swallows can't be dropped on the last rank
-          mobility = rankRange(0, -1, color, bd);
-          break;
-      }
-      break;
+      // swallows can't be dropped on the last rank
+      return piece => (piece.role === 's-piece' ? rankRange(0, -1, piece.color, bd) : wholeBoard);
 
     case 'grandhouse':
-      switch (role) {
-        case 'p-piece': // pawns can't be dropped on the 1st, or 8th to 10th ranks
-          mobility = rankRange(1, 7, color, bd);
-          break;
-      }
-      break;
+      // pawns can't be dropped on the 1st, or 8th to 10th ranks
+      return piece => (piece.role === 'p-piece' ? rankRange(1, 7, piece.color, bd) : wholeBoard);
 
     case 'shogun':
       // shogun only permits drops on ranks 1-5 for all pieces
-      mobility = rankRange(0, 5, color, bd);
-      break;
+      return piece => rankRange(0, 5, piece.color, bd);
 
     case 'synochess':
       // Only black can drop, and the only droppable rank is the literal rank five.
-      mobility = (_x, y) => y === 4;
-      break;
+      return () => (_x, y) => y === 4;
 
     case 'shinobi':
       // Only white can drop, and only on their own half of the board
-      mobility = (_x, y) => y <= 3;
-      break;
+      return () => (_x, y) => y <= 3;
 
+    // These cases are unnecessary but is here anyway to be explicit
+    case 'kyotoshogi':
+    case 'dobutsu':
+    case 'chennis':
     default:
-      console.warn('Unknown drop variant', variant);
+      return () => wholeBoard;
   }
-
-  return util
-    .allPos(bd)
-    .filter(pos => pieces.get(util.pos2key(pos))?.color !== color && mobility(pos[0], pos[1]))
-    .map(util.pos2key);
 }

@@ -21,8 +21,8 @@ export function allPos(bd: cg.BoardDimensions): cg.Pos[] {
 export const pos2key = (pos: cg.Pos): cg.Key => (cg.files[pos[0]] + cg.ranks[pos[1]]) as cg.Key;
 export const key2pos = (k: cg.Key): cg.Pos => [k.charCodeAt(0) - 97, k.charCodeAt(1) - 49];
 
-export function roleOf(letter: cg.PieceLetter): cg.Role {
-  return (letter.replace('+', 'p').toLowerCase() + '-piece') as cg.Role;
+export function roleOf(letter: cg.PieceLetter | cg.DropOrig): cg.Role {
+  return (letter.replace('+', 'p').replace('@', '').toLowerCase() + '-piece') as cg.Role;
 }
 
 export function letterOf(role: cg.Role, uppercase = false): cg.PieceLetter {
@@ -35,16 +35,25 @@ export function dropOrigOf(role: cg.Role): cg.DropOrig {
   return (letterOf(role, true) + '@') as cg.DropOrig;
 }
 
-export function kingRoles(variant: cg.Variant): cg.Role[] {
-  switch (variant) {
-    case 'dobutsu': return ['l-piece'];
-    case 'chak': return ['k-piece', 'pk-piece'];
-    default: return ['k-piece'];
-  }
+export function isDropOrig(orig: cg.Orig): orig is cg.DropOrig {
+  return orig[0] === orig[0].toUpperCase();
+}
+
+export function isKey(selectable: cg.Selectable | cg.Orig): selectable is cg.Key {
+  return typeof selectable === 'string' && selectable[0] === selectable[0].toLowerCase();
+}
+
+export function isPiece(selectable: cg.Selectable): selectable is cg.Piece {
+  return typeof selectable !== 'string';
+}
+
+export function isSame(lhs: cg.Selectable, rhs: cg.Selectable): boolean {
+  if (isPiece(lhs) && isPiece(rhs)) return samePiece(lhs, rhs);
+  else return lhs === rhs;
 }
 
 export function changeNumber<T>(map: Map<T, number>, key: T, num: number): void {
-    map.set(key, (map.get(key) ?? 0) + num);
+  map.set(key, (map.get(key) ?? 0) + num);
 }
 
 // TODO cover two-digit numbers
@@ -89,7 +98,7 @@ export const timer = (): cg.Timer => {
 export const opposite = (c: cg.Color): cg.Color => (c === 'white' ? 'black' : 'white');
 
 export const samePiece = (p1: cg.Piece, p2: cg.Piece): boolean =>
-  p1.role === p2.role && p1.color === p2.color && p1.promoted === p2.promoted;
+  p1.role === p2.role && p1.color === p2.color && !!p1.promoted === !!p2.promoted;
 
 export const pieceSide = (p: cg.Piece, o: cg.Color): cg.PieceSide => (p.color === o ? 'ally' : 'enemy');
 

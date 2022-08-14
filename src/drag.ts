@@ -4,7 +4,6 @@ import * as util from './util.js';
 import { clear as drawClear } from './draw.js';
 import * as cg from './types.js';
 import { anim } from './anim.js';
-import { predrop } from './predrop.js';
 
 export interface DragCurrent {
   orig: cg.Key; // orig key of dragging piece
@@ -13,9 +12,9 @@ export interface DragCurrent {
   pos: cg.NumberPair; // latest event position
   started: boolean; // whether the drag has started; as per the distance setting
   element: cg.PieceNode | (() => cg.PieceNode | undefined);
-  newPiece?: boolean; // it it a new piece from outside the board
+  fromPocket?: boolean; // it is a piece from one of the pockets
   force?: boolean; // can the new piece replace an existing one (editor)
-  previouslySelected?: cg.Key;
+  previouslySelected?: cg.Selectable;
   originTarget: EventTarget | null;
   keyHasChanged: boolean; // whether the drag has left the orig key
 }
@@ -28,7 +27,7 @@ export function start(s: State, e: cg.MouchEvent): void {
     orig = board.getKeyAtDomPos(position, board.whitePov(s), bounds, s.dimensions);
   if (!orig) return;
   const piece = s.boardState.pieces.get(orig);
-  const previouslySelected = s.selected;
+  const previouslySelected = s.selectable.selected;
   if (!previouslySelected && s.drawable.enabled && (s.drawable.eraseOnClick || !piece || piece.color !== s.turnColor))
     drawClear(s);
   // Prevent touch scroll and create no corresponding mouse event, if there
@@ -39,16 +38,15 @@ export function start(s: State, e: cg.MouchEvent): void {
   )
     e.preventDefault();
   const hadPremove = !!s.premovable.current;
-  const hadPredrop = !!s.predroppable.current;
   s.stats.ctrlKey = e.ctrlKey;
-  if (s.selected && board.canMove(s, s.selected, orig)) {
-    anim(state => board.selectSquare(state, orig), s);
+  if (s.selectable.selected && board.canMove(s, s.selectable.selected, orig, !!s.selectable.fromPocket)) {
+    anim(state => board.select(state, orig), s);
   } else {
-    board.selectSquare(s, orig);
+    board.select(s, orig);
   }
-  const stillSelected = s.selected === orig;
+  const stillSelected = s.selectable.selected === orig;
   const element = pieceElementByKey(s, orig);
-  if (piece && element && stillSelected && board.isDraggable(s, orig)) {
+  if (piece && element && stillSelected && board.isDraggable(s, orig, false)) {
     s.draggable.current = {
       orig,
       piece,
@@ -72,7 +70,6 @@ export function start(s: State, e: cg.MouchEvent): void {
     processDrag(s);
   } else {
     if (hadPremove) board.unsetPremove(s);
-    if (hadPredrop) board.unsetPredrop(s);
   }
   s.dom.redraw();
 }
@@ -88,34 +85,38 @@ function pieceCloseTo(s: State, pos: cg.NumberPair): boolean {
   return false;
 }
 
-export function dragNewPiece(s: State, piece: cg.Piece, e: cg.MouchEvent, force?: boolean): void {
-  const key: cg.Key = 'a0';
-  s.boardState.pieces.set(key, piece);
+export function dragNewPiece(
+  s: State,
+  piece: cg.Piece,
+  fromPocket: boolean,
+  e: cg.MouchEvent,
+  previouslySelected?: cg.Selectable,
+  force?: boolean
+): void {
   s.dom.redraw();
 
   const position = util.eventPosition(e)!;
 
+  s.boardState.pieces.set('a0', piece);
+
   s.draggable.current = {
-    orig: key,
+    orig: 'a0',
     piece,
     origPos: position,
     pos: position,
-    started: true,
-    element: () => pieceElementByKey(s, key),
+    started: s.draggable.autoDistance && s.stats.dragged,
+    element: () => pieceElementByKey(s, 'a0'),
+    previouslySelected,
     originTarget: e.target,
-    newPiece: true,
+    fromPocket: fromPocket,
     force: !!force,
     keyHasChanged: false,
   };
 
-  if (board.isPredroppable(s)) {
-    s.premovable.dests = predrop(s.boardState.pieces, piece, s.dimensions, s.variant);
-  }
-
   processDrag(s);
 }
 
-function processDrag(s: State): void {
+export function processDrag(s: State): void {
   requestAnimationFrame(() => {
     const cur = s.draggable.current;
     if (!cur) return;
@@ -123,7 +124,7 @@ function processDrag(s: State): void {
     if (s.animation.current?.plan.anims.has(cur.orig)) s.animation.current = undefined;
     // if moving piece is gone, cancel
     const origPiece = s.boardState.pieces.get(cur.orig);
-    if (!origPiece || !util.samePiece(origPiece, cur.piece)) cancel(s);
+    if (!util.samePiece(origPiece!, cur.piece)) cancel(s);
     else {
       if (!cur.started && util.distanceSq(cur.pos, cur.origPos) >= Math.pow(s.draggable.distance, 2))
         cur.started = true;
@@ -143,7 +144,8 @@ function processDrag(s: State): void {
           cur.pos[1] - bounds.top - bounds.height / (2 * s.dimensions.height),
         ]);
 
-        cur.keyHasChanged ||= cur.orig !== board.getKeyAtDomPos(cur.pos, board.whitePov(s), bounds, s.dimensions);
+        if (cur.orig !== 'a0')
+          cur.keyHasChanged ||= cur.orig !== board.getKeyAtDomPos(cur.pos, board.whitePov(s), bounds, s.dimensions);
       }
     }
     processDrag(s);
@@ -164,29 +166,38 @@ export function end(s: State, e: cg.MouchEvent): void {
   if (e.type === 'touchend' && e.cancelable !== false) e.preventDefault();
   // comparing with the origin target is an easy way to test that the end event
   // has the same touch origin
-  if (e.type === 'touchend' && cur.originTarget !== e.target && !cur.newPiece) {
+  if (e.type === 'touchend' && cur.originTarget !== e.target) {
     s.draggable.current = undefined;
     return;
   }
   board.unsetPremove(s);
-  board.unsetPredrop(s);
   // touchend has no position; so use the last touchmove position instead
   const eventPos = util.eventPosition(e) || cur.pos;
   const dest = board.getKeyAtDomPos(eventPos, board.whitePov(s), s.dom.bounds(), s.dimensions);
+  const target = e.target as HTMLElement;
+  const onPocket = Number((target as HTMLElement).getAttribute('data-nb') ?? -1) >= 0;
+  const targetPiece = onPocket
+    ? ({ role: target.getAttribute('data-role'), color: target.getAttribute('data-color') } as cg.Piece)
+    : undefined;
   if (dest && cur.started && cur.orig !== dest) {
-    if (cur.newPiece) board.dropNewPiece(s, cur.orig, dest, cur.force);
-    else {
-      s.stats.ctrlKey = e.ctrlKey;
-      if (board.userMove(s, cur.orig, dest)) s.stats.dragged = true;
-    }
-  } else if (cur.newPiece) {
-    s.boardState.pieces.delete(cur.orig);
+    s.stats.ctrlKey = e.ctrlKey;
+    if (board.userMove(s, cur.orig !== 'a0' ? cur.orig : cur.piece, dest, !!cur.fromPocket)) s.stats.dragged = true;
   } else if (s.draggable.deleteOnDropOff && !dest) {
     s.boardState.pieces.delete(cur.orig);
+    if (cur.fromPocket) util.changeNumber(s.boardState.pockets![cur.piece.color], cur.piece.role, -1);
     board.callUserFunction(s.events.change);
   }
-  if ((cur.orig === cur.previouslySelected || cur.keyHasChanged) && (cur.orig === dest || !dest)) board.unselect(s);
+  if (
+    ((cur.previouslySelected &&
+      (cur.orig === cur.previouslySelected || util.isSame(cur.piece, cur.previouslySelected))) ||
+      cur.keyHasChanged) &&
+    (cur.orig === dest || !dest)
+  )
+    board.unselect(s);
+  if (cur.orig === 'a0' && (!targetPiece || !util.samePiece(cur.piece, targetPiece))) board.unselect(s);
   else if (!s.selectable.enabled) board.unselect(s);
+
+  if (cur.orig === 'a0') s.boardState.pieces.delete('a0');
 
   removeDragElements(s);
 
@@ -197,7 +208,6 @@ export function end(s: State, e: cg.MouchEvent): void {
 export function cancel(s: State): void {
   const cur = s.draggable.current;
   if (cur) {
-    if (cur.newPiece) s.boardState.pieces.delete(cur.orig);
     s.draggable.current = undefined;
     board.unselect(s);
     removeDragElements(s);
@@ -210,7 +220,7 @@ function removeDragElements(s: State): void {
   if (e.ghost) util.setVisible(e.ghost, false);
 }
 
-function pieceElementByKey(s: State, key: cg.Key): cg.PieceNode | undefined {
+export function pieceElementByKey(s: State, key: cg.Key): cg.PieceNode | undefined {
   let el = s.dom.elements.board.firstChild;
   while (el) {
     if ((el as cg.KeyedNode).cgKey === key && (el as cg.KeyedNode).tagName === 'PIECE') return el as cg.PieceNode;

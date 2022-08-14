@@ -1,9 +1,8 @@
 import { State } from './state.js';
 import * as drag from './drag.js';
 import * as draw from './draw.js';
-import { cancelDropMode, drop } from './drop.js';
-import { eventPosition, isRightButton } from './util.js';
-import { getKeyAtDomPos, whitePov } from './board.js';
+import * as pocket from './pocket.js';
+import { isRightButton } from './util.js';
 import * as cg from './types.js';
 
 type MouchBind = (e: cg.MouchEvent) => void;
@@ -49,6 +48,17 @@ export function bindDocument(s: State, onResize: () => void): cg.Unbind {
     const onScroll = () => s.dom.bounds.clear();
     unbinds.push(unbindable(document, 'scroll', onScroll, { capture: true, passive: true }));
     unbinds.push(unbindable(window, 'resize', onScroll, { passive: true }));
+
+    const pocketTop = s.dom.elements.pocketTop;
+    const pocketBottom = s.dom.elements.pocketBottom;
+    const pocketStart = startDragOrDrawPocket(s);
+    [pocketTop, pocketBottom].forEach(el => {
+      if (el) {
+        for (const ev of ['touchstart', 'mousedown']) unbinds.push(unbindable(el, ev, pocketStart as EventListener));
+        if (s.disableContextMenu || s.drawable.enabled)
+          unbinds.push(unbindable(el, 'contextmenu', e => e.preventDefault()));
+      }
+    });
   }
 
   return () => unbinds.forEach(f => f());
@@ -72,16 +82,19 @@ const startDragOrDraw =
     else if (e.shiftKey || isRightButton(e)) {
       if (s.drawable.enabled) draw.start(s, e);
     } else if (!s.viewOnly) {
-        if (s.dropmode.active &&
-            (squareOccupied(s, e) === undefined ||
-                (s.movable.color !== s.turnColor && squareOccupied(s, e)?.color === s.turnColor))
-        ) {
-            // only apply drop if the dest square is empty or predropping on an opponent's piece
-            drop(s, e);
-        } else {
-            cancelDropMode(s);
-            drag.start(s, e);
-        }
+      drag.start(s, e);
+    }
+  };
+
+const startDragOrDrawPocket =
+  (s: State): MouchBind =>
+  e => {
+    if (s.draggable.current) drag.cancel(s);
+    else if (s.drawable.current) draw.cancel(s);
+    else if (e.shiftKey || isRightButton(e)) {
+      if (s.drawable.enabled) draw.start(s, e);
+    } else if (!s.viewOnly) {
+      pocket.drag(s, e);
     }
   };
 
@@ -92,10 +105,3 @@ const dragOrDraw =
       if (s.drawable.enabled) withDraw(s, e);
     } else if (!s.viewOnly) withDrag(s, e);
   };
-
-function squareOccupied(s: State, e: cg.MouchEvent): cg.Piece | undefined {
-  const position = eventPosition(e);
-  const dest = position && getKeyAtDomPos(position, whitePov(s), s.dom.bounds(), s.dimensions);
-  if (dest && s.boardState.pieces.get(dest)) return s.boardState.pieces.get(dest);
-  else return undefined;
-}

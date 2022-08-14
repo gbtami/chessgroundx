@@ -5,7 +5,8 @@ import {
   createEl,
   posToTranslate as posToTranslateFromBounds,
   translate,
-  dropOrigOf
+  dropOrigOf,
+  isKey,
 } from './util.js';
 import { whitePov } from './board.js';
 import { AnimCurrent, AnimVectors, AnimVector, AnimFadings } from './anim.js';
@@ -203,10 +204,6 @@ export function updateBounds(s: State): void {
 
   s.addDimensionsCssVarsTo?.style.setProperty('--cg-width', width + 'px');
   s.addDimensionsCssVarsTo?.style.setProperty('--cg-height', height + 'px');
-  s.dom.elements.pocketTop?.style.setProperty('--cg-width', width + 'px');
-  s.dom.elements.pocketTop?.style.setProperty('--cg-height', height + 'px');
-  s.dom.elements.pocketBottom?.style.setProperty('--cg-width', width + 'px');
-  s.dom.elements.pocketBottom?.style.setProperty('--cg-height', height + 'px');
 }
 
 const isPieceNode = (el: cg.PieceNode | cg.SquareNode): el is cg.PieceNode => el.tagName === 'PIECE';
@@ -231,10 +228,11 @@ function computeSquareClasses(s: State): SquareClasses {
       if (k !== 'a0') addSquare(squares, k, 'last-move');
     }
   if (s.check && s.highlight.check) addSquare(squares, s.check, 'check');
-  if (s.selected) {
-    addSquare(squares, s.selected, 'selected');
+  const selected = s.selectable.selected;
+  if (selected) {
+    if (isKey(selected)) addSquare(squares, selected, 'selected');
     if (s.movable.showDests) {
-      const dests = s.movable.dests?.get(s.selected);
+      const dests = s.movable.dests?.get(isKey(selected) ? selected : dropOrigOf(selected.role));
       if (dests)
         for (const k of dests) {
           addSquare(squares, k, 'move-dest' + (s.boardState.pieces.has(k) ? ' oc' : ''));
@@ -245,32 +243,9 @@ function computeSquareClasses(s: State): SquareClasses {
           addSquare(squares, k, 'premove-dest' + (s.boardState.pieces.has(k) ? ' oc' : ''));
         }
     }
-  } else if (s.dropmode.active || s.draggable.current?.orig === 'a0') {
-    const piece = s.dropmode.active ? s.dropmode.piece : s.draggable.current?.piece;
-
-    if (piece) {
-      // TODO: there was a function called isPredroppable that was used in drag.ts or drop.ts or both.
-      //       Maybe use the same here to decide what to render instead of potentially making it possible both
-      //       kinds of highlighting to happen if something was not cleared up in the state.
-      //       In other place (pocket.ts) this condition is used ot decide similar question: ctrl.mycolor === ctrl.turnColor
-      if (s.movable.showDests && piece.color === s.turnColor) {
-        const dests = s.movable.dests?.get(dropOrigOf(piece.role));
-        if (dests)
-          for (const k of dests) {
-            addSquare(squares, k, 'move-dest');
-          }
-      } else if (s.movable.showDests) {
-        const pDests = s.premovable.dests;
-        if (pDests)
-          for (const k of pDests) {
-            addSquare(squares, k, 'premove-dest' + (s.boardState.pieces.get(k) ? ' oc' : ''));
-          }
-      }
-    }
   }
   const premove = s.premovable.current;
-  if (premove) for (const k of premove) addSquare(squares, k, 'current-premove');
-  else if (s.predroppable.current) addSquare(squares, s.predroppable.current.key, 'current-premove');
+  if (premove) for (const k of premove) if (isKey(k)) addSquare(squares, k, 'current-premove');
 
   const o = s.exploding;
   if (o) for (const k of o.keys) addSquare(squares, k, 'exploding' + o.stage);

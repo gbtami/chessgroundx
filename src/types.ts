@@ -1,4 +1,3 @@
-export type Variant = string;
 export type Color = typeof colors[number];
 export type PieceSide = typeof pieceSides[number];
 export type Letter = typeof letters[number];
@@ -30,15 +29,36 @@ export type Pockets = Record<Color, Pocket>;
 export type PocketRoles = Record<Color, Role[]>;
 
 export type BoardState = {
-  pieces: Pieces,
-  pockets?: Pockets,
+  pieces: Pieces;
+  pockets?: Pockets;
 };
 
-export type KeyPair = [Key, Key];
+export type Selectable = Key | Piece;
+
+export type Move = [Selectable, Key];
 
 export type NumberPair = [number, number];
 
 export type NumberQuad = [number, number, number, number];
+
+export interface BoardDimensions {
+  width: number;
+  height: number;
+}
+
+export const enum Notation {
+  ALGEBRAIC, // English letters on bottom, Arabic numbers on side
+  SHOGI_ENGLET, // Arabic numbers on top, English letters on side
+  SHOGI_ARBNUM, // Arabic numbers on top and side
+  SHOGI_HANNUM, // Arabic numbers on top, Kanji numbers on side
+  JANGGI, // Arabic numbers on bottom and side, with 0 denoting 10th rank
+  XIANGQI_ARBNUM, // Arabic numbers on top and bottom
+  XIANGQI_HANNUM, // Arabic numbers on top, Hanzi numbers on bottom
+  THAI_ALGEBRAIC, // Thai letters on bottom, Thai numbers on side
+}
+
+export type Premove = (boardState: BoardState, key: Key, canCastle: boolean) => Key[];
+export type Predrop = (boardState: BoardState, piece: Piece) => Key[];
 
 export interface Rect {
   left: number;
@@ -47,7 +67,6 @@ export interface Rect {
   height: number;
 }
 
-export type DropDests = Map<Role, Key[]>;
 export type Dests = Map<Orig, Key[]>;
 
 export interface Elements {
@@ -79,7 +98,6 @@ export interface MoveMetadata {
   ctrlKey?: boolean;
   holdTime?: number;
   captured?: Piece;
-  predrop?: boolean;
 }
 export interface SetPremoveMetadata {
   ctrlKey?: boolean;
@@ -152,22 +170,3 @@ export const letters = [
   'y',
   'z',
 ] as const;
-
-export interface BoardDimensions {
-  width: number;
-  height: number;
-}
-
-export const enum Notation {
-  ALGEBRAIC,
-  SHOGI_ENGLET,
-  SHOGI_ARBNUM,
-  // TODO SHOGI_HANNUM,
-  JANGGI,
-  XIANGQI_ARBNUM,
-  // TODO XIANGQI_HANNUM,
-  // TODO THAI_ALGEBRAIC,
-}
-
-export const eventsDragging = ['mousedown', 'touchmove'];
-export const eventsClicking = ['click'];

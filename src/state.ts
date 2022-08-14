@@ -3,6 +3,8 @@ import { AnimCurrent } from './anim.js';
 import { DragCurrent } from './drag.js';
 import { Drawable } from './draw.js';
 import { timer } from './util.js';
+import { premove } from './premove.js';
+import { predrop } from './predrop.js';
 import * as cg from './types.js';
 
 export interface HeadlessState {
@@ -11,7 +13,6 @@ export interface HeadlessState {
   turnColor: cg.Color; // turn to play. white | black
   check?: cg.Key; // square currently in check "a2"
   lastMove?: cg.Key[]; // squares part of the last move ["c3"; "c4"]
-  selected?: cg.Key; // square currently selected "a1"
   coordinates: boolean; // include coords attributes
   ranksPosition: cg.RanksPosition; // position ranks on either side. left | right
   autoCastle: boolean; // immediately complete the castle by moving the rook after king move
@@ -37,30 +38,20 @@ export interface HeadlessState {
     showDests: boolean; // whether to add the move-dest class on squares
     events: {
       after?: (orig: cg.Key, dest: cg.Key, metadata: cg.MoveMetadata) => void; // called after the move has been played
-      afterNewPiece?: (role: cg.Role, key: cg.Key, metadata: cg.MoveMetadata) => void; // called after a new piece is dropped on the board
+      afterNewPiece?: (piece: cg.Piece, dest: cg.Key, metadata: cg.MoveMetadata) => void; // called after a new piece is dropped on the board
     };
     rookCastle: boolean; // castle by moving the king to the rook
   };
   premovable: {
     enabled: boolean; // allow premoves for color that can not move
+    premoveFunc: cg.Premove; // function for premove destinations
+    predropFunc: cg.Predrop; // function for predrop destinations
     castle: boolean; // whether to allow king castle premoves
     dests?: cg.Key[]; // premove destinations for the current selection
-    current?: cg.KeyPair; // keys of the current saved premove ["e2" "e4"]
+    current?: cg.Move; // keys of the current saved premove ["e2" "e4"]
     events: {
-      set?: (orig: cg.Key, dest: cg.Key, metadata?: cg.SetPremoveMetadata) => void; // called after the premove has been set
+      set?: (orig: cg.Selectable, dest: cg.Key, metadata?: cg.SetPremoveMetadata) => void; // called after the premove has been set
       unset?: () => void; // called after the premove has been unset
-    };
-  };
-  predroppable: {
-    enabled: boolean; // allow predrops for color that can not move
-    current?: {
-      // current saved predrop {role: 'knight'; key: 'e4'}.
-      role: cg.Role;
-      key: cg.Key;
-    };
-    events: {
-      set?: (role: cg.Role, key: cg.Key) => void; // called after the predrop has been set
-      unset?: () => void; // called after the predrop has been unset
     };
   };
   draggable: {
@@ -71,14 +62,11 @@ export interface HeadlessState {
     deleteOnDropOff: boolean; // delete a piece when it is dropped off the board
     current?: DragCurrent;
   };
-  dropmode: {
-    // used for pocket pieces drops.
-    active: boolean;
-    piece?: cg.Piece;
-  };
   selectable: {
     // disable to enforce dragging over click-click move
     enabled: boolean;
+    selected?: cg.Selectable;
+    fromPocket?: boolean;
   };
   stats: {
     // was last piece dragged or clicked?
@@ -93,16 +81,16 @@ export interface HeadlessState {
     move?: (orig: cg.Key, dest: cg.Key, capturedPiece?: cg.Piece) => void;
     dropNewPiece?: (piece: cg.Piece, key: cg.Key) => void;
     select?: (key: cg.Key) => void; // called when a square is selected
+    selectPocket?: (piece: cg.Piece) => void; // called when a pocket piece is selected
     insert?: (elements: cg.Elements) => void; // when the board DOM has been (re)inserted
   };
   drawable: Drawable;
   exploding?: cg.Exploding;
   hold: cg.Timer;
   dimensions: cg.BoardDimensions; // number of lines and ranks of the board {width: 10, height: 8}
-  variant: cg.Variant;
-  chess960: boolean;
   notation: cg.Notation;
-  pocketRoles?: cg.PocketRoles; // undefinied for non-pocket variants. Possible pieces that a pocket can hold for each color
+  kingRoles: cg.Role[]; // roles to be marked with check
+  pocketRoles?: cg.PocketRoles; // undefined for non-pocket variants. Possible pieces that a pocket can hold for each color
 }
 
 export interface State extends HeadlessState {
@@ -139,11 +127,9 @@ export function defaults(): HeadlessState {
     },
     premovable: {
       enabled: true,
+      premoveFunc: premove('chess', false, { width: 8, height: 8 }),
+      predropFunc: predrop('chess', { width: 8, height: 8 }),
       castle: true,
-      events: {},
-    },
-    predroppable: {
-      enabled: false,
       events: {},
     },
     draggable: {
@@ -152,9 +138,6 @@ export function defaults(): HeadlessState {
       autoDistance: true,
       showGhost: true,
       deleteOnDropOff: false,
-    },
-    dropmode: {
-      active: false,
     },
     selectable: {
       enabled: true,
@@ -191,8 +174,7 @@ export function defaults(): HeadlessState {
     },
     hold: timer(),
     dimensions: { width: 8, height: 8 },
-    variant: 'chess',
-    chess960: false,
     notation: cg.Notation.ALGEBRAIC,
+    kingRoles: ['k-piece'],
   };
 }
