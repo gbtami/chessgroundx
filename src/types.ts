@@ -47,14 +47,14 @@ export interface BoardDimensions {
 }
 
 export const enum Notation {
-  ALGEBRAIC,        // English letters on bottom, Arabic numbers on side
-  SHOGI_ENGLET,     // Arabic numbers on top, English letters on side
-  SHOGI_ARBNUM,     // Arabic numbers on top and side
-  SHOGI_HANNUM,     // Arabic numbers on top, Kanji numbers on side
-  JANGGI,           // Arabic numbers on bottom and side, with 0 denoting 10th rank
-  XIANGQI_ARBNUM,   // Arabic numbers on top and bottom
-  XIANGQI_HANNUM,   // Arabic numbers on top, Hanzi numbers on bottom
-  THAI_ALGEBRAIC,   // Thai letters on bottom, Thai numbers on side
+  ALGEBRAIC, // English letters on bottom, Arabic numbers on side
+  SHOGI_ENGLET, // Arabic numbers on top, English letters on side
+  SHOGI_ARBNUM, // Arabic numbers on top and side
+  SHOGI_HANNUM, // Arabic numbers on top, Kanji numbers on side
+  JANGGI, // Arabic numbers on bottom and side, with 0 denoting 10th rank
+  XIANGQI_ARBNUM, // Arabic numbers on top and bottom
+  XIANGQI_HANNUM, // Arabic numbers on top, Hanzi numbers on bottom
+  THAI_ALGEBRAIC, // Thai letters on bottom, Thai numbers on side
 }
 
 export type Premove = (boardState: BoardState, key: Key, canCastle: boolean) => Key[];

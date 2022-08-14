@@ -127,8 +127,8 @@ export function defaults(): HeadlessState {
     },
     premovable: {
       enabled: true,
-      premoveFunc: premove('chess', false, { width: 8, height: 8}),
-      predropFunc: predrop('chess', { width: 8, height: 8}),
+      premoveFunc: premove('chess', false, { width: 8, height: 8 }),
+      predropFunc: predrop('chess', { width: 8, height: 8 }),
       castle: true,
       events: {},
     },

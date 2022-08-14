@@ -266,10 +266,7 @@ export const canMove = (state: HeadlessState, orig: cg.Selectable, dest: cg.Key,
 function isPremovable(state: HeadlessState, orig: cg.Selectable, fromPocket: boolean): boolean {
   const [piece, available] = pieceAvailability(state, orig, fromPocket);
   return (
-    available &&
-    state.premovable.enabled &&
-    state.movable.color === piece!.color &&
-    state.turnColor !== piece!.color
+    available && state.premovable.enabled && state.movable.color === piece!.color && state.turnColor !== piece!.color
   );
 }
 

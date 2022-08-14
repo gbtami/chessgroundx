@@ -42,7 +42,7 @@ function builtinMobility(variant: string, bd: cg.BoardDimensions): (piece: cg.Pi
     case 'capahouse':
     case 'gothhouse':
       // pawns can't be dropped on the first or last rank
-      return piece => piece.role === 'p-piece' ? rankRange(1, -1, piece.color, bd) : wholeBoard;
+      return piece => (piece.role === 'p-piece' ? rankRange(1, -1, piece.color, bd) : wholeBoard);
 
     case 'placement':
       // the "drop" is the placement phase where pieces can only be placed on the first rank
@@ -51,7 +51,7 @@ function builtinMobility(variant: string, bd: cg.BoardDimensions): (piece: cg.Pi
     case 'sittuyin':
       // the "drop" is the placement phase where pieces can only be placed on the player's half
       // rooks can only be dropped on the first rank
-      return piece => piece.role === 'r-piece' ? rankRange(0, 1, piece.color, bd) : rankRange(0, 3, piece.color, bd);
+      return piece => (piece.role === 'r-piece' ? rankRange(0, 1, piece.color, bd) : rankRange(0, 3, piece.color, bd));
 
     case 'shogi':
     case 'minishogi':
@@ -67,15 +67,15 @@ function builtinMobility(variant: string, bd: cg.BoardDimensions): (piece: cg.Pi
           default:
             return wholeBoard;
         }
-      }
+      };
 
     case 'torishogi':
       // swallows can't be dropped on the last rank
-      return piece => piece.role === 's-piece' ? rankRange(0, -1, piece.color, bd) : wholeBoard;
+      return piece => (piece.role === 's-piece' ? rankRange(0, -1, piece.color, bd) : wholeBoard);
 
     case 'grandhouse':
       // pawns can't be dropped on the 1st, or 8th to 10th ranks
-      return piece => piece.role === 'p-piece' ? rankRange(1, 7, piece.color, bd) : wholeBoard;
+      return piece => (piece.role === 'p-piece' ? rankRange(1, 7, piece.color, bd) : wholeBoard);
 
     case 'shogun':
       // shogun only permits drops on ranks 1-5 for all pieces

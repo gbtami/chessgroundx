@@ -85,7 +85,14 @@ function pieceCloseTo(s: State, pos: cg.NumberPair): boolean {
   return false;
 }
 
-export function dragNewPiece(s: State, piece: cg.Piece, fromPocket: boolean, e: cg.MouchEvent, previouslySelected?: cg.Selectable, force?: boolean): void {
+export function dragNewPiece(
+  s: State,
+  piece: cg.Piece,
+  fromPocket: boolean,
+  e: cg.MouchEvent,
+  previouslySelected?: cg.Selectable,
+  force?: boolean
+): void {
   s.dom.redraw();
 
   const position = util.eventPosition(e)!;
@@ -170,7 +177,7 @@ export function end(s: State, e: cg.MouchEvent): void {
   const target = e.target as HTMLElement;
   const onPocket = Number((target as HTMLElement).getAttribute('data-nb') ?? -1) >= 0;
   const targetPiece = onPocket
-    ? { role: target.getAttribute('data-role'), color: target.getAttribute('data-color') } as cg.Piece
+    ? ({ role: target.getAttribute('data-role'), color: target.getAttribute('data-color') } as cg.Piece)
     : undefined;
   if (dest && cur.started && cur.orig !== dest) {
     s.stats.ctrlKey = e.ctrlKey;

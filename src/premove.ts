@@ -519,22 +519,26 @@ function kingChennis(color: cg.Color): Mobility {
 // cannot premove
 const noMove = () => false;
 
-export function premove(
-  variant: string,
-  chess960: boolean,
-  bd: cg.BoardDimensions,
-): cg.Premove {
+export function premove(variant: string, chess960: boolean, bd: cg.BoardDimensions): cg.Premove {
   const mobility = builtinMobility(variant, chess960, bd);
   return (boardState, key, canCastle) => {
     const pos = util.key2pos(key);
     return util
       .allPos(bd)
-      .filter(pos2 => (pos[0] !== pos2[0] || pos[1] !== pos2[1]) && mobility(key, boardState, canCastle)(pos[0], pos[1], pos2[0], pos2[1]))
+      .filter(
+        pos2 =>
+          (pos[0] !== pos2[0] || pos[1] !== pos2[1]) &&
+          mobility(key, boardState, canCastle)(pos[0], pos[1], pos2[0], pos2[1])
+      )
       .map(util.pos2key);
-  }
+  };
 }
 
-function builtinMobility(variant: string, chess960: boolean, bd: cg.BoardDimensions): (key: cg.Key, boardState: cg.BoardState, canCastle: boolean) => Mobility {
+function builtinMobility(
+  variant: string,
+  chess960: boolean,
+  bd: cg.BoardDimensions
+): (key: cg.Key, boardState: cg.BoardState, canCastle: boolean) => Mobility {
   switch (variant) {
     case 'xiangqi':
     case 'manchu':
@@ -561,7 +565,7 @@ function builtinMobility(variant: string, chess960: boolean, bd: cg.BoardDimensi
           default:
             return noMove;
         }
-      }
+      };
 
     case 'janggi':
       return (key, boardState) => {
@@ -584,7 +588,7 @@ function builtinMobility(variant: string, chess960: boolean, bd: cg.BoardDimensi
           default:
             return noMove;
         }
-      }
+      };
 
     case 'minixiangqi':
       return (key, boardState) => {
@@ -604,7 +608,7 @@ function builtinMobility(variant: string, chess960: boolean, bd: cg.BoardDimensi
           default:
             return noMove;
         }
-      }
+      };
 
     case 'shogi':
     case 'minishogi':
@@ -642,7 +646,7 @@ function builtinMobility(variant: string, chess960: boolean, bd: cg.BoardDimensi
           default:
             return noMove;
         }
-      }
+      };
 
     case 'kyotoshogi':
       return (key, boardState) => {
@@ -671,7 +675,7 @@ function builtinMobility(variant: string, chess960: boolean, bd: cg.BoardDimensi
           default:
             return noMove;
         }
-      }
+      };
 
     case 'dobutsu':
       return (key, boardState) => {
@@ -692,7 +696,7 @@ function builtinMobility(variant: string, chess960: boolean, bd: cg.BoardDimensi
           default:
             return noMove;
         }
-      }
+      };
 
     case 'torishogi':
       return (key, boardState) => {
@@ -721,7 +725,7 @@ function builtinMobility(variant: string, chess960: boolean, bd: cg.BoardDimensi
           default:
             return noMove;
         }
-      }
+      };
 
     case 'makruk':
     case 'makpong':
@@ -751,7 +755,7 @@ function builtinMobility(variant: string, chess960: boolean, bd: cg.BoardDimensi
           default:
             return noMove;
         }
-      }
+      };
 
     case 'grand':
     case 'grandhouse':
@@ -779,7 +783,7 @@ function builtinMobility(variant: string, chess960: boolean, bd: cg.BoardDimensi
           default:
             return noMove;
         }
-      }
+      };
 
     case 'shako':
       return (key, boardState, canCastle) => {
@@ -805,7 +809,7 @@ function builtinMobility(variant: string, chess960: boolean, bd: cg.BoardDimensi
           default:
             return noMove;
         }
-      }
+      };
 
     case 'shogun':
       return (key, boardState, canCastle) => {
@@ -838,7 +842,7 @@ function builtinMobility(variant: string, chess960: boolean, bd: cg.BoardDimensi
           default:
             return noMove;
         }
-      }
+      };
 
     case 'orda':
     case 'ordamirror':
@@ -872,7 +876,7 @@ function builtinMobility(variant: string, chess960: boolean, bd: cg.BoardDimensi
           default:
             return noMove;
         }
-      }
+      };
 
     case 'synochess':
       return (key, boardState, canCastle) => {
@@ -902,7 +906,7 @@ function builtinMobility(variant: string, chess960: boolean, bd: cg.BoardDimensi
           default:
             return noMove;
         }
-      }
+      };
 
     case 'musketeer':
       return (key, boardState, canCastle) => {
@@ -945,7 +949,7 @@ function builtinMobility(variant: string, chess960: boolean, bd: cg.BoardDimensi
           default:
             return noMove;
         }
-      }
+      };
 
     case 'hoppelpoppel':
       return (key, boardState, canCastle) => {
@@ -967,7 +971,7 @@ function builtinMobility(variant: string, chess960: boolean, bd: cg.BoardDimensi
           default:
             return noMove;
         }
-      }
+      };
 
     case 'shinobi':
       return (key, boardState, canCastle) => {
@@ -1006,7 +1010,7 @@ function builtinMobility(variant: string, chess960: boolean, bd: cg.BoardDimensi
           default:
             return noMove;
         }
-      }
+      };
 
     case 'empire':
       return (key, boardState, canCastle) => {
@@ -1036,7 +1040,7 @@ function builtinMobility(variant: string, chess960: boolean, bd: cg.BoardDimensi
           default:
             return noMove;
         }
-      }
+      };
 
     case 'chak':
       return (key, boardState) => {
@@ -1066,7 +1070,7 @@ function builtinMobility(variant: string, chess960: boolean, bd: cg.BoardDimensi
           default:
             return noMove;
         }
-      }
+      };
 
     case 'chennis':
       return (key, boardState) => {
@@ -1095,7 +1099,7 @@ function builtinMobility(variant: string, chess960: boolean, bd: cg.BoardDimensi
           default:
             return noMove;
         }
-      }
+      };
 
     case 'capablanca':
     case 'capahouse':
@@ -1125,7 +1129,7 @@ function builtinMobility(variant: string, chess960: boolean, bd: cg.BoardDimensi
           default:
             return noMove;
         }
-      }
+      };
 
     // Variants using standard pieces and additional fairy pieces like S-chess etc.
     default:
@@ -1156,7 +1160,7 @@ function builtinMobility(variant: string, chess960: boolean, bd: cg.BoardDimensi
               : king(color, rookFilesOf(boardState.pieces, color), canCastle);
           default:
             return noMove;
-      }
-    }
+        }
+      };
   }
 }
