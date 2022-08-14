@@ -10,14 +10,7 @@ describe('premove() test', () => {
 
     console.log(state.variant, state.boardState);
     const expected = ['a1', 'c1', 'd1', 'd2', 'e2', 'f2', 'f1', 'g1', 'h1'];
-    const premoves = premove(
-      state.boardState.pieces,
-      'e1',
-      state.premovable.castle,
-      state.dimensions,
-      state.variant,
-      state.chess960
-    );
+    const premoves = premove(state.variant, state.chess960, state.dimensions)(state.boardState, 'e1', state.premovable.castle);
     expect(premoves).to.have.members(expected);
   });
 });
@@ -29,14 +22,7 @@ describe('premove() test', () => {
 
     console.log(state.variant, state.boardState);
     const expected = ['d1', 'd2', 'd3', 'e1', 'e3', 'f1', 'f2', 'f3'];
-    const premoves = premove(
-      state.boardState.pieces,
-      'e2',
-      state.premovable.castle,
-      state.dimensions,
-      state.variant,
-      state.chess960
-    );
+    const premoves = premove(state.variant, state.chess960, state.dimensions)(state.boardState, 'e2', state.premovable.castle);
     expect(premoves).to.have.members(expected);
   });
 });
@@ -48,14 +34,7 @@ describe('premove() test', () => {
 
     console.log(state.variant, state.boardState);
     const expected = ['d1', 'd2', 'e1', 'f1', 'f2'];
-    const premoves = premove(
-      state.boardState.pieces,
-      'e2',
-      state.premovable.castle,
-      state.dimensions,
-      state.variant,
-      state.chess960
-    );
+    const premoves = premove(state.variant, state.chess960, state.dimensions)(state.boardState, 'e2', state.premovable.castle);
     expect(premoves).to.have.members(expected);
   });
 });
@@ -87,14 +66,7 @@ describe('premove() test', () => {
       'h3',
       'i3',
     ];
-    const premoves = premove(
-      state.boardState.pieces,
-      'f3',
-      state.premovable.castle,
-      state.dimensions,
-      state.variant,
-      state.chess960
-    );
+    const premoves = premove(state.variant, state.chess960, state.dimensions)(state.boardState, 'f3', state.premovable.castle);
     expect(premoves).to.have.members(expected);
   });
 });
