@@ -5,7 +5,7 @@ export type PieceLetter = `${'' | '+'}${Letter | Uppercase<Letter>}`;
 export type Role = `${'' | 'p'}${Letter}-piece`;
 export type File = typeof files[number];
 export type Rank = typeof ranks[number];
-export type Key = 'a0' | `${File}${Rank}`;
+export type Key = 'a0' | `${File}${Rank}`; // The key 'a0' is only used for rendering dragged piece. It should NOT be used in any logic-related code.
 export type DropOrig = `${PieceLetter}@`;
 export type Orig = DropOrig | Key;
 
