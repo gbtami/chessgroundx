@@ -87,7 +87,7 @@ function renderPiece(state: HeadlessState, sq: HTMLElement): void {
     sq.classList.remove('premove');
 
   const lastMoveOrig = state.lastMove?.[0];
-  if (lastMoveOrig && util.isDropOrig(lastMoveOrig) && util.roleOf(lastMoveOrig) === role && state.turnColor !== color)
+  if (state.highlight.lastMove && lastMoveOrig && util.isDropOrig(lastMoveOrig) && util.roleOf(lastMoveOrig) === role && state.turnColor !== color)
     sq.classList.add('last-move');
   else
     sq.classList.remove('last-move');
