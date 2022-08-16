@@ -1,12 +1,12 @@
 export type Color = typeof colors[number];
-export type PieceSide = typeof pieceSides[number];
-export type Letter = typeof letters[number];
-export type PieceLetter = `${'' | '+'}${Letter | Uppercase<Letter>}`;
-export type Role = `${'' | 'p'}${Letter}-piece`;
+export type Side = typeof sides[number];
+export type Alphabet = typeof letters[number];
+export type Letter = `${'' | '+'}${Alphabet | Uppercase<Alphabet>}`;
+export type Role = `${'' | 'p'}${Alphabet}-piece`;
 export type File = typeof files[number];
 export type Rank = typeof ranks[number];
 export type Key = 'a0' | `${File}${Rank}`; // The key 'a0' is only used for rendering dragged piece. It should NOT be used in any logic-related code.
-export type DropOrig = `${PieceLetter}@`;
+export type DropOrig = `${Uppercase<Letter>}@`;
 export type Orig = DropOrig | Key;
 
 export type FEN = string;
@@ -139,7 +139,7 @@ export type KHz = number;
 export type RanksPosition = 'left' | 'right';
 
 export const colors = ['white', 'black'] as const;
-export const pieceSides = ['ally', 'enemy'] as const;
+export const sides = ['ally', 'enemy'] as const;
 export const files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p'] as const;
 export const ranks = ['1', '2', '3', '4', '5', '6', '7', '8', '9', ':', ';', '<', '=', '>', '?', '@'] as const;
 export const letters = [

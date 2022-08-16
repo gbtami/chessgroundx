@@ -60,7 +60,7 @@ function readBoard(fen: cg.FEN): cg.Pieces {
         } else {
           col += num;
           num = 0;
-          const letter = c.toLowerCase() as cg.PieceLetter;
+          const letter = c.toLowerCase() as cg.Letter;
           const piece = {
             role: roleOf(letter),
             color: (c === letter ? 'black' : 'white') as cg.Color,
@@ -85,7 +85,7 @@ function readPockets(pocketStr: string | undefined): cg.Pockets | undefined {
     const blackPocket = new Map();
 
     for (const p of pocketStr) {
-      const role = roleOf(p as cg.PieceLetter);
+      const role = roleOf(p as cg.Letter);
       if (/[A-Z]/.test(p)) changeNumber(whitePocket, role, 1);
       else if (/[a-z]/.test(p)) changeNumber(blackPocket, role, 1);
     }

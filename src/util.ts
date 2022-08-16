@@ -21,14 +21,14 @@ export function allPos(bd: cg.BoardDimensions): cg.Pos[] {
 export const pos2key = (pos: cg.Pos): cg.Key => (cg.files[pos[0]] + cg.ranks[pos[1]]) as cg.Key;
 export const key2pos = (k: cg.Key): cg.Pos => [k.charCodeAt(0) - 97, k.charCodeAt(1) - 49];
 
-export function roleOf(letter: cg.PieceLetter | cg.DropOrig): cg.Role {
+export function roleOf(letter: cg.Letter | cg.DropOrig): cg.Role {
   return (letter.replace('+', 'p').replace('@', '').toLowerCase() + '-piece') as cg.Role;
 }
 
-export function letterOf(role: cg.Role, uppercase = false): cg.PieceLetter {
+export function letterOf(role: cg.Role, uppercase = false): cg.Letter {
   const letterPart = role.slice(0, role.indexOf('-'));
   const letter = letterPart.length > 1 ? letterPart.replace('p', '+') : letterPart;
-  return (uppercase ? letter.toUpperCase() : letter) as cg.PieceLetter;
+  return (uppercase ? letter.toUpperCase() : letter) as cg.Letter;
 }
 
 export function dropOrigOf(role: cg.Role): cg.DropOrig {
@@ -100,7 +100,7 @@ export const opposite = (c: cg.Color): cg.Color => (c === 'white' ? 'black' : 'w
 export const samePiece = (p1: cg.Piece, p2: cg.Piece): boolean =>
   p1.role === p2.role && p1.color === p2.color && !!p1.promoted === !!p2.promoted;
 
-export const pieceSide = (p: cg.Piece, o: cg.Color): cg.PieceSide => (p.color === o ? 'ally' : 'enemy');
+export const pieceSide = (p: cg.Piece, o: cg.Color): cg.Side => (p.color === o ? 'ally' : 'enemy');
 
 export const pieceClasses = (p: cg.Piece, o: cg.Color): string =>
   `${p.color} ${pieceSide(p, o)} ${p.promoted ? 'promoted ' : ''}${p.role}`;
