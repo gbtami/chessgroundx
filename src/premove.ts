@@ -127,6 +127,21 @@ function pawnGrand(color: cg.Color): Mobility {
       : y2 === y1 - 1 || (y1 >= 7 && y2 === y1 - 2 && x1 === x2));
 }
 
+// sittuyin pawn (8x8 board, can move diagonally backward to promote on some squares)
+function pawnSittuyin(pieces: cg.Pieces, color: cg.Color): Mobility {
+  return (x1, y1, x2, y2) => {
+    let canPromote = (color === 'white' ? y1 >= 4 : y1 <= 3) && (x1 === y1 || 7 - x1 === y1);
+    if (!canPromote) {
+      let pawnCount = 0;
+      for (const [_, piece] of pieces)
+        if (piece.role === 'p-piece' && piece.color === color)
+          pawnCount += 1;
+      canPromote ||= pawnCount === 1;
+    }
+    return pawnNoDoubleStep(color)(x1, y1, x2, y2) || (canPromote && ferz(x1, y1, x2, y2));
+  }
+}
+
 // wazir
 const wazir: Mobility = (x1, y1, x2, y2) => {
   const xd = diff(x1, x2);
@@ -738,7 +753,7 @@ function builtinMobility(
         const color = piece.color;
         switch (role) {
           case 'p-piece': // pawn
-            return pawnNoDoubleStep(color);
+            return variant === 'sittuyin' ? pawnSittuyin(boardState.pieces, color) : pawnNoDoubleStep(color);
           case 'r-piece': // rook
             return rook;
           case 'n-piece': // knight
