@@ -56,10 +56,7 @@ function renderPocket(state: HeadlessState, pocketEl?: HTMLElement): void {
   if (pocketEl) {
     let sq = pocketEl.firstChild;
     const color = (sq?.firstChild as HTMLElement)?.getAttribute('data-color');
-    if (state.movable.free || state.movable.color === 'both' || (color && state.movable.color === color))
-      pocketEl.classList.add('usable');
-    else
-      pocketEl.classList.remove('usable');
+    pocketEl.classList.toggle('usable', !state.viewOnly && (state.movable.free || state.movable.color === 'both' || (!!color && state.movable.color === color)));
     while (sq) {
       renderPiece(state, sq as HTMLElement);
       sq = sq.nextSibling;
@@ -75,22 +72,13 @@ function renderPiece(state: HeadlessState, sq: HTMLElement): void {
   const piece = { role, color };
 
   const selected = state.selectable.selected;
-  if (selected && util.isPiece(selected) && state.selectable.fromPocket && util.samePiece(selected, piece))
-    sq.classList.add('selected-square');
-  else
-    sq.classList.remove('selected-square');
+  sq.classList.toggle('selected-square', !!selected && util.isPiece(selected) && state.selectable.fromPocket && util.samePiece(selected, piece));
 
   const premoveOrig = state.premovable.current?.[0];
-  if (premoveOrig && util.isDropOrig(premoveOrig) && util.roleOf(premoveOrig) === role && state.turnColor !== color)
-    sq.classList.add('premove');
-  else
-    sq.classList.remove('premove');
+  sq.classList.toggle('premove', !!premoveOrig && util.isDropOrig(premoveOrig) && util.roleOf(premoveOrig) === role && state.turnColor !== color);
 
   const lastMoveOrig = state.lastMove?.[0];
-  if (state.highlight.lastMove && lastMoveOrig && util.isDropOrig(lastMoveOrig) && util.roleOf(lastMoveOrig) === role && state.turnColor !== color)
-    sq.classList.add('last-move');
-  else
-    sq.classList.remove('last-move');
+  sq.classList.toggle('last-move', state.highlight.lastMove && !!lastMoveOrig && util.isDropOrig(lastMoveOrig) && util.roleOf(lastMoveOrig) === role && state.turnColor !== color);
 }
 
 export function drag(s: State, e: cg.MouchEvent): void {
