@@ -6,7 +6,7 @@ import { anim, render } from './anim.js';
 import { cancel as dragCancel, dragNewPiece } from './drag.js';
 import { DrawShape } from './draw.js';
 import { explosion } from './explosion.js';
-import { roleOf, isDropOrig } from './util.js';
+import { roleOf, isDropOrig, changeNumber } from './util.js';
 import * as cg from './types.js';
 
 export interface Api {
@@ -29,6 +29,9 @@ export interface Api {
 
   // add and/or remove arbitrary pieces on the board
   setPieces(pieces: cg.PiecesDiff): void;
+
+  // add and/or remove arbitrary pieces from the pocket
+  changePocket(piece: cg.Piece, num: number): void;
 
   // click a square programmatically
   selectSquare(key: cg.Key | null, force?: boolean): void;
@@ -99,6 +102,12 @@ export function start(state: State, redrawAll: cg.Redraw): Api {
 
     setPieces(pieces): void {
       anim(state => board.setPieces(state, pieces), state);
+    },
+
+    changePocket(piece, num): void {
+      if (state.pocketRoles?.[piece.color].includes(piece.role)) {
+        changeNumber(state.boardState.pockets![piece.color], piece.role, num);
+      }
     },
 
     selectSquare(key, force): void {
