@@ -12,7 +12,7 @@ export interface HeadlessState {
   orientation: cg.Color; // board orientation. white | black
   turnColor: cg.Color; // turn to play. white | black
   check?: cg.Key; // square currently in check "a2"
-  lastMove?: cg.Key[]; // squares part of the last move ["c3"; "c4"]
+  lastMove?: cg.Move; // squares or dropping piece part of the last move ["c3"; "c4"]
   coordinates: boolean; // include coords attributes
   ranksPosition: cg.RanksPosition; // position ranks on either side. left | right
   autoCastle: boolean; // immediately complete the castle by moving the rook after king move
@@ -50,7 +50,7 @@ export interface HeadlessState {
     dests?: cg.Key[]; // premove destinations for the current selection
     current?: cg.Move; // keys of the current saved premove ["e2" "e4"]
     events: {
-      set?: (orig: cg.Selectable, dest: cg.Key, metadata?: cg.SetPremoveMetadata) => void; // called after the premove has been set
+      set?: (orig: cg.Orig, dest: cg.Key, metadata?: cg.SetPremoveMetadata) => void; // called after the premove has been set
       unset?: () => void; // called after the premove has been unset
     };
   };

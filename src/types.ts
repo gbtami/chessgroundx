@@ -35,7 +35,7 @@ export type BoardState = {
 
 export type Selectable = Key | Piece;
 
-export type Move = [Selectable, Key];
+export type Move = [Orig, Key];
 
 export type NumberPair = [number, number];
 

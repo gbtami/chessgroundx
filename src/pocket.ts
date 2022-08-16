@@ -23,7 +23,7 @@ export function renderPocketsInitial(
   }
 }
 
-function pocketView(state: HeadlessState, pocketEl: HTMLElement, position: cg.PocketPosition) {
+function pocketView(state: HeadlessState, pocketEl: HTMLElement, position: cg.PocketPosition): void {
   if (!state.boardState.pockets) return;
   const color = position === 'top' ? util.opposite(state.orientation) : state.orientation;
   const roles = state.pocketRoles![color];
@@ -31,14 +31,16 @@ function pocketView(state: HeadlessState, pocketEl: HTMLElement, position: cg.Po
   const files = String(state.dimensions.width);
   const ranks = String(state.dimensions.height);
   pocketEl.setAttribute('style', `--pocketLength: ${pl}; --files: ${files}; --ranks: ${ranks}`);
-  pocketEl.classList.add('pocket', position, 'usable');
+  pocketEl.classList.add('pocket', position);
   roles.forEach(role => {
     const pieceName = util.pieceClasses({ role: role, color: color }, state.orientation);
+    const sq = util.createEl('square');
     const p = util.createEl('piece', pieceName);
+    sq.appendChild(p);
     p.setAttribute('data-color', color);
     p.setAttribute('data-role', role);
-    renderPiece(state, p);
-    pocketEl.appendChild(p);
+    renderPiece(state, sq);
+    pocketEl.appendChild(sq);
   });
 }
 
@@ -50,39 +52,51 @@ export function renderPockets(state: State): void {
   renderPocket(state, state.dom.elements.pocketTop);
 }
 
-function renderPocket(state: HeadlessState, pocketEl?: HTMLElement) {
-  let el: cg.PieceNode | undefined = pocketEl?.firstChild as cg.PieceNode | undefined;
-  while (el) {
-    renderPiece(state, el);
-    el = el.nextSibling as cg.PieceNode;
+function renderPocket(state: HeadlessState, pocketEl?: HTMLElement): void {
+  if (pocketEl) {
+    let sq = pocketEl.firstChild;
+    const color = (sq?.firstChild as HTMLElement)?.getAttribute('data-color');
+    if (state.movable.free || state.movable.color === 'both' || (color && state.movable.color === color))
+      pocketEl.classList.add('usable');
+    else
+      pocketEl.classList.remove('usable');
+    while (sq) {
+      renderPiece(state, sq as HTMLElement);
+      sq = sq.nextSibling;
+    }
   }
 }
 
-function renderPiece(state: HeadlessState, el: HTMLElement) {
-  const role = el.getAttribute('data-role') as cg.Role;
-  const color = el.getAttribute('data-color') as cg.Color;
-  el.setAttribute('data-nb', '' + (state.boardState.pockets![color].get(role) ?? 0));
+function renderPiece(state: HeadlessState, sq: HTMLElement): void {
+  const p = sq.firstChild as cg.PieceNode;
+  const role = p.getAttribute('data-role') as cg.Role;
+  const color = p.getAttribute('data-color') as cg.Color;
+  p.setAttribute('data-nb', '' + (state.boardState.pockets![color].get(role) ?? 0));
   const piece = { role, color };
 
   const selected = state.selectable.selected;
-  if (selected && util.isPiece(selected) && state.selectable.fromPocket && util.samePiece(selected, piece)) {
-    el.classList.add('selected-square');
-  } else {
-    el.classList.remove('selected-square');
-  }
+  if (selected && util.isPiece(selected) && state.selectable.fromPocket && util.samePiece(selected, piece))
+    sq.classList.add('selected-square');
+  else
+    sq.classList.remove('selected-square');
 
   const premoveOrig = state.premovable.current?.[0];
-  if (premoveOrig && util.isPiece(premoveOrig) && premoveOrig.role === role && premoveOrig.color === color) {
-    el.classList.add('premove');
-  } else {
-    el.classList.remove('premove');
-  }
+  if (premoveOrig && util.isDropOrig(premoveOrig) && util.roleOf(premoveOrig) === role && state.turnColor !== color)
+    sq.classList.add('premove');
+  else
+    sq.classList.remove('premove');
+
+  const lastMoveOrig = state.lastMove?.[0];
+  if (lastMoveOrig && util.isDropOrig(lastMoveOrig) && util.roleOf(lastMoveOrig) === role && state.turnColor !== color)
+    sq.classList.add('last-move');
+  else
+    sq.classList.remove('last-move');
 }
 
 export function drag(s: State, e: cg.MouchEvent): void {
   if (!e.isTrusted || (e.button !== undefined && e.button !== 0)) return; // only touch or left click
   if (e.touches && e.touches.length > 1) return; // support one finger touch only
-  const el = e.target as HTMLElement,
+  const el = (e.target as HTMLElement).firstChild as HTMLElement,
     role = el.getAttribute('data-role') as cg.Role,
     color = el.getAttribute('data-color') as cg.Color,
     n = Number(el.getAttribute('data-nb'));

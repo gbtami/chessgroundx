@@ -6,6 +6,7 @@ import {
   distanceSq,
   allPos,
   computeSquareCenter,
+  roleOf,
   dropOrigOf,
   changeNumber,
   isKey,
@@ -48,7 +49,7 @@ export function setCheck(state: HeadlessState, color: cg.Color | boolean): void 
     }
 }
 
-function setPremove(state: HeadlessState, orig: cg.Selectable, dest: cg.Key, meta: cg.SetPremoveMetadata): void {
+function setPremove(state: HeadlessState, orig: cg.Orig, dest: cg.Key, meta: cg.SetPremoveMetadata): void {
   state.premovable.current = [orig, dest];
   callUserFunction(state.premovable.events.set, orig, dest, meta);
 }
@@ -120,7 +121,7 @@ export function baseNewPiece(
   callUserFunction(state.events.dropNewPiece, piece, dest);
   state.boardState.pieces.set(dest, piece);
   if (fromPocket) changeNumber(state.boardState.pockets![piece.color], piece.role, -1);
-  state.lastMove = [dest];
+  state.lastMove = [dropOrigOf(piece.role), dest];
   state.check = undefined;
   callUserFunction(state.events.change);
   state.movable.dests = undefined;
@@ -167,7 +168,7 @@ export function userMove(
       return true;
     }
   } else if (canPremove(state, orig, dest, fromPocket)) {
-    setPremove(state, orig, dest, {
+    setPremove(state, isKey(orig) ? orig : dropOrigOf(orig.role), dest, {
       ctrlKey: state.stats.ctrlKey,
     });
     unselect(state);
@@ -290,8 +291,8 @@ export function isDraggable(state: HeadlessState, orig: cg.Selectable, fromPocke
 export function playPremove(state: HeadlessState): boolean {
   const move = state.premovable.current;
   if (!move) return false;
-  const orig = move[0],
-    dest = move[1];
+  const orig = isKey(move[0]) ? move[0] : { role: roleOf(move[0]), color: state.turnColor };
+  const dest = move[1];
   let success = false;
   if (canMove(state, orig, dest, true)) {
     const result = baseUserMove(state, orig, dest, true);
