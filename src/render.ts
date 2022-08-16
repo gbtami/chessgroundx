@@ -204,6 +204,10 @@ export function updateBounds(s: State): void {
 
   s.addDimensionsCssVarsTo?.style.setProperty('--cg-width', width + 'px');
   s.addDimensionsCssVarsTo?.style.setProperty('--cg-height', height + 'px');
+  s.dom.elements.pocketTop?.style.setProperty('--cg-width', width + 'px');
+  s.dom.elements.pocketTop?.style.setProperty('--cg-height', height + 'px');
+  s.dom.elements.pocketBottom?.style.setProperty('--cg-width', width + 'px');
+  s.dom.elements.pocketBottom?.style.setProperty('--cg-height', height + 'px');
 }
 
 const isPieceNode = (el: cg.PieceNode | cg.SquareNode): el is cg.PieceNode => el.tagName === 'PIECE';
