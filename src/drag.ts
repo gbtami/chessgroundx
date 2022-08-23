@@ -104,7 +104,7 @@ export function dragNewPiece(
     piece,
     origPos: position,
     pos: position,
-    started: s.draggable.autoDistance && s.stats.dragged,
+    started: true,
     element: () => pieceElementByKey(s, 'a0'),
     previouslySelected,
     originTarget: e.target,
