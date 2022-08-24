@@ -84,7 +84,7 @@ function renderPiece(state: HeadlessState, sq: HTMLElement): void {
 export function drag(s: State, e: cg.MouchEvent): void {
   if (!e.isTrusted || (e.button !== undefined && e.button !== 0)) return; // only touch or left click
   if (e.touches && e.touches.length > 1) return; // support one finger touch only
-  const el = (e.target as HTMLElement).firstChild as HTMLElement,
+  const el = e.target as HTMLElement,
     role = el.getAttribute('data-role') as cg.Role,
     color = el.getAttribute('data-color') as cg.Color,
     n = Number(el.getAttribute('data-nb'));

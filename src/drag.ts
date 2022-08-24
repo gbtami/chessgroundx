@@ -175,7 +175,7 @@ export function end(s: State, e: cg.MouchEvent): void {
   const eventPos = util.eventPosition(e) || cur.pos;
   const dest = board.getKeyAtDomPos(eventPos, board.whitePov(s), s.dom.bounds(), s.dimensions);
   const target = e.target as HTMLElement;
-  const onPocket = Number((target as HTMLElement).getAttribute('data-nb') ?? -1) >= 0;
+  const onPocket = Number(target.getAttribute('data-nb') ?? -1) >= 0;
   const targetPiece = onPocket
     ? ({ role: target.getAttribute('data-role'), color: target.getAttribute('data-color') } as cg.Piece)
     : undefined;
