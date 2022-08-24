@@ -107,6 +107,7 @@ export function start(state: State, redrawAll: cg.Redraw): Api {
     changePocket(piece, num): void {
       if (state.pocketRoles?.[piece.color].includes(piece.role)) {
         changeNumber(state.boardState.pockets![piece.color], piece.role, num);
+        state.dom.redraw();
       }
     },
 
