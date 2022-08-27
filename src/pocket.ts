@@ -24,9 +24,9 @@ export function renderPocketsInitial(
 }
 
 function pocketView(state: HeadlessState, pocketEl: HTMLElement, position: cg.PocketPosition): void {
-  if (!state.boardState.pockets) return;
+  if (!state.pocketRoles) return;
   const color = position === 'top' ? util.opposite(state.orientation) : state.orientation;
-  const roles = state.pocketRoles![color];
+  const roles = state.pocketRoles[color];
   const pl = String(roles.length);
   const files = String(state.dimensions.width);
   const ranks = String(state.dimensions.height);
