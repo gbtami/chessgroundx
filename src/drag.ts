@@ -209,6 +209,7 @@ export function cancel(s: State): void {
   const cur = s.draggable.current;
   if (cur) {
     s.draggable.current = undefined;
+    s.boardState.pieces.delete('a0');
     board.unselect(s);
     removeDragElements(s);
     s.dom.redraw();
