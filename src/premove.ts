@@ -114,6 +114,15 @@ function rookFilesOfShako(pieces: cg.Pieces, color: cg.Color) {
   return files;
 }
 
+// ouk king (can jump like a knight to the second row on its first move)
+function kingOuk(color: cg.Color, canCastle: boolean): Mobility {
+  return (x1, y1, x2, y2) =>
+    kingNoCastling(x1, y1, x2, y2) ||
+    (canCastle && (color === 'white' ?
+      x1 === 3 && y1 === 0 && (x2 === 1 || x2 === 5) && y2 === 1 :
+      x1 === 4 && y1 === 7 && (x2 === 6 || x2 === 2) && y2 === 6));
+}
+
 function pawnNoDoubleStep(color: cg.Color): Mobility {
   return (x1, y1, x2, y2) => diff(x1, x2) < 2 && (color === 'white' ? y2 === y1 + 1 : y2 === y1 - 1);
 }
@@ -151,6 +160,15 @@ const wazir: Mobility = (x1, y1, x2, y2) => {
 
 // ferz, met
 const ferz: Mobility = (x1, y1, x2, y2) => diff(x1, x2) === diff(y1, y2) && diff(x1, x2) === 1;
+
+// ouk ferz (can jump two squares forward on its first move)
+function ferzOuk(color: cg.Color): Mobility {
+  return (x1, y1, x2, y2) =>
+    ferz(x1, y1, x2, y2) ||
+    (color === 'white' ?
+      x1 === 4 && y1 === 0 && x2 === 4 && y2 === 2 :
+      x1 === 3 && y1 === 7 && x2 === 3 && y2 === 5);
+}
 
 // shatranj elephant
 const elephant: Mobility = (x1, y1, x2, y2) => {
@@ -747,7 +765,7 @@ function builtinMobility(
     case 'sittuyin':
     case 'cambodian':
     case 'asean':
-      return (boardState, key) => {
+      return (boardState, key, canCastle) => {
         const piece = boardState.pieces.get(key)!;
         const role = piece.role;
         const color = piece.color;
@@ -764,9 +782,9 @@ function builtinMobility(
           case 'q-piece': // ASEAN met
           case 'f-piece': // Sittuyin ferz
           case 'm-piece': // met
-            return ferz;
+            return variant === 'cambodian' ? ferzOuk(color) : ferz;
           case 'k-piece': // king
-            return kingNoCastling;
+            return variant === 'cambodian' ? kingOuk(color, canCastle) : kingNoCastling;
           default:
             return noMove;
         }
