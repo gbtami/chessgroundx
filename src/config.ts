@@ -108,6 +108,10 @@ export function configure(state: HeadlessState, config: Config): void {
     // prevent calling cancel() if piece drag is already started from pocket!
     const draggedPiece = state.boardState.pieces.get('a0');
     if (draggedPiece !== undefined) boardState.pieces.set('a0', draggedPiece);
+    // set the pocket to empty instead of undefined if pocketRoles exists
+    // likewise, set the pocket to undefined if pocketRoles is undefined
+    if (state.pocketRoles) boardState.pockets = boardState.pockets ?? { white: new Map(), black: new Map() };
+    else boardState.pockets = undefined;
     state.boardState = boardState;
     state.drawable.shapes = [];
   }
