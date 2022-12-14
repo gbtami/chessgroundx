@@ -1,8 +1,8 @@
 export type Color = typeof colors[number];
 export type Side = typeof sides[number];
 export type Alphabet = typeof letters[number];
-export type Letter = `${'' | '+'}${Alphabet | Uppercase<Alphabet>}`;
-export type Role = `${'' | 'p'}${Alphabet}-piece`;
+export type Letter = `${'' | '+'}${Alphabet | Uppercase<Alphabet> | '*'}`; // '*' is used for inaccessible squares in winboard/xboard FEN
+export type Role = `${'' | 'p'}${Alphabet | '_'}-piece`; // but '*' is not alloved in CSS class names, so we will use '_' in Role
 export type File = typeof files[number];
 export type Rank = typeof ranks[number];
 export type Key = 'a0' | `${File}${Rank}`; // The key 'a0' is only used for rendering dragged piece. It should NOT be used in any logic-related code.

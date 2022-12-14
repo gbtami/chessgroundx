@@ -22,12 +22,12 @@ export const pos2key = (pos: cg.Pos): cg.Key => (cg.files[pos[0]] + cg.ranks[pos
 export const key2pos = (k: cg.Key): cg.Pos => [k.charCodeAt(0) - 97, k.charCodeAt(1) - 49];
 
 export function roleOf(letter: cg.Letter | cg.DropOrig): cg.Role {
-  return (letter.replace('+', 'p').replace('@', '').toLowerCase() + '-piece') as cg.Role;
+  return (letter.replace('+', 'p').replace('*', '_').replace('@', '').toLowerCase() + '-piece') as cg.Role;
 }
 
 export function letterOf(role: cg.Role, uppercase = false): cg.Letter {
   const letterPart = role.slice(0, role.indexOf('-'));
-  const letter = letterPart.length > 1 ? letterPart.replace('p', '+') : letterPart;
+  const letter = letterPart.length > 1 ? letterPart.replace('p', '+').replace('_', '*') : letterPart;
   return (uppercase ? letter.toUpperCase() : letter) as cg.Letter;
 }
 
