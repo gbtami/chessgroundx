@@ -27,7 +27,7 @@ export function roleOf(letter: cg.Letter | cg.DropOrig): cg.Role {
 
 export function letterOf(role: cg.Role, uppercase = false): cg.Letter {
   const letterPart = role.slice(0, role.indexOf('-'));
-  const letter = letterPart.length > 1 ? letterPart.replace('p', '+').replace('_', '*') : letterPart;
+  const letter = (letterPart.length > 1 ? letterPart.replace('p', '+') : letterPart).replace('_', '*');
   return (uppercase ? letter.toUpperCase() : letter) as cg.Letter;
 }
 
