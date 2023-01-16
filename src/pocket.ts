@@ -77,8 +77,8 @@ function renderPiece(state: HeadlessState, sq: HTMLElement): void {
   const premoveOrig = state.premovable.current?.[0];
   sq.classList.toggle('premove', !!premoveOrig && util.isDropOrig(premoveOrig) && util.roleOf(premoveOrig) === role && state.turnColor !== color);
 
-  const lastMoveOrig = state.lastMove?.[0];
-  sq.classList.toggle('last-move', state.highlight.lastMove && !!lastMoveOrig && util.isDropOrig(lastMoveOrig) && util.roleOf(lastMoveOrig) === role && state.turnColor !== color);
+  if (state.lastMove)
+    sq.classList.toggle('last-move', state.highlight.lastMove && state.lastMove.includes(util.dropOrigOf(role)) && state.turnColor !== color);
 }
 
 export function drag(s: State, e: cg.MouchEvent): void {
