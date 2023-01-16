@@ -89,11 +89,10 @@ function renderPiece(state: HeadlessState, sq: HTMLElement): void {
     !!premoveOrig && util.isDropOrig(premoveOrig) && util.roleOf(premoveOrig) === role && state.turnColor !== color
   );
 
-  if (state.lastMove)
-    sq.classList.toggle(
-      'last-move',
-      state.highlight.lastMove && state.lastMove.includes(util.dropOrigOf(role)) && state.turnColor !== color
-    );
+  sq.classList.toggle(
+    'last-move',
+    state.highlight.lastMove && state.lastMove?.includes(util.dropOrigOf(role)) && state.turnColor !== color
+  );
 }
 
 export function drag(s: State, e: cg.MouchEvent): void {
