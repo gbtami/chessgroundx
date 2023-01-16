@@ -142,8 +142,8 @@ function pawnSittuyin(pieces: cg.Pieces, color: cg.Color): Mobility {
     let canPromote = (color === 'white' ? y1 >= 4 : y1 <= 3) && (x1 === y1 || 7 - x1 === y1);
     if (!canPromote) {
       let pawnCount = 0;
-      for (const [_, piece] of pieces)
-        if (piece.role === 'p-piece' && piece.color === color)
+      for (const p of pieces.values())
+        if (p.role === 'p-piece' && p.color === color)
           pawnCount += 1;
       canPromote ||= pawnCount === 1;
     }

@@ -55,11 +55,13 @@ export function renderPockets(state: State): void {
 function renderPocket(state: HeadlessState, pocketEl?: HTMLElement): void {
   if (pocketEl) {
     let sq = pocketEl.firstChild;
-    const color = (sq?.firstChild as HTMLElement)?.getAttribute('data-color');
-    pocketEl.classList.toggle('usable', !state.viewOnly && (state.movable.free || state.movable.color === 'both' || (!!color && state.movable.color === color)));
-    while (sq) {
-      renderPiece(state, sq as HTMLElement);
-      sq = sq.nextSibling;
+    if (sq && sq.firstChild) {
+      const color = (sq.firstChild as HTMLElement).getAttribute('data-color');
+      pocketEl.classList.toggle('usable', !state.viewOnly && (state.movable.free || state.movable.color === 'both' || (!!color && state.movable.color === color)));
+      while (sq) {
+        renderPiece(state, sq as HTMLElement);
+        sq = sq.nextSibling;
+      }
     }
   }
 }
