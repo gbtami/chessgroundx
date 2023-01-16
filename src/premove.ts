@@ -118,9 +118,10 @@ function rookFilesOfShako(pieces: cg.Pieces, color: cg.Color) {
 function kingOuk(color: cg.Color, canCastle: boolean): Mobility {
   return (x1, y1, x2, y2) =>
     kingNoCastling(x1, y1, x2, y2) ||
-    (canCastle && (color === 'white' ?
-      x1 === 3 && y1 === 0 && (x2 === 1 || x2 === 5) && y2 === 1 :
-      x1 === 4 && y1 === 7 && (x2 === 6 || x2 === 2) && y2 === 6));
+    (canCastle &&
+      (color === 'white'
+        ? x1 === 3 && y1 === 0 && (x2 === 1 || x2 === 5) && y2 === 1
+        : x1 === 4 && y1 === 7 && (x2 === 6 || x2 === 2) && y2 === 6));
 }
 
 function pawnNoDoubleStep(color: cg.Color): Mobility {
@@ -142,13 +143,11 @@ function pawnSittuyin(pieces: cg.Pieces, color: cg.Color): Mobility {
     let canPromote = (color === 'white' ? y1 >= 4 : y1 <= 3) && (x1 === y1 || 7 - x1 === y1);
     if (!canPromote) {
       let pawnCount = 0;
-      for (const p of pieces.values())
-        if (p.role === 'p-piece' && p.color === color)
-          pawnCount += 1;
+      for (const p of pieces.values()) if (p.role === 'p-piece' && p.color === color) pawnCount += 1;
       canPromote ||= pawnCount === 1;
     }
     return pawnNoDoubleStep(color)(x1, y1, x2, y2) || (canPromote && ferz(x1, y1, x2, y2));
-  }
+  };
 }
 
 // wazir
@@ -165,9 +164,7 @@ const ferz: Mobility = (x1, y1, x2, y2) => diff(x1, x2) === diff(y1, y2) && diff
 function ferzOuk(color: cg.Color): Mobility {
   return (x1, y1, x2, y2) =>
     ferz(x1, y1, x2, y2) ||
-    (color === 'white' ?
-      x1 === 4 && y1 === 0 && x2 === 4 && y2 === 2 :
-      x1 === 3 && y1 === 7 && x2 === 3 && y2 === 5);
+    (color === 'white' ? x1 === 4 && y1 === 0 && x2 === 4 && y2 === 2 : x1 === 3 && y1 === 7 && x2 === 3 && y2 === 5);
 }
 
 // shatranj elephant
