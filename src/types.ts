@@ -46,7 +46,7 @@ export interface BoardDimensions {
   height: number;
 }
 
-export const enum Notation {
+export enum Notation {
   ALGEBRAIC, // English letters on bottom, Arabic numbers on side
   SHOGI_ENGLET, // Arabic numbers on top, English letters on side
   SHOGI_ARBNUM, // Arabic numbers on top and side
