@@ -91,7 +91,7 @@ function renderPiece(state: HeadlessState, sq: HTMLElement): void {
 
   sq.classList.toggle(
     'last-move',
-    state.highlight.lastMove && state.lastMove?.includes(util.dropOrigOf(role)) && state.turnColor !== color
+    state.highlight.lastMove && !!state.lastMove?.includes(util.dropOrigOf(role)) && state.turnColor !== color
   );
 }
 
