@@ -53,7 +53,6 @@ function rookFilesOf(pieces: cg.Pieces, color: cg.Color) {
   return files;
 }
 
-/* TODO make use of these
 function and(...ms: Mobility[]): Mobility {
   return (x1, y1, x2, y2) => ms.map(m => m(x1, y1, x2, y2)).reduce((a, b) => a && b);
 }
@@ -62,10 +61,15 @@ function or(...ms: Mobility[]): Mobility {
   return (x1, y1, x2, y2) => ms.map(m => m(x1, y1, x2, y2)).reduce((a, b) => a || b);
 }
 
+/* TODO make use of this
 function not(m: Mobility): Mobility {
   return (x1, y1, x2, y2) => !m(x1, y1, x2, y2);
 }
 */
+
+function distance(dist: number): Mobility {
+  return (x1, y1, x2, y2) => Math.max(diff(x1, x2), diff(y1, y2)) <= dist;
+}
 
 function backrank(color: cg.Color): number {
   return color === 'white' ? 0 : 7;
@@ -148,6 +152,20 @@ function pawnSittuyin(pieces: cg.Pieces, color: cg.Color): Mobility {
     }
     return pawnNoDoubleStep(color)(x1, y1, x2, y2) || (canPromote && ferz(x1, y1, x2, y2));
   };
+}
+
+function pawnBerolina(color: cg.Color): Mobility {
+  return (x1, y1, x2, y2) => {
+    const xd = diff(x1, x2);
+    return (color === 'white'
+      ? // allow 2 squares from first two ranks, for horde
+        (y2 === y1 + 1 && xd <= 1) || (y1 <= 1 && y2 === y1 + 2 && xd === 2)
+      : (y2 === y1 - 1 && xd <= 1) || (y1 >= 6 && y2 === y1 - 2 && xd === 2));
+  };
+}
+
+const sideways: Mobility = (x1, y1, x2, y2) => {
+  return y1 === y2 && diff(x1, x2) <= 1;
 }
 
 // wazir
@@ -1126,6 +1144,41 @@ function builtinMobility(
             return knight;
           case 'k-piece': // king
             return kingChennis(color);
+          default:
+            return noMove;
+        }
+      };
+
+    case 'spartan':
+      return (boardState, key, canCastle) => {
+        const piece = boardState.pieces.get(key)!;
+        const role = piece.role;
+        const color = piece.color;
+        switch (role) {
+          case 'h-piece':
+            return pawnBerolina(color);
+          case 'g-piece': // genaral
+            return shogiDragon;
+          case 'w-piece': // warlord
+            return archbishop;
+          case 'c-piece': // captain
+            return and(rook, distance(2));
+          case 'l-piece': // lieutenant
+            return or(and(bishop, distance(2)), sideways);
+          case 'p-piece': // pawn
+            return pawn(color);
+          case 'r-piece': // rook
+            return rook;
+          case 'n-piece': // knight
+            return knight;
+          case 'b-piece': // bishop
+            return bishop;
+          case 'q-piece': // queen
+            return queen;
+          case 'k-piece': // king
+            return chess960
+              ? king960(color, rookFilesOf(boardState.pieces, color), canCastle)
+              : king(color, rookFilesOf(boardState.pieces, color), canCastle);
           default:
             return noMove;
         }
