@@ -1155,7 +1155,7 @@ function builtinMobility(
         const role = piece.role;
         const color = piece.color;
         switch (role) {
-          case 'h-piece':
+          case 'h-piece': // hoplite
             return pawnBerolina(color);
           case 'g-piece': // genaral
             return shogiDragon;
