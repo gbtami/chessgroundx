@@ -37,16 +37,16 @@ export function setPieces(state: HeadlessState, pieces: cg.PiecesDiff): void {
   }
 }
 
-export function setCheck(state: HeadlessState, color: cg.Color | boolean): void {
-  state.check = undefined;
-  if (color === true) color = state.turnColor;
-  if (color)
-    for (const [k, p] of state.boardState.pieces) {
-      if (state.kingRoles.includes(p.role) && p.color === color) {
-        state.check = k;
-        break;
-      }
-    }
+export function setCheck(state: HeadlessState, arg: cg.Color | boolean | cg.Key[]): void {
+  if (Array.isArray(arg)) state.check = arg;
+  else {
+    const color = arg === true ? state.turnColor : arg;
+    state.check = [];
+    if (color)
+      for (const [k, p] of state.boardState.pieces)
+        if (state.kingRoles.includes(p.role) && p.color === color)
+          state.check.push(k);
+  }
 }
 
 function setPremove(state: HeadlessState, orig: cg.Orig, dest: cg.Key, meta: cg.SetPremoveMetadata): void {

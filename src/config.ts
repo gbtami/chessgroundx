@@ -8,7 +8,7 @@ export interface Config {
   fen?: cg.FEN; // chess position in Forsyth notation
   orientation?: cg.Color; // board orientation. white | black
   turnColor?: cg.Color; // turn to play. white | black
-  check?: cg.Color | boolean; // true for current color, false to unset
+  check?: cg.Color | boolean | cg.Key[]; // true for current color, false to unset, array to force squares
   lastMove?: cg.Orig[]; // squares part of the last move ["c3", "c4"]
   coordinates?: boolean; // include coords attributes
   autoCastle?: boolean; // immediately complete the castle by moving the rook after king move
