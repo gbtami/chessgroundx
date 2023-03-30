@@ -67,9 +67,20 @@ function not(m: Mobility): Mobility {
 }
 */
 
-function distance(dist: number): Mobility {
+function _distance(dist: number): Mobility {
   return (x1, y1, x2, y2) => Math.max(diff(x1, x2), diff(y1, y2)) <= dist;
 }
+
+function memoizeDistance(): (dist: number) => Mobility {
+  const cache: Record<string, Mobility> = {};
+  return (dist: number) => {
+    const key = `${dist}`;
+    if (!(key in cache)) cache[key] = _distance(dist);
+    return cache[key];
+  };
+}
+
+const distance = memoizeDistance();
 
 function backrank(color: cg.Color): number {
   return color === 'white' ? 0 : 7;
