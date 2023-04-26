@@ -11,7 +11,7 @@ export interface HeadlessState {
   boardState: cg.BoardState;
   orientation: cg.Color; // board orientation. white | black
   turnColor: cg.Color; // turn to play. white | black
-  check?: cg.Key[]; // square currently in check "a2"
+  check?: cg.Key[]; // squares currently in check ["a2"]
   lastMove?: cg.Orig[]; // squares or dropping piece part of the last move ["c3"; "c4"]
   coordinates: boolean; // include coords attributes
   ranksPosition: cg.RanksPosition; // position ranks on either side. left | right
