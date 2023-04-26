@@ -231,7 +231,9 @@ function computeSquareClasses(s: State): SquareClasses {
     for (const k of s.lastMove) {
       if (isKey(k) && k !== 'a0') addSquare(squares, k, 'last-move');
     }
-  if (s.check && s.highlight.check) addSquare(squares, s.check, 'check');
+  if (s.check && s.highlight.check)
+    for (const k of s.check)
+      addSquare(squares, k, 'check');
   const selected = s.selectable.selected;
   if (selected) {
     if (isKey(selected)) addSquare(squares, selected, 'selected');
