@@ -218,6 +218,16 @@ const amazon: Mobility = (x1, y1, x2, y2) => {
   return bishop(x1, y1, x2, y2) || rook(x1, y1, x2, y2) || knight(x1, y1, x2, y2);
 };
 
+// mansindam rhino (archbishop + wazir)
+const crownPrincess: Mobility = (x1, y1, x2, y2) => {
+  return bishop(x1, y1, x2, y2) || knight(x1, y1, x2, y2) || wazir(x1, y1, x2, y2);
+};
+
+// mansindam ship (chancellor + ferz)
+const archChancellor: Mobility = (x1, y1, x2, y2) => {
+  return rook(x1, y1, x2, y2) || knight(x1, y1, x2, y2) || ferz(x1, y1, x2, y2);
+};
+
 // shogun general (knight + king)
 const centaur: Mobility = (x1, y1, x2, y2) => {
   return kingNoCastling(x1, y1, x2, y2) || knight(x1, y1, x2, y2);
@@ -1023,6 +1033,47 @@ function builtinMobility(
           case 'n-piece': // knight (takes like bishop)
           case 'b-piece': // bishop (takes like knight)
             return archbishop;
+          case 'q-piece': // queen
+            return queen;
+          case 'k-piece': // king
+            return king(color, rookFilesOf(boardState.pieces, color), canCastle);
+          default:
+            return noMove;
+        }
+      };
+
+    case 'mansindam':
+      return (boardState, key, canCastle) => {
+        const piece = boardState.pieces.get(key)!;
+        const role = piece.role;
+        const color = piece.color;
+        switch (role) {
+          case 'p-piece': // pawn
+            return shogiPawn(color);
+          case 'pp-piece': // guard
+            return kingNoCastling;
+          case 'r-piece': // rook
+            return rook;
+          case 'pr-piece': // tiger (promoted rook)
+            return shogiDragon;
+          case 'n-piece': // knight
+            return knight;
+          case 'pn-piece': // centaur (promoted knight)
+            return centaur;
+          case 'b-piece': // bishop
+            return bishop;
+          case 'pb-piece': // archer (promoted bishop)
+            return shogiHorse;
+          case 'c-piece': // cardinal
+            return archbishop;
+          case 'pc-piece': // rhino (promoted cardinal)
+            return crownPrincess;
+          case 'm-piece': // marshal
+            return chancellor;
+          case 'pm-piece': // ship (promoted marshal)
+            return archChancellor;
+          case 'a-piece': // angel
+            return amazon;
           case 'q-piece': // queen
             return queen;
           case 'k-piece': // king
