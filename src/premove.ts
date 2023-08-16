@@ -1043,7 +1043,7 @@ function builtinMobility(
       };
 
     case 'mansindam':
-      return (boardState, key, canCastle) => {
+      return (boardState, key) => {
         const piece = boardState.pieces.get(key)!;
         const role = piece.role;
         const color = piece.color;
