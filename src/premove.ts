@@ -1077,7 +1077,7 @@ function builtinMobility(
           case 'q-piece': // queen
             return queen;
           case 'k-piece': // king
-            return king(color, rookFilesOf(boardState.pieces, color), canCastle);
+            return kingNoCastling;
           default:
             return noMove;
         }

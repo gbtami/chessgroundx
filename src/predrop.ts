@@ -89,6 +89,16 @@ function builtinMobility(variant: string, bd: cg.BoardDimensions): (piece: cg.Pi
       // Only white can drop, and only on their own half of the board
       return () => (_x, y) => y <= 3;
 
+    case 'mansindam':
+      return piece => {
+        switch (piece.role) {
+          case 'p-piece': // pawns can't be dropped on the last rank
+            return rankRange(0, -1, piece.color, bd);
+          default:
+            return wholeBoard;
+        }
+      };
+
     // These cases are unnecessary but is here anyway to be explicit
     case 'kyotoshogi':
     case 'dobutsu':
