@@ -175,6 +175,10 @@ function pawnBerolina(color: cg.Color): Mobility {
   };
 }
 
+const pawnAtaxx: Mobility = (x1, y1, x2, y2) => {
+  return diff(x1, x2) <= 2 && diff(y1, y2) <= 2;
+}
+
 const sideways: Mobility = (x1, y1, x2, y2) => {
   return y1 === y2 && diff(x1, x2) <= 1;
 }
@@ -609,6 +613,18 @@ function builtinMobility(
   bd: cg.BoardDimensions
 ): (boardState: cg.BoardState, key: cg.Key, canCastle: boolean) => Mobility {
   switch (variant) {
+    case 'ataxx':
+      return (boardState, key) => {
+        const piece = boardState.pieces.get(key)!;
+        const role = piece.role;
+        switch (role) {
+          case 'p-piece': // pawn
+            return pawnAtaxx;
+          default:
+            return noMove;
+        }
+      };
+
     case 'xiangqi':
     case 'manchu':
       return (boardState, key) => {
