@@ -1100,6 +1100,7 @@ function builtinMobility(
       };
 
     case 'shinobi':
+    case 'shinobiplus':
       return (boardState, key, canCastle) => {
         const piece = boardState.pieces.get(key)!;
         const role = piece.role;
@@ -1129,6 +1130,8 @@ function builtinMobility(
             return ferz;
           case 'd-piece': // dragon
             return shogiDragon;
+          case 'f-piece': // fox
+            return shogiHorse;
           case 'j-piece': // ninja
             return archbishop;
           case 'k-piece': // king
