@@ -12,7 +12,7 @@ import {
   isKey,
   isSame,
 } from './util.js';
-import { queen, knight, janggiElephant } from './premove.js';
+import { queen, knight, camel, janggiElephant } from './premove.js';
 import * as cg from './types.js';
 
 export function callUserFunction<T extends (...args: any[]) => void>(f: T | undefined, ...args: Parameters<T>): void {
@@ -343,6 +343,8 @@ export function getSnappedKeyAtDomPos(
     return (
       queen(origPos[0], origPos[1], pos2[0], pos2[1]) ||
       knight(origPos[0], origPos[1], pos2[0], pos2[1]) ||
+      // allow camel moves for boards 5x5 and bigger excepting 9x10 which is reserved for Janggi
+      (!(bd.width === 9 && bd.height === 10) && bd.width >= 5 && bd.height >= 5 && camel(origPos[0], origPos[1], pos2[0], pos2[1])) ||
       // Only apply this to 9x10 board to avoid interfering with other variants beside Janggi
       (bd.width === 9 && bd.height === 10 && janggiElephant(origPos[0], origPos[1], pos2[0], pos2[1]))
     );
