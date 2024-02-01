@@ -340,6 +340,13 @@ const shakoElephant: Mobility = (x1, y1, x2, y2) => {
   return diff(x1, x2) === diff(y1, y2) && diff(x1, x2) < 3;
 };
 
+// camel
+export const camel: Mobility = (x1, y1, x2, y2) => {
+  const xd = diff(x1, x2);
+  const yd = diff(y1, y2);
+  return (xd === 1 && yd === 3) || (xd === 3 && yd === 1);
+};
+
 // janggi elephant
 export const janggiElephant: Mobility = (x1, y1, x2, y2) => {
   const xd = diff(x1, x2);
