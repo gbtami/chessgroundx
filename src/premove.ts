@@ -193,6 +193,14 @@ const wazir: Mobility = (x1, y1, x2, y2) => {
 // ferz, met
 const ferz: Mobility = (x1, y1, x2, y2) => diff(x1, x2) === diff(y1, y2) && diff(x1, x2) === 1;
 
+const fersAlfil: Mobility = (x1, y1, x2, y2) => {
+  return diff(x1, x2) === diff(y1, y2) && diff(x1, x2) < 3;
+};
+
+const wazirDabbaba: Mobility = (x1, y1, x2, y2) => {
+  return (x1 === x2 && diff(y1, y2) < 3) || (y1 === y2 && diff(x1, x2) < 3) ;
+};
+
 // ouk ferz (can jump two squares forward on its first move)
 function ferzOuk(color: cg.Color): Mobility {
   return (x1, y1, x2, y2) =>
@@ -273,6 +281,16 @@ const shogiHorse: Mobility = (x1, y1, x2, y2) => {
   return bishop(x1, y1, x2, y2) || wazir(x1, y1, x2, y2);
 };
 
+// cannon shogi promoted orthogonal (silver/gold) cannons
+const flyingOrthogonalCannon: Mobility = (x1, y1, x2, y2) => {
+  return rook(x1, y1, x2, y2) || fersAlfil(x1, y1, x2, y2);
+};
+
+// cannon shogi promoted diagonal (iron/copper) cannons
+const flyingDiagonalCannon: Mobility = (x1, y1, x2, y2) => {
+  return bishop(x1, y1, x2, y2) || wazirDabbaba(x1, y1, x2, y2);
+};
+
 // Define xiangqi palace based on geometry
 // The palace is the 3x3 squares in the middle files at each side's end of the board
 type Palace = cg.Pos[];
@@ -334,11 +352,6 @@ function xiangqiKing(color: cg.Color, bd: cg.BoardDimensions): Mobility {
   const p = palace(bd, color);
   return (x1, y1, x2, y2) => wazir(x1, y1, x2, y2) && p.some(point => point[0] === x2 && point[1] === y2);
 }
-
-// shako elephant
-const shakoElephant: Mobility = (x1, y1, x2, y2) => {
-  return diff(x1, x2) === diff(y1, y2) && diff(x1, x2) < 3;
-};
 
 // janggi elephant
 export const janggiElephant: Mobility = (x1, y1, x2, y2) => {
@@ -699,13 +712,14 @@ function builtinMobility(
     case 'minishogi':
     case 'gorogoro':
     case 'gorogoroplus':
+    case 'cannonshogi':
       return (boardState, key) => {
         const piece = boardState.pieces.get(key)!;
         const role = piece.role;
         const color = piece.color;
         switch (role) {
           case 'p-piece': // pawn
-            return shogiPawn(color);
+            return variant === 'cannonshogi' ? minixiangqiPawn(color) : shogiPawn(color);
           case 'l-piece': // lance
             return shogiLance(color);
           case 'n-piece': // knight
@@ -721,13 +735,23 @@ function builtinMobility(
           case 'ps-piece': // promoted silver
             return shogiGold(color);
           case 'b-piece': // bishop
+          case 'u-piece': // gold cannon
+          case 'a-piece': // silver cannon
             return bishop;
           case 'r-piece': // rook
+          case 'i-piece': // iron cannon
+          case 'c-piece': // copper cannon
             return rook;
           case 'pr-piece': // dragon (promoted rook)
             return shogiDragon;
           case 'pb-piece': // horse (promoted bishop), not to be confused with the knight
             return shogiHorse;
+          case 'pu-piece': // promoted gold cannon
+          case 'pa-piece': // promoted silver cannon
+            return flyingOrthogonalCannon;
+          case 'pi-piece': // promoted iron cannon
+          case 'pc-piece': // promoted copper cannon
+            return flyingDiagonalCannon;
           default:
             return noMove;
         }
@@ -888,7 +912,7 @@ function builtinMobility(
           case 'q-piece': // queen
             return queen;
           case 'e-piece': // elephant
-            return shakoElephant;
+            return fersAlfil;
           case 'k-piece': // king
             return kingShako(color, rookFilesOfShako(boardState.pieces, color), canCastle);
           default:
@@ -983,7 +1007,7 @@ function builtinMobility(
           case 's-piece': // soldier
             return minixiangqiPawn(color);
           case 'e-piece': // elephant
-            return shakoElephant;
+            return fersAlfil;
           case 'a-piece': // advisor
             return kingNoCastling;
           case 'k-piece': // king
