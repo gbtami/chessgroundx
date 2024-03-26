@@ -291,6 +291,13 @@ const flyingDiagonalCannon: Mobility = (x1, y1, x2, y2) => {
   return bishop(x1, y1, x2, y2) || wazirDabbaba(x1, y1, x2, y2);
 };
 
+function scout(color: cg.Color): Mobility {
+  return (x1, y1, x2, y2) =>
+   (x2 === x1 && (color === 'white' ? y2 === y1 + 1 : y2 === y1 - 1)) ||
+   ((x2 === x1 - 1 || x2 === x1 + 1) && (color === 'white' ? y2 === y1 + 2 : y2 === y1 - 2)) ||
+   ((x2 === x1 - 2 || x2 === x1 + 2) && (color === 'white' ? y2 === y1 + 1 : y2 === y1 - 1))
+};
+
 // Define xiangqi palace based on geometry
 // The palace is the 3x3 squares in the middle files at each side's end of the board
 type Palace = cg.Pos[];
@@ -954,6 +961,7 @@ function builtinMobility(
       };
 
     case 'orda':
+    case 'khans':
     case 'ordamirror':
       return (boardState, key, canCastle) => {
         const piece = boardState.pieces.get(key)!;
@@ -973,6 +981,7 @@ function builtinMobility(
           case 'l-piece': // lancer
             return chancellor;
           case 'h-piece': // kheshig
+          case 't-piece': // khatun
             return centaur;
           case 'a-piece': // archer
             return archbishop;
@@ -980,6 +989,8 @@ function builtinMobility(
             return shogiSilver(color);
           case 'f-piece': // falcon
             return amazon;
+          case 's-piece': // scout
+            return scout(color);
           case 'k-piece': // king
             return king(color, rookFilesOf(boardState.pieces, color), canCastle);
           default:
@@ -1341,6 +1352,7 @@ function builtinMobility(
             return chancellor;
           case 'h-piece': // S-chess hawk
           case 'a-piece': // archbishop
+          case 'd-piece': // Dragon chess dragon
             return archbishop;
           case 'k-piece': // king
             return chess960
