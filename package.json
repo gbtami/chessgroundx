@@ -1,6 +1,6 @@
 {
   "name": "chessgroundx",
-  "version": "10.5.5",
+  "version": "10.5.6",
   "description": "Extended lichess.org Chess UI",
   "type": "module",
   "module": "chessground.js",

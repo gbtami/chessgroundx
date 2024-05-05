@@ -742,12 +742,12 @@ function builtinMobility(
           case 'ps-piece': // promoted silver
             return shogiGold(color);
           case 'b-piece': // bishop
-          case 'u-piece': // gold cannon
-          case 'a-piece': // silver cannon
-            return bishop;
-          case 'r-piece': // rook
           case 'i-piece': // iron cannon
           case 'c-piece': // copper cannon
+            return bishop;
+          case 'r-piece': // rook
+          case 'u-piece': // gold cannon
+          case 'a-piece': // silver cannon
             return rook;
           case 'pr-piece': // dragon (promoted rook)
             return shogiDragon;
