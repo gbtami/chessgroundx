@@ -296,7 +296,7 @@ function scout(color: cg.Color): Mobility {
    (x2 === x1 && (color === 'white' ? y2 === y1 + 1 : y2 === y1 - 1)) ||
    ((x2 === x1 - 1 || x2 === x1 + 1) && (color === 'white' ? y2 === y1 + 2 : y2 === y1 - 2)) ||
    ((x2 === x1 - 2 || x2 === x1 + 2) && (color === 'white' ? y2 === y1 + 1 : y2 === y1 - 1))
-};
+}
 
 // Define xiangqi palace based on geometry
 // The palace is the 3x3 squares in the middle files at each side's end of the board
