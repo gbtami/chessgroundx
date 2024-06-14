@@ -11,7 +11,10 @@ type StateMouchBind = (d: State, e: cg.MouchEvent) => void;
 export function bindBoard(s: State, onResize: () => void): void {
   const boardEl = s.dom.elements.board;
 
-  if ('ResizeObserver' in window) new ResizeObserver(onResize).observe(s.dom.elements.wrap);
+  // In case of zooming boards in bughouse, observing s.dom.elements.wrap
+  // causes recursive onResize calls, so we will just observe the document.body
+  const target = (s.dimensionsCssVarsPostfix) ? document.body : s.dom.elements.wrap;
+  if ('ResizeObserver' in window) new ResizeObserver(onResize).observe(target);
 
   if (s.viewOnly) return;
 
