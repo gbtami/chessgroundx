@@ -202,13 +202,13 @@ export function updateBounds(s: State): void {
   container.style.height = height + 'px';
   s.dom.bounds.clear();
 
-  const postfix = s.dimensionsCssVarsPostfix ?? '';
-  s.addDimensionsCssVarsTo?.style.setProperty('--cg-width' + postfix, width + 'px');
-  s.addDimensionsCssVarsTo?.style.setProperty('--cg-height' + postfix, height + 'px');
-  s.dom.elements.pocketTop?.style.setProperty('--cg-width' + postfix, width + 'px');
-  s.dom.elements.pocketTop?.style.setProperty('--cg-height' + postfix, height + 'px');
-  s.dom.elements.pocketBottom?.style.setProperty('--cg-width' + postfix, width + 'px');
-  s.dom.elements.pocketBottom?.style.setProperty('--cg-height' + postfix, height + 'px');
+  const suffix = s.boardName ?? '';
+  s.addDimensionsCssVarsTo?.style.setProperty('--cg-width' + suffix, width + 'px');
+  s.addDimensionsCssVarsTo?.style.setProperty('--cg-height' + suffix, height + 'px');
+  s.dom.elements.pocketTop?.style.setProperty('--cg-width' + suffix, width + 'px');
+  s.dom.elements.pocketTop?.style.setProperty('--cg-height' + suffix, height + 'px');
+  s.dom.elements.pocketBottom?.style.setProperty('--cg-width' + suffix, width + 'px');
+  s.dom.elements.pocketBottom?.style.setProperty('--cg-height' + suffix, height + 'px');
 }
 
 const isPieceNode = (el: cg.PieceNode | cg.SquareNode): el is cg.PieceNode => el.tagName === 'PIECE';
