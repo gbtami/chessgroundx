@@ -202,7 +202,7 @@ export function updateBounds(s: State): void {
   container.style.height = height + 'px';
   s.dom.bounds.clear();
 
-  const suffix = s.boardName ?? '';
+  const suffix = '-' + s.boardName ?? '';
   s.addDimensionsCssVarsTo?.style.setProperty('--cg-width' + suffix, width + 'px');
   s.addDimensionsCssVarsTo?.style.setProperty('--cg-height' + suffix, height + 'px');
   s.dom.elements.pocketTop?.style.setProperty('--cg-width' + suffix, width + 'px');
