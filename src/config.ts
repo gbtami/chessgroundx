@@ -16,6 +16,7 @@ export interface Config {
   disableContextMenu?: boolean; // because who needs a context menu on a chessboard
   addPieceZIndex?: boolean; // adds z-index values to pieces (for 3D)
   addDimensionsCssVarsTo?: HTMLElement; // add --cg-width and --cg-height CSS vars containing the board's dimensions to this element
+  dimensionsCssVarsSuffix?: string; // sufix to add to --cg-width and --cg-height CSS var names (for bughouse boards)
   blockTouchScroll?: boolean; // block scrolling via touch dragging on the board, e.g. for coordinate training
   // pieceKey: boolean; // add a data-key attribute to piece elements
   highlight?: {
