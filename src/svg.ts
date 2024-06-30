@@ -191,7 +191,7 @@ function renderCircle(
 ): SVGElement {
   const o = pos2user(pos, bounds, bd),
     widths = circleWidth(),
-    radius = (bounds.width + bounds.height) / (4 * Math.max(bounds.width, bounds.height));
+    radius = Math.min(bd.width / (2 * bd.height), (bounds.width / bd.width) / (2 * bounds.height / bd.height));
   return setAttributes(createElement('circle'), {
     stroke: brush.color,
     'stroke-width': widths[current ? 0 : 1],
@@ -289,7 +289,13 @@ function arrowMargin(shorten: boolean): number {
 }
 
 function pos2user(pos: cg.Pos, bounds: ClientRect, bd: cg.BoardDimensions): cg.NumberPair {
-  const xScale = Math.min(1, bounds.width / bounds.height) * Math.max(1, bd.height / bd.width);
-  const yScale = Math.min(1, bounds.height / bounds.width) * Math.max(1, bd.width / bd.height);
+    let xScale, yScale;
+    if (bounds.width / bounds.height <= bd.width / bd.height) {
+        xScale = Math.min(1, bounds.width / bounds.height) * Math.max(1, bd.height / bd.width);
+        yScale = Math.min(1, bounds.height / bounds.width) * Math.max(1, bd.width / bd.height);
+    } else {
+        xScale = Math.max(1, bounds.width / bounds.height) * Math.min(1, bd.height / bd.width);
+        yScale = Math.max(1, bounds.height / bounds.width) * (bd.width / bd.height);
+    }
   return [(pos[0] - (bd.width - 1) / 2) * xScale, ((bd.height - 1) / 2 - pos[1]) * yScale];
 }
