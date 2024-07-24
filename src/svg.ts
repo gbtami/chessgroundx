@@ -290,12 +290,13 @@ function arrowMargin(shorten: boolean): number {
 
 function pos2user(pos: cg.Pos, bounds: ClientRect, bd: cg.BoardDimensions): cg.NumberPair {
     let xScale, yScale;
-    if (bounds.width / bounds.height <= bd.width / bd.height) {
-        xScale = Math.min(1, bounds.width / bounds.height) * Math.max(1, bd.height / bd.width);
-        yScale = Math.min(1, bounds.height / bounds.width) * Math.max(1, bd.width / bd.height);
-    } else {
+    // Janggi/Xiangqi board needs different calculation
+    if (bd.width === 9 && bd.height === 10) {
         xScale = Math.max(1, bounds.width / bounds.height) * Math.min(1, bd.height / bd.width);
         yScale = Math.max(1, bounds.height / bounds.width) * (bd.width / bd.height);
+    } else {
+        xScale = Math.min(1, bounds.width / bounds.height) * Math.max(1, bd.height / bd.width);
+        yScale = Math.min(1, bounds.height / bounds.width) * Math.max(1, bd.width / bd.height);
     }
   return [(pos[0] - (bd.width - 1) / 2) * xScale, ((bd.height - 1) / 2 - pos[1]) * yScale];
 }
