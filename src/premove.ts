@@ -208,7 +208,7 @@ function ferzOuk(color: cg.Color): Mobility {
     (color === 'white' ? x1 === 4 && y1 === 0 && x2 === 4 && y2 === 2 : x1 === 3 && y1 === 7 && x2 === 3 && y2 === 5);
 }
 
-// shatranj elephant
+// alfil (shatranj elephant)
 const elephant: Mobility = (x1, y1, x2, y2) => {
   const xd = diff(x1, x2);
   const yd = diff(y1, y2);
@@ -868,6 +868,29 @@ function builtinMobility(
             return variant === 'cambodian' ? ferzOuk(color) : ferz;
           case 'k-piece': // king
             return variant === 'cambodian' ? kingOuk(color, canCastle) : kingNoCastling;
+          default:
+            return noMove;
+        }
+      };
+
+    case 'shatranj':
+      return (boardState, key, canCastle) => {
+        const piece = boardState.pieces.get(key)!;
+        const role = piece.role;
+        const color = piece.color;
+        switch (role) {
+          case 'p-piece': // pawn
+            return pawnNoDoubleStep(color);
+          case 'r-piece': // rook
+            return rook;
+          case 'n-piece': // knight
+            return knight;
+          case 'b-piece': // bishop
+            return elephant;
+          case 'q-piece': // queen
+            return ferz;
+          case 'k-piece': // king
+            return kingNoCastling;
           default:
             return noMove;
         }
