@@ -15,6 +15,7 @@ export interface Piece {
   role: Role;
   color: Color;
   promoted?: boolean;
+  mirror?: boolean;
 }
 export interface Drop {
   role: Role;

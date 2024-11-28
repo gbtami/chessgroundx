@@ -103,7 +103,7 @@ export const samePiece = (p1: cg.Piece, p2: cg.Piece): boolean =>
 export const pieceSide = (p: cg.Piece, o: cg.Color): cg.Side => (p.color === o ? 'ally' : 'enemy');
 
 export const pieceClasses = (p: cg.Piece, o: cg.Color): string =>
-  `${p.color} ${pieceSide(p, o)} ${p.promoted ? 'promoted ' : ''}${p.role}`;
+  `${p.color} ${pieceSide(p, o)} ${p.mirror ? 'mirror' : ''} ${p.promoted ? 'promoted ' : ''}${p.role}`;
 
 export const distanceSq = (pos1: cg.Pos, pos2: cg.Pos): number => {
   const dx = pos1[0] - pos2[0],

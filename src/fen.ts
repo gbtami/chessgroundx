@@ -32,6 +32,7 @@ function readBoard(fen: cg.FEN): cg.Pieces {
   let row = fen.split('/').length - 1;
   let col = 0;
   let promoted = false;
+  let mirror = false;
   let num = 0;
 
   for (const c of fen) {
@@ -47,6 +48,9 @@ function readBoard(fen: cg.FEN): cg.Pieces {
         break;
       case '+':
         promoted = true;
+        break;
+      case '|':
+        mirror = true;
         break;
       case '~': {
         const piece = pieces.get(pos2key([col - 1, row]));
@@ -69,6 +73,10 @@ function readBoard(fen: cg.FEN): cg.Pieces {
             piece.role = ('p' + piece.role) as cg.Role;
             piece.promoted = true;
             promoted = false;
+          }
+          if (mirror) {
+            piece.mirror = true;
+            mirror = false;
           }
           pieces.set(pos2key([col, row]), piece);
           ++col;
