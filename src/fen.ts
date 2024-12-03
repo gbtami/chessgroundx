@@ -120,8 +120,9 @@ export function writeBoard(pieces: cg.Pieces, bd: cg.BoardDimensions): cg.FEN {
         .map(x => {
           const piece = pieces.get((x + y) as cg.Key);
           if (piece) {
-            let p = letterOf(piece.role, piece.color === 'white');
+            let p: string = letterOf(piece.role, piece.color === 'white');
             if (piece.promoted && p.charAt(0) !== '+') p += '~';
+            if (piece.mirror) p = '|' + p;
             return p;
           } else return '1';
         })
