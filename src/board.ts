@@ -67,11 +67,14 @@ function tryAutoCastle(state: HeadlessState, orig: cg.Key, dest: cg.Key): boolea
   const king = state.boardState.pieces.get(orig);
   if (!king || king.role !== 'k-piece') return false;
 
+  // Because state has no variant info, we assume Capablanca (king moves three squares) for 10x8 boards
+  const capa = state.dimensions.width === 10 && state.dimensions.height === 8;
+
   const origPos = key2pos(orig);
   const destPos = key2pos(dest);
   if ((origPos[1] !== 0 && origPos[1] !== 7) || origPos[1] !== destPos[1]) return false;
-  if (origPos[0] === 4 && !state.boardState.pieces.has(dest)) {
-    if (destPos[0] === 6) dest = pos2key([7, destPos[1]]);
+  if (origPos[0] === (capa ? 5 : 4) && !state.boardState.pieces.has(dest)) {
+    if (destPos[0] === (capa ? 8 : 6)) dest = pos2key([(capa ? 9 : 7), destPos[1]]);
     else if (destPos[0] === 2) dest = pos2key([0, destPos[1]]);
   }
   const rook = state.boardState.pieces.get(dest);
@@ -81,8 +84,8 @@ function tryAutoCastle(state: HeadlessState, orig: cg.Key, dest: cg.Key): boolea
   state.boardState.pieces.delete(dest);
 
   if (origPos[0] < destPos[0]) {
-    state.boardState.pieces.set(pos2key([6, destPos[1]]), king);
-    state.boardState.pieces.set(pos2key([5, destPos[1]]), rook);
+    state.boardState.pieces.set(pos2key([capa ? 8 : 6, destPos[1]]), king);
+    state.boardState.pieces.set(pos2key([capa ? 7 : 5, destPos[1]]), rook);
   } else {
     state.boardState.pieces.set(pos2key([2, destPos[1]]), king);
     state.boardState.pieces.set(pos2key([3, destPos[1]]), rook);
