@@ -168,26 +168,33 @@ function pawnSittuyin(pieces: cg.Pieces, color: cg.Color): Mobility {
 function pawnBerolina(color: cg.Color): Mobility {
   return (x1, y1, x2, y2) => {
     const xd = diff(x1, x2);
-    return (color === 'white'
+    return color === 'white'
       ? // allow 2 squares from first two ranks, for horde
         (y2 === y1 + 1 && xd <= 1) || (y1 <= 1 && y2 === y1 + 2 && xd === 2)
-      : (y2 === y1 - 1 && xd <= 1) || (y1 >= 6 && y2 === y1 - 2 && xd === 2));
+      : (y2 === y1 - 1 && xd <= 1) || (y1 >= 6 && y2 === y1 - 2 && xd === 2);
   };
 }
 
 const pawnAtaxx: Mobility = (x1, y1, x2, y2) => {
   return diff(x1, x2) <= 2 && diff(y1, y2) <= 2;
-}
+};
 
 const sideways: Mobility = (x1, y1, x2, y2) => {
   return y1 === y2 && diff(x1, x2) <= 1;
-}
+};
 
 // wazir
 const wazir: Mobility = (x1, y1, x2, y2) => {
   const xd = diff(x1, x2);
   const yd = diff(y1, y2);
   return (xd === 1 && yd === 0) || (xd === 0 && yd === 1);
+};
+
+// dabbaba
+const dabbaba: Mobility = (x1, y1, x2, y2) => {
+  const xd = diff(x1, x2);
+  const yd = diff(y1, y2);
+  return (xd === 2 && yd === 0) || (xd === 0 && yd === 2);
 };
 
 // ferz, met
@@ -198,7 +205,11 @@ const fersAlfil: Mobility = (x1, y1, x2, y2) => {
 };
 
 const wazirDabbaba: Mobility = (x1, y1, x2, y2) => {
-  return (x1 === x2 && diff(y1, y2) < 3) || (y1 === y2 && diff(x1, x2) < 3) ;
+  return (x1 === x2 && diff(y1, y2) < 3) || (y1 === y2 && diff(x1, x2) < 3);
+};
+
+const alfilDabbaba: Mobility = (x1, y1, x2, y2) => {
+  return elephant(x1, y1, x2, y2) || dabbaba(x1, y1, x2, y2);
 };
 
 // ouk ferz (can jump two squares forward on its first move)
@@ -293,9 +304,9 @@ const flyingDiagonalCannon: Mobility = (x1, y1, x2, y2) => {
 
 function scout(color: cg.Color): Mobility {
   return (x1, y1, x2, y2) =>
-   (x2 === x1 && (color === 'white' ? y2 === y1 + 1 : y2 === y1 - 1)) ||
-   ((x2 === x1 - 1 || x2 === x1 + 1) && (color === 'white' ? y2 === y1 + 2 : y2 === y1 - 2)) ||
-   ((x2 === x1 - 2 || x2 === x1 + 2) && (color === 'white' ? y2 === y1 + 1 : y2 === y1 - 1))
+    (x2 === x1 && (color === 'white' ? y2 === y1 + 1 : y2 === y1 - 1)) ||
+    ((x2 === x1 - 1 || x2 === x1 + 1) && (color === 'white' ? y2 === y1 + 2 : y2 === y1 - 2)) ||
+    ((x2 === x1 - 2 || x2 === x1 + 2) && (color === 'white' ? y2 === y1 + 1 : y2 === y1 - 1));
 }
 
 // Define xiangqi palace based on geometry
@@ -647,6 +658,7 @@ function builtinMobility(
 
     case 'xiangqi':
     case 'manchu':
+    case 'xiangfu':
       return (boardState, key) => {
         const piece = boardState.pieces.get(key)!;
         const role = piece.role;
@@ -659,14 +671,19 @@ function builtinMobility(
             return rook;
           case 'n-piece': // horse
             return knight;
-          case 'b-piece': // elephant
-            return xiangqiElephant(color);
+          case 'b-piece': // elephant (bishop in xiangfu)
+            return variant === 'xiangfu' ? bishop : xiangqiElephant(color);
           case 'a-piece': // advisor
             return xiangqiAdvisor(color, bd);
           case 'k-piece': // king
             return xiangqiKing(color, bd);
-          case 'm-piece': // banner
-            return chancellor;
+          case 'm-piece': // banner (mahout in xiangfu)
+            return variant === 'xiangfu' ? alfilDabbaba : chancellor;
+          case 'w-piece': // crossbow in xiangfu
+            return bishop;
+          case 'g-piece': // commoner in xiangfu
+          case 'pg-piece': // king in xiangfu
+            return kingNoCastling;
           default:
             return noMove;
         }
