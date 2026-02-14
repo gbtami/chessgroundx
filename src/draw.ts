@@ -34,6 +34,11 @@ export interface DrawModifiers {
   lineWidth?: number;
 }
 
+export interface CheckCounters {
+  white: string;
+  black: string;
+}
+
 export interface Drawable {
   enabled: boolean; // can draw
   visible: boolean; // can view
@@ -45,6 +50,7 @@ export interface Drawable {
   current?: DrawCurrent;
   brushes: DrawBrushes;
   prevSvgHash: string;
+  checkCounters?: CheckCounters;
 }
 
 export interface DrawCurrent {

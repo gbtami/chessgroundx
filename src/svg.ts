@@ -1,6 +1,6 @@
 import { State } from './state.js';
 import { key2pos } from './util.js';
-import { Drawable, DrawShape, DrawShapePiece, DrawBrush, DrawBrushes, DrawModifiers } from './draw.js';
+import { Drawable, DrawShape, DrawShapePiece, DrawBrush, DrawBrushes, DrawModifiers, CheckCounters } from './draw.js';
 import { SyncableShape, Hash, syncShapes } from './sync.js';
 import * as cg from './types.js';
 
@@ -18,13 +18,14 @@ export function renderSvg(state: State, svg: SVGElement, customSvg: SVGElement):
     cur = curD && curD.mouseSq ? (curD as DrawShape) : undefined,
     arrowDests: ArrowDests = new Map(),
     bounds = state.dom.bounds(),
-    nonPieceAutoShapes = d.autoShapes.filter(autoShape => !autoShape.piece);
+    nonPieceAutoShapes = d.autoShapes.filter(autoShape => !autoShape.piece),
+    counterShapes = checkCounterShapes(state, d.checkCounters);
 
-  for (const s of d.shapes.concat(nonPieceAutoShapes).concat(cur ? [cur] : [])) {
+  for (const s of d.shapes.concat(nonPieceAutoShapes).concat(counterShapes).concat(cur ? [cur] : [])) {
     if (s.dest) arrowDests.set(s.dest, (arrowDests.get(s.dest) || 0) + 1);
   }
 
-  const shapes: SyncableShape[] = d.shapes.concat(nonPieceAutoShapes).map((s: DrawShape) => {
+  const shapes: SyncableShape[] = d.shapes.concat(nonPieceAutoShapes).concat(counterShapes).map((s: DrawShape) => {
     return {
       shape: s,
       current: false,
@@ -74,6 +75,41 @@ export function renderSvg(state: State, svg: SVGElement, customSvg: SVGElement):
     customSvgsEl,
     shape => renderShape(state, shape, d.brushes, arrowDests, bounds)
   );
+}
+
+function checkCounterShapes(state: State, counters: CheckCounters | undefined): DrawShape[] {
+  if (!counters) return [];
+  const kings: { [key in cg.Color]?: cg.Key } = {};
+  for (const [key, piece] of state.boardState.pieces) {
+    if (state.kingRoles.includes(piece.role)) kings[piece.color] = key;
+  }
+  const shapes: DrawShape[] = [];
+  if (kings.white) shapes.push({ orig: kings.white, customSvg: checkCounterSvg(counters.white, 'white') });
+  if (kings.black) shapes.push({ orig: kings.black, customSvg: checkCounterSvg(counters.black, 'black') });
+  return shapes;
+}
+
+function checkCounterSvg(cnt: string, colorKey: cg.Color): string {
+  const color = checkCounterColor(cnt);
+  const shadowId = `shadow-${colorKey}`;
+  return `
+<svg width='32' height='32' viewBox='0 0 32 32' xmlns='http://www.w3.org/2000/svg' version='1.1' transform='translate(66 0)'>
+<defs>
+  <filter id='${shadowId}'>
+    <feDropShadow dx='2' dy='4' stdDeviation='2' flood-opacity='0.5' />
+  </filter>
+</defs>
+<circle cx='16' cy='16' r='16' style='fill:${color};filter:url(#${shadowId})'/>
+<text font-family='Noto Sans, Sans-Serif' font-size='28' font-weight='bold' x='50%' y='50%' dy='.36em' fill='#fff' text-anchor='middle'>${cnt}</text>
+</svg>`;
+}
+
+function checkCounterColor(cnt: string): string {
+  const num = Number(cnt);
+  if (num === 0) return 'darkgrey';
+  if (num === 1) return '#df5353';
+  if (num === 2) return '#e69f00';
+  return 'darkkhaki';
 }
 
 // append only. Don't try to update/remove.

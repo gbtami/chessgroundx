@@ -12,6 +12,7 @@
   you can use the `ally`/`enemy` classes instead of `white`/`black` in CSS files.
   This can also be seen in the aforementioned shogi.css file.
 - Pockets are integrated as a significant part of the library and are rendered for drop variant `mini` boards.
+- Three-check remaining-check counters (the small king-corner markers) are derived exclusively from `config.fen`. Provide a full FEN containing the three-check token in Fairy format (`black+white`, for example `3+2`); placement-only FEN cannot render or update counters. API calls that do not provide FEN (`move(...)`, `newPiece(...)`, `setPieces(...)`, etc.) do not recompute these counters. To refresh them, call `set({ fen: fullFen })`.
 
 # API Enhancement
 

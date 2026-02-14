@@ -1,7 +1,7 @@
 import { HeadlessState } from './state.js';
 import { setCheck, setSelected } from './board.js';
 import { read as fenRead } from './fen.js';
-import { DrawShape, DrawBrushes } from './draw.js';
+import { DrawShape, DrawBrushes, CheckCounters } from './draw.js';
 import * as cg from './types.js';
 
 export interface Config {
@@ -105,6 +105,7 @@ export function configure(state: HeadlessState, config: Config): void {
 
   // if a fen was provided, replace the pieces
   if (config.fen) {
+    state.drawable.checkCounters = readCheckCounters(config.fen);
     const boardState = fenRead(config.fen, state.dimensions);
     // prevent calling cancel() if piece drag is already started from pocket!
     const draggedPiece = state.boardState.pieces.get('a0');
@@ -145,6 +146,15 @@ export function configure(state: HeadlessState, config: Config): void {
       )
     );
   }
+}
+
+function readCheckCounters(fen: cg.FEN): CheckCounters | undefined {
+  const checkPart = fen.split(' ').find(part => /^\d+\+\d+$/.test(part));
+  if (!checkPart) return;
+  const counters = checkPart.split('+');
+  if (counters.length !== 2) return;
+  // Fairy three-check FEN order is black+white.
+  return { black: counters[0], white: counters[1] };
 }
 
 function deepMerge(base: any, extend: any): void {
