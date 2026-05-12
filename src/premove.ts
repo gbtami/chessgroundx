@@ -657,6 +657,7 @@ function builtinMobility(
       };
 
     case 'xiangqi':
+    case 'jieqi':
     case 'manchu':
     case 'xiangfu':
       return (boardState, key) => {
@@ -737,6 +738,7 @@ function builtinMobility(
     case 'gorogoro':
     case 'gorogoroplus':
     case 'cannonshogi':
+    case 'shoshogi':
       return (boardState, key) => {
         const piece = boardState.pieces.get(key)!;
         const role = piece.role;
@@ -748,7 +750,10 @@ function builtinMobility(
             return shogiLance(color);
           case 'n-piece': // knight
             return shogiKnight(color);
+          case 'e-piece': // drunken elephant
+            return toriFalcon(color);
           case 'k-piece': // king
+          case 'pe-piece': // crown prince
             return kingNoCastling;
           case 's-piece': // silver
             return shogiSilver(color);
