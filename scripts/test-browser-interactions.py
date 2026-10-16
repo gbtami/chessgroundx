@@ -119,6 +119,46 @@ class BrowserInteractions(unittest.TestCase):
         self.assertFalse(self.page.evaluate("cg.state.boardState.pieces.has('a0')"))
 
 
+    def test_study_chapter_shapes_replace_without_stale_svg(self):
+        """A chapter switch must replace arrows, circles and automatic hints."""
+        self.make_board({'fen': '8/8/8/8/8/8/8/8',
+                         'drawable': {'enabled': True},
+                         'animation': {'enabled': False}})
+        self.page.evaluate("""() => {
+            cg.setShapes([{orig:'d1',dest:'g5',brush:'green'}]);
+            cg.setAutoShapes([{orig:'a1',brush:'red'}]);
+        }""")
+        self.page.wait_for_timeout(80)
+        self.assertEqual(self.page.evaluate('cg.state.drawable.shapes.length'), 1)
+        self.assertEqual(self.page.evaluate('cg.state.drawable.autoShapes.length'), 1)
+        old_svg = self.page.locator('svg.cg-shapes g').inner_html()
+        self.assertTrue(old_svg)
+        self.page.evaluate("""() => {
+            cg.setShapes([{orig:'h8',brush:'blue'}]);
+            cg.setAutoShapes([]);
+        }""")
+        self.page.wait_for_timeout(80)
+        self.assertEqual(self.page.evaluate('cg.state.drawable.shapes.map(s=>s.orig)'), ['h8'])
+        self.assertEqual(self.page.evaluate('cg.state.drawable.autoShapes.length'), 0)
+        self.assertNotEqual(self.page.locator('svg.cg-shapes g').inner_html(), old_svg)
+        self.page.evaluate('cg.setShapes([])')
+        self.page.wait_for_timeout(80)
+        self.assertEqual(self.page.locator('svg.cg-shapes g').inner_html(), '')
+
+    def test_study_annotation_redraws_on_rotation(self):
+        """Rotating the standalone board preserves and repositions annotations."""
+        self.make_board({'fen': '8/8/8/8/8/8/8/R7',
+                         'drawable': {'enabled': True},
+                         'movable': {'color': 'white', 'free': True},
+                         'animation': {'enabled': False}})
+        self.page.evaluate("""() => cg.setShapes([{orig:'d1',dest:'g5',brush:'green'}])""")
+        self.page.wait_for_timeout(80)
+        svg_before = self.page.locator('svg.cg-shapes g').inner_html()
+        self.page.evaluate('cg.toggleOrientation()')
+        self.page.wait_for_timeout(80)
+        self.assertEqual(self.page.evaluate('cg.state.drawable.shapes.length'), 1)
+        self.assertNotEqual(self.page.locator('svg.cg-shapes g').inner_html(), svg_before)
+
     def enable_touch(self):
         """Use Chromium's touch-enabled context, not mouse event emulation."""
         self.page.close()

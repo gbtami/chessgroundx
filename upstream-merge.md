@@ -414,6 +414,9 @@ boards, Alice mirror flags, pocket roles, and Study manual/automatic shapes.
 - [x] Verify standalone Chromium runtime interactions for trusted mouse dragging, pocket drops, SVG arrow drawing and orientation (`scripts/test-browser-interactions.py`); **5 browser tests passed**, with no production network access.
 - [x] Test standalone Chromium touch gestures using CDP touch events: 8x8 and 16x16 piece movement, and pocket dragging. **8/8 browser tests passed**, including the existing five mouse/SVG tests.
 - [ ] Test representative Study/Practice interactions in a local PyChess browser; standalone browser checks alone do not complete Gate 1.
+- [x] Verify standalone Chromium chapter-style annotation replacement and orientation redraw: **10/10 browser tests pass** (two additional tests). This protects the library boundary but is not PyChess end-to-end testing.
+- [ ] Run the existing PyChess local Playwright acceptance tests in `tests/test_study_gui.py`, including `test_drawings_survive_piece_selection_and_moves` and `test_practice_browser_acceptance_and_analysis_restore`, using local aiohttp fixtures and the built ChessgroundX dependency. No requests to production.
+- [ ] Distinguish ChessgroundX user-move clearing of manual shapes from PyChess Study restoration/persistence behavior; do not assert that all annotations survive arbitrary standalone moves.
 
 | 2026-10-16 | Phase 1 local PyChess bundling | Development and production esbuild passed | Local uploaded PyChess client with compiled ChessgroundX | Named/subpath imports work; full TS check and browser interactions pending |
 | 2026-10-16 | Phase 1 full TS attempt | Previously inconclusive | Offline PyChess JS wheelhouse + locally compiled ChessgroundX | Superseded by successful non-incremental typecheck below |
@@ -428,6 +431,8 @@ boards, Alice mirror flags, pocket roles, and Study manual/automatic shapes.
 | 2026-10-16 | Phase 1 shared boundaries | **151/151 Vitest passing (18 files)** | `tests/shared-boundaries-extra.test.ts` | Four regression cases covering FEN refresh during a pocket drag, partial event configuration, last-move replacement and orientation/selection hooks; TypeScript, new-test lint and formatting passed |
 
 | 2026-10-16 | Phase 1 shared-module audit | Six modules assessed; Gate 1 open | Uploaded upstream/fork source ZIP comparison | Preserve dimension, pocket and public API contracts; touch/Study integration remain pending |
+
+| 2026-10-16 | Phase 1 Chromium Study-like contracts | **10/10 Chromium browser tests passed** | Two additions to `scripts/test-browser-interactions.py` | Checks replacement of manual/auto annotations and orientation redraw in standalone ChessgroundX; actual PyChess Study/Practice Playwright acceptance is still pending |
 
 ### Merge issue log
 
