@@ -200,6 +200,42 @@ completed before integration sign-off even if some are added after the initial
 trial merge. Keep bug fixes in separate commits and demonstrate that their
 regression tests fail before the fix where feasible.
 
+### Phase 1 coverage audit — 2026-10-16
+
+Based on `README-X.md`, the fork-specific config/API declarations and the 16
+Vitest test files in the uploaded master snapshot. This is a **behavioral test
+inventory**, not measured statement or branch coverage. Do not interpret the
+number of tests as a percentage of implementation covered.
+
+| Fork-specific contract / subsystem | Existing protection | Remaining gap / next action |
+| --- | --- | --- |
+| 16x16 square encoding, coordinates, orientations, letter and promoted roles | Geometry/roles, FEN, DOM and Chromium tests | More rectangular sizes (5x5, 9x9, 12x12), boundary click mapping, alternative coordinate scripts |
+| FEN placement, `+`/`~` promotions, mirrors, pocket notations, three-check | `fen-variants`, API and PyChess contract tests | Malformed FEN expectations, mixed special flags, large-board FEN round trips; establish explicit parser contract before adding tests |
+| Drop origin `R@` vs board square `a@`, pocket inventory and mini pockets | Board/API, pocket, jsdom and Chromium tests | Touch drops, both pocket colors and rejected-drop paths on unusual board sizes |
+| Predrop variant mobility | Original `predrop-variants` plus **16 new tests** in `predrop-additional-variants` | Cover rank restrictions on 9x9/10x10 and invalid inputs; verify variant allowlist/selection against actual PyChess use |
+| Premove variant movement / configurable hooks | 27 existing premove tests plus injected hook tests | `premove.ts` is 1,411 lines; still requires explicit per-branch audit, chess960 castling alternatives, and special piece promotions |
+| Public API exports and PyChess consumer contract | Public API tests; standalone consumer CI; PyChess dev/prod builds and full TS check | Real PyChess Study/Practice interactive browser workflows and publish-archive consumer verification |
+| DOM/SVG, 16x16 arrow geometry, orientation/caching | SVG, gestures and public API orientation tests; 5 Chromium cases | SVG editing and touch; animation/explosion timing and resize cases |
+| Package/build and CI | pnpm/TS7/Vitest/esbuild, import smoke CI | Browser harness not yet in CI; cross-browser/touch execution needs separate environment |
+
+**Branch-coverage measurement is still outstanding** for `fen.ts`, `board.ts`,
+`premove.ts`, `predrop.ts`, `pocket.ts`, `wrap.ts`, `render.ts`, and `svg.ts`.
+Vitest coverage instrumentation is not presently declared as a project
+dependency. Introduce and lock the appropriate coverage provider in a separate
+reviewable change rather than inventing metrics or silently changing the lockfile.
+
+- [x] Inventory documented fork-specific behavior and test mapping.
+- [x] Add and run 16 extra predrop regression cases for Sittuyin, Shogun,
+      Synochess, Shinobi, Tori Shogi, Mansindam, and unrestricted variants;
+      **144/144 Vitest tests passed**, TypeScript passed, oxlint reported only
+      three existing source warnings.
+- [ ] Measure branch coverage for the eight high-risk modules listed above.
+- [ ] Review all major switch branches in `premove.ts` against fixtures, and
+      close untested variant-specific movement cases.
+- [ ] Exercise actual touch and PyChess Study/Practice browser interactions.
+- [ ] Reconcile remaining Gate 1 P0 checkboxes against test names and outcomes;
+      do not check an entire subsystem as complete solely because some tests exist.
+
 ## Phase 2 — Determine Git ancestry and assess a disposable merge
 
 **Start only after Gate 1.**
@@ -318,6 +354,8 @@ boards, Alice mirror flags, pocket roles, and Study manual/automatic shapes.
 | 2026-10-16 | Phase 1 full TS check | **Passed: 0 errors, 473 files, 44.24 seconds** | Local PyChess client with compiled ChessgroundX | `tsc --noEmit --incremental false --extendedDiagnostics`; 325 MB used; real-browser interactions remain pending |
 | 2026-10-16 | Phase 1 drag completion | **128/128 tests passing (15 files)** | `tests/drag-completion.test.ts` | Six jsdom regression cases for mouseup move completion, off-board behavior, optional delete-on-drop-off, temporary pocket drag cancellation, accepted and occupied-square rejected pocket drops; trusted browser drag initiation remains unverified |
 | 2026-10-16 | Phase 1 Chromium input | **5/5 standalone browser tests passing** | `scripts/test-browser-interactions.py`, Chromium + Python Playwright | Trusted pointer drag on 8x8 and 16x16, real pocket accepted/rejected drops, right-button SVG arrow and orientation redraw; not yet automated in Node CI; no production-network requests |
+
+| 2026-10-16 | Phase 1 coverage audit | **144/144 Vitest tests passed** | `tests/predrop-additional-variants.test.ts` | Added 16 remaining predrop branch scenarios; inventory documents uncovered interaction and premove branches; Gate 1 remains open |
 
 ### Merge issue log
 
