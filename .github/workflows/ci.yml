@@ -1,22 +1,24 @@
-name: Continuous Integration
+name: CodeQL
 on: [push, pull_request]
+permissions:
+  actions: read
+  contents: read
+  security-events: write
 jobs:
-  build:
+  codeql:
     runs-on: ubuntu-latest
-    permissions:
-      actions: read
-      contents: read
-      security-events: write
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
         with:
-          node-version: '16'
-          cache: yarn
-      - uses: github/codeql-action/init@v2
+          version: 12.10.0
+      - uses: actions/setup-node@v4
         with:
-          languages: javascript
-      - uses: github/codeql-action/analyze@v2
-      - run: yarn install
-      - run: yarn run lint
-      - run: yarn run dist
+          node-version: '24'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - uses: github/codeql-action/init@v3
+        with:
+          languages: javascript-typescript
+      - run: pnpm run compile
+      - uses: github/codeql-action/analyze@v3

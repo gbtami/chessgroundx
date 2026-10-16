@@ -3,9 +3,12 @@ dist/
 
 /*.js
 /*.d.ts
-dist/
-node_modules
+/*.js.map
+/src/*.js
+/src/*.d.ts
+/src/*.js.map
+/*.tgz
+
 npm-debug.log
 .idea/
-
-/*.js.map
+.pnpm-store/
