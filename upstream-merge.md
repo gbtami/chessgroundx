@@ -392,6 +392,7 @@ boards, Alice mirror flags, pocket roles, and Study manual/automatic shapes.
 | 2026-10-16 | Phase 1 coverage audit | **144/144 Vitest tests passed** | `tests/predrop-additional-variants.test.ts` | Added 16 remaining predrop branch scenarios; inventory documents uncovered interaction and premove branches; Gate 1 remains open |
 
 | 2026-10-16 | Phase 1 merge policy | Fork-owned modules agreed | `premove.ts`, `predrop.ts`, `fen.ts`, `pocket.ts` | Preserve implementations; prioritize boundary tests and inspect upstream fixes separately |
+| 2026-10-16 | Phase 1 shared boundaries | **151/151 Vitest passing (18 files)** | `tests/shared-boundaries-extra.test.ts` | Four regression cases covering FEN refresh during a pocket drag, partial event configuration, last-move replacement and orientation/selection hooks; TypeScript, new-test lint and formatting passed |
 
 ### Merge issue log
 
