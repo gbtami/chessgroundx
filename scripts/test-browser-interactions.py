@@ -119,5 +119,70 @@ class BrowserInteractions(unittest.TestCase):
         self.assertFalse(self.page.evaluate("cg.state.boardState.pieces.has('a0')"))
 
 
+    def enable_touch(self):
+        """Use Chromium's touch-enabled context, not mouse event emulation."""
+        self.page.close()
+        self.touch_context = self.browser.new_context(
+            viewport={'width': 1100, 'height': 950}, has_touch=True, is_mobile=True,
+        )
+        self.page = self.touch_context.new_page()
+        self.page.set_content('''<style>body { margin: 0; }</style>
+            <div id="board" style="width: 800px; height: 800px; position: relative;"></div>
+            <div id="top" style="width:400px;height:60px;position:relative"></div><div id="bottom" style="width:400px;height:60px;position:relative"></div>''')
+        self.page.add_style_tag(path=str(ROOT / 'assets/chessground.base.css'))
+        self.page.add_style_tag(content='#bottom square {display:block;width:60px;height:60px;position:relative} #bottom piece {display:block;width:60px;height:60px;position:relative;pointer-events:auto}')
+        self.page.add_script_tag(path=str(ROOT / 'dist/chessground.js'))
+        self.addCleanup(self.touch_context.close)
+
+    def touch_drag(self, src, dst):
+        """Send trusted touchStart/touchMove/touchEnd via Chromium CDP."""
+        session = self.page.context.new_cdp_session(self.page)
+        def dispatch(kind, x, y):
+            session.send('Input.dispatchTouchEvent', {
+                'type': kind,
+                'touchPoints': [] if kind == 'touchEnd' else [{'x': x, 'y': y, 'id': 1}],
+            })
+        dispatch('touchStart', *src)
+        self.page.wait_for_timeout(120)
+        for step in range(1, 13):
+            fraction = step / 12
+            dispatch('touchMove', src[0] + (dst[0] - src[0]) * fraction,
+                     src[1] + (dst[1] - src[1]) * fraction)
+            self.page.wait_for_timeout(20)
+        dispatch('touchEnd', *dst)
+        self.page.wait_for_timeout(150)
+        session.detach()
+
+    def test_trusted_touch_move(self):
+        self.enable_touch()
+        self.make_board({'fen':'8/8/8/8/8/8/8/R7',
+                         'movable':{'color':'white','free':True},
+                         'animation':{'enabled':False}})
+        self.touch_drag(self.square(1, 1), self.square(1, 2))
+        self.assertEqual(self.page.evaluate('cg.getFen()'), '8/8/8/8/8/8/R7/8')
+
+    def test_trusted_touch_16x16_move(self):
+        self.enable_touch()
+        fen = '/'.join(['16'] * 15 + ['R15'])
+        self.make_board({'fen':fen, 'dimensions':{'width':16,'height':16},
+                         'movable':{'color':'white','free':True},
+                         'animation':{'enabled':False}})
+        self.touch_drag(self.square(1, 1, 16, 16), self.square(1, 16, 16, 16))
+        self.assertEqual(self.page.evaluate("cg.state.boardState.pieces.get('a@')?.role"), 'r-piece')
+        self.assertFalse(self.page.evaluate("cg.state.boardState.pieces.has('a1')"))
+
+    def test_trusted_touch_pocket_drag(self):
+        self.enable_touch()
+        self.make_board({'fen':'8/8/8/8/8/8/8/8[R]',
+                         'pocketRoles':{'white':['r-piece'],'black':[]},
+                         'movable':{'color':'white','free':True},
+                         'animation':{'enabled':False}}, pockets=True)
+        rect = self.page.locator('#bottom piece[data-role="r-piece"]').bounding_box()
+        self.assertIsNotNone(rect)
+        self.touch_drag((rect['x'] + rect['width']/2, rect['y'] + rect['height']/2), self.square(3,3))
+        self.assertEqual(self.page.evaluate("cg.state.boardState.pieces.get('c3')?.role"), 'r-piece')
+        self.assertEqual(self.page.evaluate("cg.state.boardState.pockets.white.get('r-piece')"), 0)
+
+
 if __name__ == '__main__':
     unittest.main(verbosity=2)

@@ -211,7 +211,7 @@ number of tests as a percentage of implementation covered.
 | --- | --- | --- |
 | 16x16 square encoding, coordinates, orientations, letter and promoted roles | Geometry/roles, FEN, DOM and Chromium tests | More rectangular sizes (5x5, 9x9, 12x12), boundary click mapping, alternative coordinate scripts |
 | FEN placement, `+`/`~` promotions, mirrors, pocket notations, three-check | `fen-variants`, API and PyChess contract tests | Malformed FEN expectations, mixed special flags, large-board FEN round trips; establish explicit parser contract before adding tests |
-| Drop origin `R@` vs board square `a@`, pocket inventory and mini pockets | Board/API, pocket, jsdom and Chromium tests | Touch drops, both pocket colors and rejected-drop paths on unusual board sizes |
+| Drop origin `R@` vs board square `a@`, pocket inventory and mini pockets | Board/API, pocket, jsdom and Chromium tests | Both pocket colors and rejected touch drops on unusual board sizes |
 | Predrop variant mobility | Original `predrop-variants` plus **16 new tests** in `predrop-additional-variants` | Cover rank restrictions on 9x9/10x10 and invalid inputs; verify variant allowlist/selection against actual PyChess use |
 | Premove variant movement / configurable hooks | 27 existing premove tests plus injected hook tests | `premove.ts` is 1,411 lines; still requires explicit per-branch audit, chess960 castling alternatives, and special piece promotions |
 | Public API exports and PyChess consumer contract | Public API tests; standalone consumer CI; PyChess dev/prod builds and full TS check | Real PyChess Study/Practice interactive browser workflows and publish-archive consumer verification |
@@ -234,7 +234,8 @@ reviewable change rather than inventing metrics or silently changing the lockfil
 - [ ] Measure branch coverage for the eight high-risk modules listed above.
 - [x] Classify variant-specific internals of `premove.ts` and `predrop.ts` as
       fork-owned rather than a prerequisite for exhaustive coverage.
-- [ ] Exercise actual touch and PyChess Study/Practice browser interactions.
+- [x] Exercise standalone Chromium touch movement, 16x16 movement, and pocket dragging (8/8 browser tests passed).
+- [ ] Exercise representative local PyChess Study/Practice browser interactions.
 - [ ] Reconcile remaining Gate 1 P0 checkboxes against test names and outcomes;
       do not check an entire subsystem as complete solely because some tests exist.
 
@@ -294,8 +295,8 @@ keep all tests local (no requests to production). Automatically merged hunks
 in these shared files require the same review as conflicts.
 
 **Readiness:** The shared-module source comparison is complete for planning.
-Gate 1 is **not closed**: real browser touch coverage and representative local
-PyChess Study/Practice workflows remain unverified. A disposable upstream Git
+Gate 1 is **not closed**: standalone real-browser mouse and touch tests pass,
+but representative local PyChess Study/Practice workflows remain unverified. A disposable upstream Git
 merge should only start after those checks or an explicit, documented gate
 exception, with exact upstream/fork SHAs recorded.
 
@@ -411,13 +412,15 @@ boards, Alice mirror flags, pocket roles, and Study manual/automatic shapes.
       passed with zero diagnostics on 473 files (44.24 s, ~325 MB), using
       `--noEmit --incremental false`. No runtime source was modified.
 - [x] Verify standalone Chromium runtime interactions for trusted mouse dragging, pocket drops, SVG arrow drawing and orientation (`scripts/test-browser-interactions.py`); **5 browser tests passed**, with no production network access.
-- [ ] Test touch gestures and representative Study interactions in a local PyChess browser; standalone browser checks alone do not complete Gate 1.
+- [x] Test standalone Chromium touch gestures using CDP touch events: 8x8 and 16x16 piece movement, and pocket dragging. **8/8 browser tests passed**, including the existing five mouse/SVG tests.
+- [ ] Test representative Study/Practice interactions in a local PyChess browser; standalone browser checks alone do not complete Gate 1.
 
 | 2026-10-16 | Phase 1 local PyChess bundling | Development and production esbuild passed | Local uploaded PyChess client with compiled ChessgroundX | Named/subpath imports work; full TS check and browser interactions pending |
 | 2026-10-16 | Phase 1 full TS attempt | Previously inconclusive | Offline PyChess JS wheelhouse + locally compiled ChessgroundX | Superseded by successful non-incremental typecheck below |
 | 2026-10-16 | Phase 1 full TS check | **Passed: 0 errors, 473 files, 44.24 seconds** | Local PyChess client with compiled ChessgroundX | `tsc --noEmit --incremental false --extendedDiagnostics`; 325 MB used; real-browser interactions remain pending |
 | 2026-10-16 | Phase 1 drag completion | **128/128 tests passing (15 files)** | `tests/drag-completion.test.ts` | Six jsdom regression cases for mouseup move completion, off-board behavior, optional delete-on-drop-off, temporary pocket drag cancellation, accepted and occupied-square rejected pocket drops; trusted browser drag initiation remains unverified |
 | 2026-10-16 | Phase 1 Chromium input | **5/5 standalone browser tests passing** | `scripts/test-browser-interactions.py`, Chromium + Python Playwright | Trusted pointer drag on 8x8 and 16x16, real pocket accepted/rejected drops, right-button SVG arrow and orientation redraw; not yet automated in Node CI; no production-network requests |
+| 2026-10-16 | Phase 1 Chromium touch | **8/8 standalone browser tests passing** | Chromium CDP `Input.dispatchTouchEvent` via Playwright | Three new touch scenarios: 8x8 piece move, 16x16 move to encoded rank 16, pocket-to-board drag; PyChess Study/Practice E2E remains pending |
 
 | 2026-10-16 | Phase 1 coverage audit | **144/144 Vitest tests passed** | `tests/predrop-additional-variants.test.ts` | Added 16 remaining predrop branch scenarios; inventory documents uncovered interaction and premove branches; Gate 1 remains open |
 
