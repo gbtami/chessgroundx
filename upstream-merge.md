@@ -192,9 +192,9 @@ This batch provides **partial coverage**, not completion of Gate 1. Test expecta
       ChessgroundX artifact with the corresponding PyChess branch.
 
 **Gate 1 (hard stop):** Every applicable P0 item has tests, fixtures, and passing
-CI results. Record branch coverage for high-risk modules (`fen.ts`, `board.ts`,
-`premove.ts`, `predrop.ts`, `pocket.ts`, `wrap.ts`, `render.ts`, `svg.ts`), along
-with any remaining untested branches and their rationale. Coverage numbers are
+CI results. Record branch coverage for integration-sensitive modules (`board.ts`,
+`wrap.ts`, `render.ts`, `svg.ts`) and boundary tests for fork-owned modules,
+along with any remaining untested branches and their rationale. Coverage numbers are
 diagnostics, not substitutes for functional test quality. P1 items should be
 completed before integration sign-off even if some are added after the initial
 trial merge. Keep bug fixes in separate commits and demonstrate that their
@@ -218,8 +218,10 @@ number of tests as a percentage of implementation covered.
 | DOM/SVG, 16x16 arrow geometry, orientation/caching | SVG, gestures and public API orientation tests; 5 Chromium cases | SVG editing and touch; animation/explosion timing and resize cases |
 | Package/build and CI | pnpm/TS7/Vitest/esbuild, import smoke CI | Browser harness not yet in CI; cross-browser/touch execution needs separate environment |
 
-**Branch-coverage measurement is still outstanding** for `fen.ts`, `board.ts`,
-`premove.ts`, `predrop.ts`, `pocket.ts`, `wrap.ts`, `render.ts`, and `svg.ts`.
+**Branch-coverage measurement is still outstanding** for `board.ts`,
+`wrap.ts`, `render.ts`, and `svg.ts`; fork-owned `fen.ts`, `premove.ts`,
+`predrop.ts`, and `pocket.ts` retain focused baseline and integration tests,
+without requiring exhaustive internal branch coverage before the trial merge.
 Vitest coverage instrumentation is not presently declared as a project
 dependency. Introduce and lock the appropriate coverage provider in a separate
 reviewable change rather than inventing metrics or silently changing the lockfile.
@@ -230,11 +232,42 @@ reviewable change rather than inventing metrics or silently changing the lockfil
       **144/144 Vitest tests passed**, TypeScript passed, oxlint reported only
       three existing source warnings.
 - [ ] Measure branch coverage for the eight high-risk modules listed above.
-- [ ] Review all major switch branches in `premove.ts` against fixtures, and
-      close untested variant-specific movement cases.
+- [x] Classify variant-specific internals of `premove.ts` and `predrop.ts` as
+      fork-owned rather than a prerequisite for exhaustive coverage.
 - [ ] Exercise actual touch and PyChess Study/Practice browser interactions.
 - [ ] Reconcile remaining Gate 1 P0 checkboxes against test names and outcomes;
       do not check an entire subsystem as complete solely because some tests exist.
+
+### Merge ownership policy — agreed 2026-10-16
+
+The following implementations are **fork-owned**. During the Git merge keep
+ChessgroundX's versions (including automatically merged hunks), then review
+upstream changes for useful fixes *separately*. This is a merge policy, **not** a
+claim that every behavior is a strict superset of upstream.
+
+| Module | Policy | Why |
+| --- | --- | --- |
+| `src/premove.ts` | Preserve ChessgroundX | Variant-specific movement and 16x16 geometry; upstream's orthodox-only implementation is not a replacement |
+| `src/predrop.ts` | Preserve ChessgroundX | Variant-specific placement restrictions and pocket role logic |
+| `src/fen.ts` | Preserve ChessgroundX | Dimension-aware `BoardState` parser/writer, promoted and mirrored pieces, pockets; different API from upstream |
+| `src/pocket.ts` | Preserve ChessgroundX | Variant pocket UI and inventory support |
+
+**Integration boundaries still need protection:** `config.ts` supplies FEN,
+board dimensions and custom move functions; `state.ts` owns the initialized
+state; `board.ts` uses premove/predrop callbacks and pocket inventories;
+`render.ts`, `wrap.ts`, and `drag.ts` consume the same state. Focus additional
+regressions on these boundaries, not exhaustive internal branch coverage of
+fork-owned implementations as a precondition for the trial merge.
+
+During Phase 2, inspect upstream commits touching these four modules for
+relevant fixes, and record the decision for each. During Phase 3, when resolving
+these paths, explicitly select the fork-owned file contents and verify the
+resulting diff, including automatic merges. **Do not use a blanket `git merge
+-X ours`**, which could discard unrelated upstream improvements.
+
+- [x] Agree on fork ownership of `premove.ts`, `predrop.ts`, `fen.ts`, and `pocket.ts`.
+- [ ] Audit upstream-only bug fixes in the four files after Git ancestry is known.
+- [ ] Verify the merge preserves fork-owned contents at the pinned SHAs.
 
 ## Phase 2 — Determine Git ancestry and assess a disposable merge
 
@@ -270,8 +303,9 @@ high-risk conflicts, and an agreed strategy. No release or production deploy.
 - [ ] Create dedicated integration branch from the green, tested fork baseline.
 - [ ] Merge the pinned upstream SHA with Git, preserving the merge parents.
 - [ ] Resolve low-risk shared modules before geometry/FEN/roles.
-- [ ] Resolve config/state/public API, then board/moves, pockets/drops,
-      premoves, render/wrap/drag, and finally SVG/draw and CSS.
+- [ ] Keep fork-owned premove, predrop, FEN and pocket implementations;
+      reconcile config/state/public API, board/moves, render/wrap/drag,
+      and finally SVG/draw and CSS.
 - [ ] Preserve ChessgroundX-specific behavior where upstream assumes 8×8,
       orthodox roles, or lacks custom drop/premove features.
 - [ ] Review *automatically merged* hunks as carefully as manually conflicted
@@ -357,6 +391,8 @@ boards, Alice mirror flags, pocket roles, and Study manual/automatic shapes.
 
 | 2026-10-16 | Phase 1 coverage audit | **144/144 Vitest tests passed** | `tests/predrop-additional-variants.test.ts` | Added 16 remaining predrop branch scenarios; inventory documents uncovered interaction and premove branches; Gate 1 remains open |
 
+| 2026-10-16 | Phase 1 merge policy | Fork-owned modules agreed | `premove.ts`, `predrop.ts`, `fen.ts`, `pocket.ts` | Preserve implementations; prioritize boundary tests and inspect upstream fixes separately |
+
 ### Merge issue log
 
 Add entries as they are discovered:
@@ -364,6 +400,7 @@ Add entries as they are discovered:
 | File or subsystem | Upstream change/SHA | Risk | Resolution | Regression test | Status |
 | --- | --- | --- | --- | --- | --- |
 | _Pending Git trial merge_ | — | — | — | — | Not started |
+| `premove.ts`, `predrop.ts`, `fen.ts`, `pocket.ts` | Pending ancestry audit | High | Preserve fork files; selectively port upstream fixes after review | Boundary regression suite | Policy agreed |
 
 ### Exit checklist
 
