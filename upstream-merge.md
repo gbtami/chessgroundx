@@ -1,10 +1,23 @@
 # ChessgroundX upstream synchronization plan
 
-Status: **All batches and final independent review approved; two-parent upstream merge, feature-branch push and PR authorized. All 34 conflicts resolved. GitHub CI and PR-diff review required before any merge into master.**
+Status: **Completed — upstream merge integrated into ChessgroundX `master` via PR #65 (2026-10-17); all 34 conflicts resolved, GitHub CI green (maintainer report).**
 Last reviewed: 2026-10-17
 
 Fork: <https://github.com/gbtami/chessgroundx>  
 Upstream: <https://github.com/lichess-org/chessground>
+
+## Completion summary — 2026-10-17
+
+- **Result:** [PR #65](https://github.com/gbtami/chessgroundx/pull/65) merged into `master` (confirmed by maintainer); upstream ancestry retained.
+- **Integration commit:** `79db22a6749714961ecbcd4a593f9d6b1c1ea788`, verified as an ancestor of `master` by the maintainer.
+- **Merge parents:** fork baseline `2cb6e695ba2c46553b8b2350d8b3ffd224177ffa` and upstream `69f3451c9d70d682d5421539f28d68a15cfda4cd`; common ancestor `fb399cc3240d`.
+- **Git review:** all 34 conflicts resolved, final staged-diff audit approved, clean feature-branch working tree and two-parent ancestry verified before PR merge.
+- **Verification:** 218/218 Vitest, 14/14 Chromium browser checks on each of the unminified/minified bundles, 929/929 PyChess Jest tests, PyChess development/production builds and TypeScript validation, and two local Study/Practice browser acceptance scenarios passed in the final readiness evidence. GitHub checks on PR #65 were green (maintainer report).
+- **Preserved fork ownership:** `src/premove.ts`, `src/predrop.ts`, `src/fen.ts`, and `src/pocket.ts`; existing PyChess API and packaging contracts retained.
+- **Deferred, not merge blockers:** dimension-aware malformed-FEN hardening, additional upstream premove fix applicability, optional SVG labels/layers/erase previews, broader cross-browser/variant and performance testing. These should be pursued only as separate, scoped work.
+- **Deployment:** merging the library repository does not by itself update the ChessgroundX dependency or deploy the PyChess application. No production deployment is claimed here.
+
+The historical plans, checkpoints, and review logs below are retained as an audit trail. Earlier statements that the merge was uncommitted, PR CI pending, or Study/Practice acceptance pending describe the state **at those checkpoints** and are superseded by this completion summary.
 
 ## Goal and rules
 
@@ -62,7 +75,7 @@ in geometry, roles, FEN, board interaction, pockets, SVG, and premoves.
 
 ### Decision and state (2026-10-16)
 
-**Status: tooling migration merged with green GitHub Actions (maintainer report, 2026-10-16). Local artifact/import checks, consumer development/production builds, full PyChess typechecks and the two requested Study/Practice browser acceptance tests passed; final independent review/commit approval remain pending.**
+**Status: tooling migration merged with green GitHub Actions (maintainer report, 2026-10-16). Local artifact/import checks, consumer development/production builds, full PyChess typechecks and the two requested Study/Practice browser acceptance tests passed; final approval and merge are recorded in the completion summary.**
 
 The earlier hybrid Vitest 3 / TypeScript 4 / Rollup / Yarn migration was
 applied locally and passed 4 premove tests, lint, and Rollup bundle, but
@@ -85,7 +98,7 @@ format all `src/` files during Phase 0.
 - [x] Run `pnpm run typecheck`, `pnpm run lint`, `pnpm run test`, `pnpm run dist`, and `pnpm pack` (lint has three pre-existing non-fatal warnings).
 - [x] Check JS/TS artifacts, callable `Chessground` global in Chromium, PyChess imports/builds and full consumer typecheck (Phase 1 and cumulative Phase 3 evidence).
 - [x] Confirm CI / CodeQL pass (maintainer reported merged green PR).
-- [x] Record fork/upstream/base SHAs and local tool/test evidence in Phase 3; final merge commit is intentionally pending approval.
+- [x] Record fork/upstream/base SHAs and local tool/test evidence in Phase 3; final merge commit is recorded in the completion summary.
 
 ### Phase 0 evidence log
 
@@ -97,7 +110,7 @@ format all `src/` files during Phase 0.
 | Node 24 + pnpm 12 install / lockfile | Passed locally, merged PR (maintainer report) |
 | TypeScript 7 / Vitest 4 / oxlint / esbuild | Green local checks + GitHub Actions (maintainer report) |
 | PyChess consumer compatibility | Local imports/dev/prod builds/full TS and requested Study/Practice browser acceptance passed; see final verification dated 2026-10-17 |
-| Pinned baseline/upstream/base | See verified Git evidence in Phase 3; final merge commit not authorized |
+| Pinned baseline/upstream/base | See verified Git evidence in Phase 3 and the completion summary for the merged commit |
 
 **Gate 0:** successful frozen-lockfile install, typecheck, lint, existing tests,
 bundling, package inspection, and PyChess compatibility verification. Proceed
@@ -878,8 +891,8 @@ cross-platform input and measured performance remains outside this scoped run.
       lockfile changes; avoid source-wide formatting changes.
 - [x] Update README-X with actual adopted/excluded contracts and retain
       reproducible synchronization commands in this ledger/trial script.
-- [ ] Record final upstream merge SHA, CI/build/test results, known limitations,
-      and release/deployment outcome.
+- [x] Record final upstream merge SHA, CI/build/test results, known limitations,
+      and distinguish library merge from PyChess release/deployment outcome (see completion summary).
 
 **Gate 4:** PyChess integration accepted; all critical tests green; artifacts
 verified; documentation and change log complete.
@@ -1098,6 +1111,7 @@ boards, Alice mirror flags, pocket roles, and Study manual/automatic shapes.
 
 | 2026-10-17 | Phase 3 batch 5 independent review | Approved; no blocking findings | Maintainer decision | Drawing/SVG and Batch 4 hover correction accepted; final integration verification authorized |
 | 2026-10-17 | Final integration verification | Passed; ready for final independent review | Full staged audit, 218 Vitest, 14 Chromium per bundle, 929 consumer Jest, dev/prod, 473-file TS, 2 local acceptance tests | No product/test changes since approved Batch 5; only ledger updated; no commit/push |
+| 2026-10-17 | Phase 3 upstream merge | **Merged into master; GitHub checks green** | [PR #65](https://github.com/gbtami/chessgroundx/pull/65), merge commit `79db22a` | Genuine two-parent merge, fork `2cb6e69`, upstream `69f3451`; maintainer confirmed merge commit is ancestor of master |
 
 ### Merge issue log
 
@@ -1105,7 +1119,7 @@ Add entries as they are discovered:
 
 | File or subsystem | Upstream change/SHA | Risk | Resolution | Regression test | Status |
 | --- | --- | --- | --- | --- | --- |
-| Real Git merge / 34 conflicts | `69f3451c9d70` | High | Reviewed batches approved; retain MERGE_HEAD | Final actual-tree and local consumer acceptance passed | 34 resolved, 0 unresolved; final independent review/commit approval pending; no commit/push |
+| Real Git merge / 34 conflicts | `69f3451c9d70` | High | Reviewed batches approved; retain MERGE_HEAD | Final actual-tree and local consumer acceptance passed | 34 resolved, 0 unresolved; approved and merged via PR #65; see completion summary |
 | `premove.ts`, `predrop.ts`, `fen.ts`, `pocket.ts` | Initial ancestry audit above | High | Preserve fork HEAD bytes; useful fixes reviewed separately | Existing variant/boundary suite | Identity verified in index/worktree; deeper premove fix audit open |
 | `src/sync.ts` | `7767222` | Low | Traverse elements, skipping text/comments; preserve exported shape interface | Two new HTML/SVG tests fail before fix and pass after | Batch 1 complete for review |
 | Automatic additions / package tooling | `69f3451c9d70` | High | Preserve fork entry points/tooling; exclude incompatible release/lint additions | Archive and declaration identity, build/import checks | Glyph accepted unchanged, FEN round trip adapted; malformed-input behavior deferred explicitly |
@@ -1116,12 +1130,12 @@ Add entries as they are discovered:
 
 ### Exit checklist
 
-- [x] Fork baseline, pinned upstream target and base SHAs recorded; actual merge commit pending approval.
+- [x] Fork baseline, pinned upstream target and base SHAs recorded; actual merge commit `79db22a` integrated.
 - [x] Existing contracts protected by the approved regression suites, ownership checks and scoped local acceptance; exhaustive variant/platform coverage is not claimed.
 - [x] No production-network calls; scoped local acceptance guarded to loopback.
 - [x] Actual-tree library tests, typecheck, lint, format, build/imports/package checks pass.
 - [x] Installed packed artifact passes PyChess dev/prod, full TS/Jest, lint/docs and the requested local Study/Practice acceptance.
 - [x] README-X and progress ledger updated.
 - [x] Final independent review and explicit authorization for merge commit, feature push and PR (2026-10-17).
-- [ ] Execute the authorized two-parent merge/push/PR; record outcomes in the PR/handoff.
-- [ ] Independent CI/PR-diff acceptance before any merge into master.
+- [x] Execute genuine two-parent merge, push branch, and complete PR #65.
+- [x] Independent staged-diff approval and green GitHub CI reported before integration into `master`.
