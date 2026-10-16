@@ -272,6 +272,7 @@ verified; documentation and change log complete.
 | 2026-10-16 | Planning | Document drafted | ZIP snapshot comparison | No Git history available in archives; no upstream merge attempted |
 | 2026-10-16 | Phase 0 | Merged; GitHub CI green | Maintainer report | pnpm 12.10.0, TS7, Vitest4, esbuild, oxlint, oxfmt |
 | 2026-10-16 | Phase 1 baseline | 40/40 offline tests passing | New test files in this patch | Geometry, FEN, roles, drops, and headless board; DOM/API coverage pending |
+| 2026-10-16 | Phase 1 DOM/API | 50/50 offline tests passing | `tests/dom-api-variants.test.ts` | 16x16 DOM, notation, pockets, orientation, CSS vars, full-FEN counters, drop API, annotations, callbacks, destruction; broader interaction testing pending |
 
 ### Merge issue log
 
