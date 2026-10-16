@@ -12,3 +12,8 @@ dist/
 npm-debug.log
 .idea/
 .pnpm-store/
+
+# Offline JavaScript dependency archive
+.js-wheelhouse/
+/.js-wheelhouse-build.*/
+/chessgroundx-js-wheelhouse.zip

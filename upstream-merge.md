@@ -1,6 +1,6 @@
 # ChessgroundX upstream synchronization plan
 
-Status: **Phase 0 implementation proposed — awaiting dependency installation and CI verification; no upstream code merged**
+Status: **Phase 0 merged (CI green); Phase 1 regression suite in progress; no upstream functional code merged**
 Last reviewed: 2026-10-16  
 Fork: <https://github.com/gbtami/chessgroundx>  
 Upstream: <https://github.com/lichess-org/chessground>
@@ -55,8 +55,7 @@ in geometry, roles, FEN, board interaction, pockets, SVG, and premoves.
 
 ### Decision and state (2026-10-16)
 
-**Status: patch prepared; unverified until pnpm lockfile, typecheck,
-CI, and consumer checks pass. No upstream functional source merged.**
+**Status: tooling migration merged with green GitHub Actions (maintainer report, 2026-10-16). PyChess consumer compatibility not yet independently verified.**
 
 The earlier hybrid Vitest 3 / TypeScript 4 / Rollup / Yarn migration was
 applied locally and passed 4 premove tests, lint, and Rollup bundle, but
@@ -75,10 +74,10 @@ format all `src/` files during Phase 0.
 - [x] Replace Yarn/Rollup/ESLint/Prettier with pnpm/esbuild/oxlint/oxfmt configuration.
 - [x] Preserve the browser-global bundle contract in the new esbuild script.
 - [x] Switch CI to Node 24 and pnpm 12 with isolated test/build checks.
-- [ ] With Node 24, run `corepack enable`, `corepack prepare pnpm@12.9.0 --activate` (or install pnpm 12), and `pnpm install`; commit generated `pnpm-lock.yaml`.
-- [ ] Run `pnpm run typecheck`, `pnpm run lint`, `pnpm run test`, `pnpm run dist`, and `pnpm pack` successfully.
+- [x] Install pnpm 12.10.0 with Node 24 and commit generated `pnpm-lock.yaml` (maintainer report).
+- [x] Run `pnpm run typecheck`, `pnpm run lint`, `pnpm run test`, `pnpm run dist`, and `pnpm pack` (lint has three pre-existing non-fatal warnings).
 - [ ] Check JS/TS artifacts and test the `Chessground` global with a browser DOM, and verify use by the PyChess client.
-- [ ] Confirm CI / CodeQL pass. Fix any actual TypeScript 7 diagnostic and oxlint diagnostics without changing ChessgroundX behavior.
+- [x] Confirm CI / CodeQL pass (maintainer reported merged green PR).
 - [ ] Record baseline and final commits, tool versions, lockfile and test evidence below.
 
 ### Phase 0 evidence log
@@ -88,8 +87,8 @@ format all `src/` files during Phase 0.
 | Earlier hybrid `yarn test` | 4/4 passed (reported by maintainer, 2026-10-16) |
 | Earlier hybrid `yarn lint`, `yarn dist` | Passed (reported by maintainer) |
 | Earlier hybrid `yarn typecheck`, `yarn compile` | Failed in `@types/chai` (reported by maintainer) |
-| Node 24 + pnpm 12 install / lockfile | Pending |
-| TypeScript 7 / Vitest 4 / oxlint / esbuild | Pending |
+| Node 24 + pnpm 12 install / lockfile | Passed locally, merged PR (maintainer report) |
+| TypeScript 7 / Vitest 4 / oxlint / esbuild | Green local checks + GitHub Actions (maintainer report) |
 | PyChess consumer compatibility | Pending |
 | Baseline and final commits | Pending |
 
@@ -103,6 +102,18 @@ Prioritize pure behavior and edge cases first, then DOM interactions, then
 PyChess compatibility. Use table-driven tests per variant/geometry wherever
 possible. Avoid fragile snapshots of entire DOM trees or SVG strings; assert
 semantic behavior, classes, coordinates, events, and stable attributes instead.
+
+### Phase 1 baseline batch — 2026-10-16
+
+- [x] Add `geometry-roles.test.ts`: encoded 10–16 ranks, board key sets, orientation transforms, letter/promoted roles, ally/enemy CSS, drop-orig ambiguity.
+- [x] Add `fen-variants.test.ts`: 16×16 empty runs, Shogi `+` promotions, `~` promotions, mirror flags, counted pockets, full-FEN three-check counters.
+- [x] Add `predrop-variants.test.ts`: house variants, Shogi rank restrictions, placement home ranks, occupied friendly squares, grandhouse restrictions.
+- [x] Add `board-variants.test.ts`: headless capture, configurable king roles, Capablanca castling, inventory-consuming drops, rank-16 moves, state updates.
+- [x] Verify first batch offline using uploaded wheelhouse: **40 tests in 5 files passed**; typecheck, lint (3 existing warnings), and formatting check passed.
+- [ ] Add DOM-level tests for `Chessground` public API, mini-board pockets, SVG annotations, event timing, coordinates/rendering, orientation, and teardown.
+- [ ] Expand variant premove matrix, custom premove/predrop injection, and PyChess-local integration tests before attempting upstream merge.
+
+This batch provides **partial coverage**, not completion of Gate 1. Test expectations are based on current ChessgroundX behavior. No source implementation changed.
 
 ### 1A. Geometry, coordinates, FEN, and roles — **P0**
 
@@ -259,6 +270,8 @@ verified; documentation and change log complete.
 | Date | Phase | Status | Commit / PR / evidence | Notes |
 | --- | --- | --- | --- | --- |
 | 2026-10-16 | Planning | Document drafted | ZIP snapshot comparison | No Git history available in archives; no upstream merge attempted |
+| 2026-10-16 | Phase 0 | Merged; GitHub CI green | Maintainer report | pnpm 12.10.0, TS7, Vitest4, esbuild, oxlint, oxfmt |
+| 2026-10-16 | Phase 1 baseline | 40/40 offline tests passing | New test files in this patch | Geometry, FEN, roles, drops, and headless board; DOM/API coverage pending |
 
 ### Merge issue log
 
