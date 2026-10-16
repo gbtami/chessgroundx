@@ -72,6 +72,25 @@ pocketRoles?: cg.PocketRoles;
 
 The roles of the piece in each side's pocket. In the format `{ white: cg.Role[], black: cg.Role[] }`. Used for internal pocket support.
 
+Input/rendering options adopted during upstream synchronization:
+
+- `highlight.custom`: a `Map<Key, string>` adding square classes alongside built-in highlights.
+- `jsHover`: enables JavaScript destination hover for board moves, custom premoves, and pocket drops. Disabled unless enabled explicitly.
+- `touchIgnoreRadius`: sets board-touch proximity in cell circumradii, using both cell width and height. Omit it to retain ChessgroundX's existing touch radius. A value of `1` uses half the cell diagonal.
+
+# Drawing compatibility
+
+`DrawShape.customSvg` remains an SVG **string**, anchored at `orig` in the
+existing 100×100 local view box. `drawable.eraseOnClick` and the existing
+manual/automatic shape layers are retained for Study/Practice consumers.
+Upstream's object-based custom SVG, labels, below-piece layers and pending-erase
+preview are not adopted in this synchronization.
+
+The optional `chessgroundx/glyph` subpath provides upstream's `glyphToSvg`,
+`analysisGlyphs` and `endgameGlyphs`. Each catalog takes a maximum stack size;
+its glyph functions take a stack index and return a string for `customSvg`.
+Nothing renders these glyphs automatically.
+
 # Offline development archive
 
 Run `./download-chessgroundx-js-wheelhouse.sh` on Linux x86_64 with glibc,

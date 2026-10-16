@@ -117,17 +117,17 @@ function syncDefs(d: Drawable, shapes: SyncableShape[], defsEl: SVGElement) {
   const brushes: CustomBrushes = new Map();
   let brush: DrawBrush;
   for (const s of shapes) {
-    if (s.shape.dest) {
+    if (s.shape.dest && s.shape.brush && !s.shape.customSvg) {
       brush = d.brushes[s.shape.brush!];
       if (s.shape.modifiers) brush = makeCustomBrush(brush, s.shape.modifiers);
       brushes.set(brush.key, brush);
     }
   }
   const keysInDom = new Set();
-  let el: SVGElement | undefined = defsEl.firstChild as SVGElement;
+  let el: SVGElement | undefined = defsEl.firstElementChild as SVGElement;
   while (el) {
     keysInDom.add(el.getAttribute('cgKey'));
-    el = el.nextSibling as SVGElement | undefined;
+    el = el.nextElementSibling as SVGElement | undefined;
   }
   for (const [key, brush] of brushes.entries()) {
     if (!keysInDom.has(key)) defsEl.appendChild(renderMarker(brush));
@@ -186,7 +186,7 @@ function renderShape(
   if (shape.customSvg) {
     el = renderCustomSvg(shape.customSvg, orig, bounds, state.dimensions);
   } else {
-    if (shape.dest) {
+    if (shape.dest && shape.dest !== shape.orig) {
       let brush: DrawBrush = brushes[shape.brush!];
       if (shape.modifiers) brush = makeCustomBrush(brush, shape.modifiers);
       el = renderArrow(

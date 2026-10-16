@@ -37,6 +37,7 @@ export function start(s: State, e: cg.MouchEvent): void {
     (!e.touches || s.blockTouchScroll || piece || previouslySelected || pieceCloseTo(s, position))
   )
     e.preventDefault();
+  else if (e.touches) return; // Handle only the compatibility mouse event for a scrolling touch.
   const hadPremove = !!s.premovable.current;
   s.stats.ctrlKey = e.ctrlKey;
   if (s.selectable.selected && board.canMove(s, s.selectable.selected, orig, !!s.selectable.fromPocket)) {
@@ -77,7 +78,11 @@ export function start(s: State, e: cg.MouchEvent): void {
 function pieceCloseTo(s: State, pos: cg.NumberPair): boolean {
   const asWhite = board.whitePov(s),
     bounds = s.dom.bounds(),
-    radiusSq = Math.pow(bounds.width / s.dimensions.width, 2);
+    cellWidth = bounds.width / s.dimensions.width,
+    cellHeight = bounds.height / s.dimensions.height,
+    radiusSq = s.touchIgnoreRadius === undefined
+      ? cellWidth * cellWidth
+      : s.touchIgnoreRadius ** 2 * (cellWidth * cellWidth + cellHeight * cellHeight) / 4;
   for (const key of s.boardState.pieces.keys()) {
     const center = util.computeSquareCenter(key, asWhite, bounds, s.dimensions);
     if (util.distanceSq(center, pos) <= radiusSq) return true;
@@ -124,7 +129,7 @@ export function processDrag(s: State): void {
     if (s.animation.current?.plan.anims.has(cur.orig)) s.animation.current = undefined;
     // if moving piece is gone, cancel
     const origPiece = s.boardState.pieces.get(cur.orig);
-    if (!util.samePiece(origPiece!, cur.piece)) cancel(s);
+    if (!origPiece || !util.samePiece(origPiece, cur.piece)) cancel(s);
     else {
       if (!cur.started && util.distanceSq(cur.pos, cur.origPos) >= Math.pow(s.draggable.distance, 2))
         cur.started = true;
@@ -146,10 +151,29 @@ export function processDrag(s: State): void {
 
         if (cur.orig !== 'a0')
           cur.keyHasChanged ||= cur.orig !== board.getKeyAtDomPos(cur.pos, board.whitePov(s), bounds, s.dimensions);
+        if (s.jsHover) handleJsHover(s, cur);
+        else resetHoverState(s);
       }
     }
     processDrag(s);
   });
+}
+
+function handleJsHover(s: State, cur: DragCurrent): void {
+  resetHoverState(s);
+  const key = board.getKeyAtDomPos(cur.pos, board.whitePov(s), s.dom.bounds(), s.dimensions);
+  if (!key || key === cur.orig) return;
+  const orig = cur.orig === 'a0' ? util.dropOrigOf(cur.piece.role) : cur.orig;
+  const valid = s.movable.dests?.get(orig)?.includes(key) || s.premovable.dests?.includes(key);
+  if (valid) {
+    s.dom.elements.board.querySelector(`.move-dest[data-key="${key}"], .premove-dest[data-key="${key}"]`)
+      ?.classList.add('hover');
+  }
+}
+
+export function resetHoverState(s: State): void {
+  s.dom.elements.board.querySelectorAll('.move-dest.hover, .premove-dest.hover')
+    .forEach(square => square.classList.remove('hover'));
 }
 
 export function move(s: State, e: cg.MouchEvent): void {
@@ -167,6 +191,7 @@ export function end(s: State, e: cg.MouchEvent): void {
   // comparing with the origin target is an easy way to test that the end event
   // has the same touch origin
   if (e.type === 'touchend' && cur.originTarget !== e.target) {
+    resetHoverState(s);
     s.draggable.current = undefined;
     return;
   }
@@ -217,6 +242,7 @@ export function cancel(s: State): void {
 }
 
 function removeDragElements(s: State): void {
+  resetHoverState(s);
   const e = s.dom.elements;
   if (e.ghost) util.setVisible(e.ghost, false);
 }

@@ -8,13 +8,12 @@ import * as cg from './types.js';
 type MouchBind = (e: cg.MouchEvent) => void;
 type StateMouchBind = (d: State, e: cg.MouchEvent) => void;
 
-export function bindBoard(s: State, onResize: () => void): void {
+export function bindBoard(s: State, _onResize: () => void): void {
   const boardEl = s.dom.elements.board;
 
-  // In case of zooming boards in bughouse, observing s.dom.elements.wrap
-  // causes recursive onResize calls, so we will just observe the document.body
-  const target = (s.dimensionsCssVarsSuffix) ? document.body : s.dom.elements.wrap;
-  if ('ResizeObserver' in window) new ResizeObserver(onResize).observe(target);
+  if (s.disableContextMenu || s.drawable.enabled) {
+    boardEl.addEventListener('contextmenu', e => e.preventDefault());
+  }
 
   if (s.viewOnly) return;
 
@@ -27,19 +26,22 @@ export function bindBoard(s: State, onResize: () => void): void {
   boardEl.addEventListener('mousedown', onStart as EventListener, {
     passive: false,
   });
-
-  if (s.disableContextMenu || s.drawable.enabled) {
-    boardEl.addEventListener('contextmenu', e => e.preventDefault());
-  }
 }
 
 // returns the unbind function
 export function bindDocument(s: State, onResize: () => void): cg.Unbind {
   const unbinds: cg.Unbind[] = [];
 
+  if ('ResizeObserver' in window) {
+    // Bughouse board zooming must observe the body to avoid resize recursion.
+    const target = s.dimensionsCssVarsSuffix ? document.body : s.dom.elements.wrap;
+    const observer = new ResizeObserver(onResize);
+    observer.observe(target);
+    unbinds.push(() => observer.disconnect());
+  }
   // Old versions of Edge and Safari do not support ResizeObserver. Send
   // chessground.resize if a user action has changed the bounds of the board.
-  if (!('ResizeObserver' in window)) unbinds.push(unbindable(document.body, 'chessground.resize', onResize));
+  else unbinds.push(unbindable(document.body, 'chessground.resize', onResize));
 
   if (!s.viewOnly) {
     const onmove = dragOrDraw(s, drag.move, draw.move);

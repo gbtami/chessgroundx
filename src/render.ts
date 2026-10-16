@@ -99,6 +99,7 @@ export function render(s: State): void {
         appendValue(movedPieces, elPieceName, el);
       }
     } else if (isSquareNode(el)) {
+      if (s.jsHover) el.dataset.key = k;
       const cn = el.className;
       if (squares.get(k) === cn) sameSquares.add(k);
       else appendValue(movedSquares, cn, el);
@@ -115,10 +116,12 @@ export function render(s: State): void {
       const translation = posToTranslate(key2pos(sk), asWhite);
       if (sMvd) {
         sMvd.cgKey = sk;
+        if (s.jsHover) sMvd.dataset.key = sk;
         translate(sMvd, translation);
       } else {
         const squareNode = createEl('square', className) as cg.SquareNode;
         squareNode.cgKey = sk;
+        if (s.jsHover) squareNode.dataset.key = sk;
         translate(squareNode, translation);
         boardEl.insertBefore(squareNode, boardEl.firstChild);
       }
@@ -256,6 +259,8 @@ function computeSquareClasses(s: State): SquareClasses {
 
   const o = s.exploding;
   if (o) for (const k of o.keys) addSquare(squares, k, 'exploding' + o.stage);
+
+  s.highlight.custom?.forEach((klass, key) => addSquare(squares, key, klass));
 
   return squares;
 }

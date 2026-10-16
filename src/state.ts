@@ -22,10 +22,13 @@ export interface HeadlessState {
   addDimensionsCssVarsTo?: HTMLElement; // add --cg-width and --cg-height CSS vars containing the board's dimensions to this element
   dimensionsCssVarsSuffix?: string; // suffix to add to --cg-width and --cg-height CSS var names (for bughouse boards)
   blockTouchScroll: boolean; // block scrolling via touch dragging on the board, e.g. for coordinate training
+  touchIgnoreRadius?: number; // board-cell circumradii; undefined preserves the fork's touch radius
+  jsHover?: boolean; // opt-in JS destination hover for browsers with unreliable drag hover
   pieceKey: boolean; // add a data-key attribute to piece elements
   highlight: {
     lastMove: boolean; // add last-move class to squares
     check: boolean; // add check class to squares
+    custom?: cg.SquareClasses; // custom square classes in addition to built-in highlights
   };
   animation: {
     enabled: boolean;

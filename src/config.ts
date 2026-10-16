@@ -18,10 +18,13 @@ export interface Config {
   addDimensionsCssVarsTo?: HTMLElement; // add --cg-width and --cg-height CSS vars containing the board's dimensions to this element
   dimensionsCssVarsSuffix?: string; // sufix to add to --cg-width and --cg-height CSS var names (for bughouse boards)
   blockTouchScroll?: boolean; // block scrolling via touch dragging on the board, e.g. for coordinate training
+  touchIgnoreRadius?: number; // board-cell circumradii; undefined preserves the fork's touch radius
+  jsHover?: boolean; // opt-in JS destination hover for browsers with unreliable drag hover
   // pieceKey: boolean; // add a data-key attribute to piece elements
   highlight?: {
     lastMove?: boolean; // add last-move class to squares
     check?: boolean; // add check class to squares
+    custom?: cg.SquareClasses; // custom square classes in addition to built-in highlights
   };
   animation?: {
     enabled?: boolean;
@@ -115,7 +118,7 @@ export function configure(state: HeadlessState, config: Config): void {
     if (state.pocketRoles) boardState.pockets = boardState.pockets ?? { white: new Map(), black: new Map() };
     else boardState.pockets = undefined;
     state.boardState = boardState;
-    state.drawable.shapes = [];
+    state.drawable.shapes = config.drawable?.shapes?.slice() || [];
   }
 
   // apply config values that could be undefined yet meaningful
@@ -159,7 +162,7 @@ function readCheckCounters(fen: cg.FEN): CheckCounters | undefined {
 
 function deepMerge(base: any, extend: any): void {
   for (const key in extend) {
-    if (Object.prototype.hasOwnProperty.call(extend, key)) {
+    if (key !== '__proto__' && key !== 'constructor' && Object.prototype.hasOwnProperty.call(extend, key)) {
       if (Object.prototype.hasOwnProperty.call(base, key) && isPlainObject(base[key]) && isPlainObject(extend[key]))
         deepMerge(base[key], extend[key]);
       else base[key] = extend[key];

@@ -9,6 +9,7 @@
 _Chessground_ is a free/libre open source chess UI developed for
 [lichess.org](https://lichess.org).
 It targets modern browsers, as well as mobile development using Cordova.
+ChessgroundX extends it for variant boards, roles and pockets; see [README-X.md](README-X.md).
 
 ## License
 
@@ -35,7 +36,7 @@ Chessground is designed to fulfill all lichess.org web and mobile apps needs, so
 
 - Well typed with TypeScript
 - Fast. Uses a custom DOM diff algorithm to reduce DOM writes to the absolute minimum.
-- Small footprint: 10K gzipped (31K unzipped). No dependencies.
+- No runtime dependencies.
 - SVG drawing of circles, arrows, and custom user shapes on the board
 - Arrows snap to valid moves. Freehand arrows can be drawn by dragging the mouse off the board and back while drawing an arrow.
 - Entirely configurable and reconfigurable at any time
@@ -83,28 +84,44 @@ More? Please make a pull request to include it here.
 
 ## Documentation
 
-- [Config types](https://github.com/lichess-org/chessground/tree/master/src/config.ts)
-- [Default config values](https://github.com/lichess-org/chessground/tree/master/src/state.ts)
-- [API type signatures](https://github.com/lichess-org/chessground/tree/master/src/api.ts)
+- [Config types](src/config.ts)
+- [Default config values](src/state.ts)
+- [API type signatures](src/api.ts)
+- [Simple standalone example](demo.html)
 - [Examples repo](https://github.com/lichess-org/chessground-examples/tree/master/src/units)
 - [Base CSS](https://github.com/lichess-org/chessground-examples/blob/master/assets/chessground.css)
 
 ## Development
 
-Install build dependencies:
+Use Node.js >=24 and the pinned pnpm 12.10.0. Install build dependencies:
 
 ```sh
-yarn install
+pnpm install --frozen-lockfile
 ```
 
 To build the node module:
 
 ```sh
-yarn run compile -- --watch
+pnpm run compile --watch
 ```
 
 To build the standalone:
 
 ```sh
-yarn run dist -- --watch
+pnpm run dist
 ```
+
+Run the local checks:
+
+```sh
+pnpm run test
+pnpm run typecheck
+pnpm run lint
+pnpm run check-format
+pnpm run test:consumer
+```
+
+Run `pnpm run dist` before the consumer check or standalone browser checks.
+See [upstream-merge.md](upstream-merge.md) for synchronization decisions and
+local browser validation. Package entry points and fork APIs are retained;
+upstream release automation is not part of this synchronization.
