@@ -111,7 +111,10 @@ semantic behavior, classes, coordinates, events, and stable attributes instead.
 - [x] Add `board-variants.test.ts`: headless capture, configurable king roles, Capablanca castling, inventory-consuming drops, rank-16 moves, state updates.
 - [x] Verify first batch offline using uploaded wheelhouse: **40 tests in 5 files passed**; typecheck, lint (3 existing warnings), and formatting check passed.
 - [ ] Add DOM-level tests for `Chessground` public API, mini-board pockets, SVG annotations, event timing, coordinates/rendering, orientation, and teardown.
-- [ ] Expand variant premove matrix, custom premove/predrop injection, and PyChess-local integration tests before attempting upstream merge.
+- [x] Add `premove-matrix.test.ts`: 23 role/variant mobility scenarios across Chess, Capablanca, Seirawan, Ataxx, Xiangqi, Janggi, Shogi, Kyoto Shogi, Dobutsu, Makruk, and unknown roles.
+- [x] Add `callback-regressions.test.ts`: 5 asynchronous move/capture/drop callback cases, order, rejection, and inventory accounting.
+- [x] Verify the expanded suite offline: **78 tests in 8 files passed**; TS7 typecheck, new-file oxlint and oxfmt checks passed.
+- [ ] Expand further variant premove and predrop cases, custom function injection, user-input/drag interactions and PyChess-local integration tests before attempting upstream merge.
 
 This batch provides **partial coverage**, not completion of Gate 1. Test expectations are based on current ChessgroundX behavior. No source implementation changed.
 
