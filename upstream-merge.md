@@ -1,6 +1,6 @@
 # ChessgroundX upstream synchronization plan
 
-Status: **Planning — no upstream code merged**  
+Status: **Phase 0 implementation proposed — awaiting dependency installation and CI verification; no upstream code merged**
 Last reviewed: 2026-10-16  
 Fork: <https://github.com/gbtami/chessgroundx>  
 Upstream: <https://github.com/lichess-org/chessground>
@@ -51,39 +51,51 @@ The version numbers are independently maintained and do **not** establish the
 relative freshness of the implementations. The fork has substantial changes
 in geometry, roles, FEN, board interaction, pockets, SVG, and premoves.
 
-## Phase 0 — Test infrastructure, without functional changes
+## Phase 0 — Adopt upstream build and test tooling before regression coverage
 
-**Decision:** Adopt *the useful upstream testing approach* first: TypeScript
-Vitest tests, jsdom, modern supported Node versions, and a reliable CI test
-job. **Defer** the full TypeScript 7 / pnpm / esbuild / oxlint / oxfmt migration
-until regression coverage is established. Updating all tooling up front adds
-churn and may break the published package format before compatibility is
-measured. Vitest 4 requires an adequately recent Node; use Node 22.12+ or 24+
-for the test environment (verify exact resolved dependency engine constraints).
+### Decision and state (2026-10-16)
 
-- [ ] Record the exact baseline commit, `node --version`, package-manager
-      version, dependency lockfile, and currently passing build/test commands.
-- [ ] Select and pin a current supported Node version for local testing and CI;
-      retire legacy Node 14/16 CI jobs for the new runner.
-- [ ] Add Vitest + jsdom and a deterministic lockfile with no library-runtime
-      changes; keep the existing build/published exports intact.
-- [ ] Port the existing four Mocha cases to TypeScript Vitest, preserving
-      assertions; remove duplicate legacy tests only after the port passes.
-- [ ] Add `test`, `test:watch`, and appropriate typecheck scripts; make the
-      test process fail on assertion errors, unhandled rejections, and empty
-      test discovery.
-- [ ] Update CI to run install, typecheck, lint (existing tooling initially),
-      unit tests, and build in separate steps; keep the security job working.
-- [ ] Establish a clean headless jsdom test harness (DOM cleanup between tests,
-      deterministic animation/frame scheduling, mocked geometry when needed).
-- [ ] Confirm package entry points and generated declarations remain compatible
-      with the PyChess consumer; document intentional environment requirements.
+**Status: patch prepared; unverified until pnpm lockfile, typecheck,
+CI, and consumer checks pass. No upstream functional source merged.**
 
-**Gate 0:** A CI-verified tooling-only change with all existing tests passing,
-no intentional library behavior or API differences, and equivalent package
-artifacts/exports. If Vitest migration has difficult compatibility issues,
-retain Mocha temporarily and **still proceed with regression tests**; do not
-let tooling block the main goal.
+The earlier hybrid Vitest 3 / TypeScript 4 / Rollup / Yarn migration was
+applied locally and passed 4 premove tests, lint, and Rollup bundle, but
+`compile` and `typecheck` failed in `@types/chai` dependency declarations.
+This replacement patch is **relative to the already-applied hybrid patch**.
+It migrates the development stack to the uploaded Lichess Chessground baseline:
+Node 24, pnpm 12, TypeScript 7, Vitest 4, jsdom 30, esbuild, oxlint, oxfmt.
+
+**Compatibility exception:** Keep `chessgroundx` metadata, existing root
+`*.js`/`*.d.ts` compile outputs, `module`/`typings` entries, and the historical
+`dist/chessground.js` + `.min.js` IIFE bundles exposing callable global
+`Chessground`. Upstream's ESM packaging is *not* silently adopted. Do not
+format all `src/` files during Phase 0.
+
+- [x] Preserve existing four Vitest premove tests and DOM setup.
+- [x] Replace Yarn/Rollup/ESLint/Prettier with pnpm/esbuild/oxlint/oxfmt configuration.
+- [x] Preserve the browser-global bundle contract in the new esbuild script.
+- [x] Switch CI to Node 24 and pnpm 12 with isolated test/build checks.
+- [ ] With Node 24, run `corepack enable`, `corepack prepare pnpm@12.9.0 --activate` (or install pnpm 12), and `pnpm install`; commit generated `pnpm-lock.yaml`.
+- [ ] Run `pnpm run typecheck`, `pnpm run lint`, `pnpm run test`, `pnpm run dist`, and `pnpm pack` successfully.
+- [ ] Check JS/TS artifacts and test the `Chessground` global with a browser DOM, and verify use by the PyChess client.
+- [ ] Confirm CI / CodeQL pass. Fix any actual TypeScript 7 diagnostic and oxlint diagnostics without changing ChessgroundX behavior.
+- [ ] Record baseline and final commits, tool versions, lockfile and test evidence below.
+
+### Phase 0 evidence log
+
+| Check | Result / commit |
+| --- | --- |
+| Earlier hybrid `yarn test` | 4/4 passed (reported by maintainer, 2026-10-16) |
+| Earlier hybrid `yarn lint`, `yarn dist` | Passed (reported by maintainer) |
+| Earlier hybrid `yarn typecheck`, `yarn compile` | Failed in `@types/chai` (reported by maintainer) |
+| Node 24 + pnpm 12 install / lockfile | Pending |
+| TypeScript 7 / Vitest 4 / oxlint / esbuild | Pending |
+| PyChess consumer compatibility | Pending |
+| Baseline and final commits | Pending |
+
+**Gate 0:** successful frozen-lockfile install, typecheck, lint, existing tests,
+bundling, package inspection, and PyChess compatibility verification. Proceed
+to Phase 1 only after the gate is satisfied.
 
 ## Phase 1 — Build the ChessgroundX regression safety net
 
