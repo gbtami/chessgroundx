@@ -306,11 +306,15 @@ boards, Alice mirror flags, pocket roles, and Study manual/automatic shapes.
 - [x] Add `scripts/check-pychess-consumer.mjs` as a repeatable standalone
       import smoke check, run by Node.js CI after `dist`.
 - [ ] Finish the full PyChess TypeScript validation against the locally built
-      package. The earlier attempt did not yield a verified passing result.
+      package. With the uploaded PyChess JS wheelhouse, an offline Yarn install
+      succeeded in an isolated checkout; the installed ChessgroundX was replaced
+      with the freshly compiled fork. Native TS checking exceeded 120 seconds
+      without diagnostics, so **no TypeScript pass is claimed**.
 - [ ] Verify representative runtime interactions in a local browser, including
       drag/drop and Study annotations. Do not contact production pychess.org.
 
 | 2026-10-16 | Phase 1 local PyChess bundling | Development and production esbuild passed | Local uploaded PyChess client with compiled ChessgroundX | Named/subpath imports work; full TS check and browser interactions pending |
+| 2026-10-16 | Phase 1 full TS attempt | Dependency installation passed; typecheck inconclusive | Offline PyChess JS wheelhouse + locally compiled ChessgroundX | Native TypeScript process timed out after 120 seconds without diagnostics; not a passing typecheck |
 
 ### Merge issue log
 
