@@ -1,6 +1,6 @@
 # ChessgroundX upstream synchronization plan
 
-Status: **Phase 0 merged (CI green); Phase 1 regression suite in progress; no upstream functional code merged**
+Status: **Phase 1 accepted as sufficient for disposable merge assessment; Phase 2 reconnaissance prepared; no upstream functional code merged**
 Last reviewed: 2026-10-16  
 Fork: <https://github.com/gbtami/chessgroundx>  
 Upstream: <https://github.com/lichess-org/chessground>
@@ -191,7 +191,7 @@ This batch provides **partial coverage**, not completion of Gate 1. Test expecta
 - [ ] Verify **no test invokes the production site**. Use a locally built
       ChessgroundX artifact with the corresponding PyChess branch.
 
-**Gate 1 (hard stop):** Every applicable P0 item has tests, fixtures, and passing
+**Gate 1 (production integration):** Every applicable P0 item has tests, fixtures, and passing
 CI results. Record branch coverage for integration-sensitive modules (`board.ts`,
 `wrap.ts`, `render.ts`, `svg.ts`) and boundary tests for fork-owned modules,
 along with any remaining untested branches and their rationale. Coverage numbers are
@@ -295,14 +295,32 @@ keep all tests local (no requests to production). Automatically merged hunks
 in these shared files require the same review as conflicts.
 
 **Readiness:** The shared-module source comparison is complete for planning.
-Gate 1 is **not closed**: standalone real-browser mouse and touch tests pass,
-but representative local PyChess Study/Practice workflows remain unverified. A disposable upstream Git
-merge should only start after those checks or an explicit, documented gate
-exception, with exact upstream/fork SHAs recorded.
+Gate 1 is **accepted for a disposable trial merge only**, by maintainer decision on
+2026-10-16. Standalone browser mouse/touch tests, PyChess dev/prod bundles,
+and full PyChess typechecking passed. Local PyChess Study/Practice browser
+acceptance remains unverified and is a **hard gate before final integration**,
+not before non-destructive conflict reconnaissance. No additional broad
+regression suite is required before the trial merge.
 
 ## Phase 2 — Determine Git ancestry and assess a disposable merge
 
-**Start only after Gate 1.**
+**Trial-merge exception approved 2026-10-16:** the existing 151 Vitest and
+10 standalone Chromium tests, PyChess bundling/typecheck, and CI are sufficient
+for non-destructive conflict reconnaissance. Full PyChess Study/Practice browser
+acceptance remains required before integrating/deploying upstream changes.
+
+The ZIP snapshots omit Git history, and GitHub access from the analysis
+sandbox was unavailable. Exact ancestry and actual conflict counts are therefore
+**not yet verified**. Run `bash scripts/trial-upstream-merge.sh` in a clean local
+repository checkout and share the resulting report directory (as a ZIP).
+The script fetches upstream, uses a detached temporary worktree, attempts
+`merge --no-commit --no-ff`, captures conflicts and auto-merges, and removes
+the worktree; it never changes local `master`. It does not resolve conflicts
+or modify fork-owned files. It requires ordinary Git network access.
+
+**Phase 2 work plan**: review the report and Git merge base first; classify
+conflicts, examine the automatically merged files, and then plan resolutions
+with the four fork-owned implementations preserved.
 
 - [ ] Fetch both official remotes using Git; document the exact fork HEAD,
       upstream HEAD, and merge base (if any):
@@ -314,8 +332,8 @@ exception, with exact upstream/fork SHAs recorded.
       git rev-list --left-right --count HEAD...upstream/master
       ```
 
-      Adjust the upstream default branch only if verified; do not assume
-      `upstream/master` exists before fetching/listing refs.
+      Prefer the supplied trial script, which discovers the upstream default
+      branch and records the SHAs. Do not assume `upstream/master` exists.
 - [ ] From a clean, disposable branch, try `git merge --no-commit --no-ff`
       against the recorded upstream SHA, capturing status and conflicts.
 - [ ] Classify conflicts by subsystem: pure utilities, types/config, FEN,
@@ -433,6 +451,9 @@ boards, Alice mirror flags, pocket roles, and Study manual/automatic shapes.
 | 2026-10-16 | Phase 1 shared-module audit | Six modules assessed; Gate 1 open | Uploaded upstream/fork source ZIP comparison | Preserve dimension, pocket and public API contracts; touch/Study integration remain pending |
 
 | 2026-10-16 | Phase 1 Chromium Study-like contracts | **10/10 Chromium browser tests passed** | Two additions to `scripts/test-browser-interactions.py` | Checks replacement of manual/auto annotations and orientation redraw in standalone ChessgroundX; actual PyChess Study/Practice Playwright acceptance is still pending |
+
+| 2026-10-16 | Phase 1 decision | Sufficient for disposable merge trial | Maintainer decision, 151 Vitest + 10 Chromium, PyChess bundle and TS checks | Stop speculative test expansion; local Study/Practice end-to-end remains mandatory before final acceptance |
+| 2026-10-16 | Phase 2 preparation | Trial script ready; ancestry/conflicts pending | `scripts/trial-upstream-merge.sh` | No merge executed in sandbox because Git remote history was unavailable; report to be generated locally |
 
 ### Merge issue log
 
