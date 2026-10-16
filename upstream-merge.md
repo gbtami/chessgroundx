@@ -282,6 +282,8 @@ verified; documentation and change log complete.
 | 2026-10-16 | Phase 1 SVG rendering | 104/104 offline tests passing | `tests/svg-render-regressions.test.ts` | Seven SVG geometry, layers, brush definitions, and caching tests. Public API orientation redraw verified separately; direct renderer cache test was an incomplete lifecycle simulation |
 | 2026-10-16 | Phase 1 SVG API orientation | 106/106 offline tests passing | `tests/svg-orientation-api.test.ts` | Both `toggleOrientation()` and `set({ orientation })` reposition existing arrows and restore their coordinates when flipped back, with realistic jsdom bounds; no PyChess workaround or production fix needed |
 
+| 2026-10-16 | Phase 1 public API contracts | 114/114 offline tests passing | `tests/public-contract-extra.test.ts` | Eight standalone API regression cases: callable surface, partial setPieces/FEN, destination replacement, lastMove reset/drop, pocket deltas, selection, configurable check markers. Real PyChess consumer build remains pending |
+
 ### Merge issue log
 
 Add entries as they are discovered:
