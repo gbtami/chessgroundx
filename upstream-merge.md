@@ -284,6 +284,27 @@ verified; documentation and change log complete.
 
 | 2026-10-16 | Phase 1 public API contracts | 114/114 offline tests passing | `tests/public-contract-extra.test.ts` | Eight standalone API regression cases: callable surface, partial setPieces/FEN, destination replacement, lastMove reset/drop, pocket deltas, selection, configurable check markers. Real PyChess consumer build remains pending |
 
+### PyChess consumer inventory — 2026-10-16
+
+Inspected `pychess-variants` client imports from the uploaded source ZIP. The
+consumer imports the root package plus `types`, `util`, `fen`, `api`, `draw`,
+`render`, `premove`, `predrop`, `chessground`, and `config` subpaths. Its runtime
+uses custom movement functions, separate dimensions CSS variables for linked
+boards, Alice mirror flags, pocket roles, and Study manual/automatic shapes.
+
+- [x] Add eight standalone library contract tests grounded in those call sites
+      (`tests/pychess-consumer-contracts.test.ts`); **122/122 tests green**.
+- [ ] Resolve/check **root entry-point mismatch** in a *local PyChess consumer
+      build*: ChessgroundX `src/index.ts` exports `default Chessground` while
+      `client/nowPlaying.ts`, `client/lobby/util.ts`, and others use
+      `import { Chessground } from 'chessgroundx'`. Do not assume those imports
+      are compatible merely because ChessgroundX's own tests pass. Evaluate the
+      installed version/bundler resolution before changing exports.
+- [ ] Run actual PyChess typecheck and client bundle against a locally built
+      ChessgroundX package; test production only through local fixtures.
+
+| 2026-10-16 | Phase 1 PyChess consumer contracts | 122/122 offline tests passing | `tests/pychess-consumer-contracts.test.ts` | Eight tests grounded in PyChess source; root named-vs-default import mismatch flagged for local consumer build verification |
+
 ### Merge issue log
 
 Add entries as they are discovered:
