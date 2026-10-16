@@ -305,16 +305,17 @@ boards, Alice mirror flags, pocket roles, and Study manual/automatic shapes.
       (2026-10-16). These are **bundling checks**, not end-to-end runtime tests.
 - [x] Add `scripts/check-pychess-consumer.mjs` as a repeatable standalone
       import smoke check, run by Node.js CI after `dist`.
-- [ ] Finish the full PyChess TypeScript validation against the locally built
-      package. With the uploaded PyChess JS wheelhouse, an offline Yarn install
-      succeeded in an isolated checkout; the installed ChessgroundX was replaced
-      with the freshly compiled fork. Native TS checking exceeded 120 seconds
-      without diagnostics, so **no TypeScript pass is claimed**.
+- [x] Complete the full PyChess TypeScript validation against the locally built
+      package. Using the uploaded PyChess JavaScript wheelhouse and the
+      locally compiled ChessgroundX package, the native TypeScript checker
+      passed with zero diagnostics on 473 files (44.24 s, ~325 MB), using
+      `--noEmit --incremental false`. No runtime source was modified.
 - [ ] Verify representative runtime interactions in a local browser, including
       drag/drop and Study annotations. Do not contact production pychess.org.
 
 | 2026-10-16 | Phase 1 local PyChess bundling | Development and production esbuild passed | Local uploaded PyChess client with compiled ChessgroundX | Named/subpath imports work; full TS check and browser interactions pending |
-| 2026-10-16 | Phase 1 full TS attempt | Dependency installation passed; typecheck inconclusive | Offline PyChess JS wheelhouse + locally compiled ChessgroundX | Native TypeScript process timed out after 120 seconds without diagnostics; not a passing typecheck |
+| 2026-10-16 | Phase 1 full TS attempt | Previously inconclusive | Offline PyChess JS wheelhouse + locally compiled ChessgroundX | Superseded by successful non-incremental typecheck below |
+| 2026-10-16 | Phase 1 full TS check | **Passed: 0 errors, 473 files, 44.24 seconds** | Local PyChess client with compiled ChessgroundX | `tsc --noEmit --incremental false --extendedDiagnostics`; 325 MB used; real-browser interactions remain pending |
 
 ### Merge issue log
 
