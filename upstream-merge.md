@@ -279,6 +279,7 @@ verified; documentation and change log complete.
 | 2026-10-16 | Phase 1 premoves/callbacks | 78/78 offline tests passing | `tests/premove-matrix.test.ts`, `tests/callback-regressions.test.ts` | Variant premoves and deferred board event contracts; interaction coverage pending |
 | 2026-10-16 | Phase 1 interaction extensions | 90/90 offline tests passing | `tests/interaction-extensions.test.ts` | Injected premove/predrop destinations, SVG drawing state and toggle semantics, view-only and context-menu safeguards. Full browser mouse/touch gestures and PyChess integration still pending |
 | 2026-10-16 | Phase 1 DOM gestures | 97/97 offline tests passing | `tests/gesture-regressions.test.ts` | Actual right-button and modified drawing DOM events, document movement/end, touch safeguards, 10x10 mini-board pocket counts and orientation. jsdom cannot simulate trusted native piece dragging; real-browser/PyChess checks remain pending |
+| 2026-10-16 | Phase 1 SVG rendering | 104/104 offline tests passing | `tests/svg-render-regressions.test.ts` | Seven SVG geometry, layers, brush definitions, and caching tests. Orientation redraw cache may retain stale SVG coordinates; independent follow-up needed |
 
 ### Merge issue log
 
