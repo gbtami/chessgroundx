@@ -269,6 +269,36 @@ resulting diff, including automatic merges. **Do not use a blanket `git merge
 - [ ] Audit upstream-only bug fixes in the four files after Git ancestry is known.
 - [ ] Verify the merge preserves fork-owned contents at the pinned SHAs.
 
+
+### Shared-module upstream reconciliation audit — 2026-10-16
+
+Compared the uploaded upstream and ChessgroundX source snapshots. This is a
+**source-level comparison**, not an ancestry-based change inventory: the ZIP
+files do not contain `.git`, and a change visible in upstream cannot yet be
+attributed to a particular post-fork commit. **No functional upstream changes
+have been integrated.**
+
+| Shared module | Upstream behavior / difference | ChessgroundX requirement | Merge policy | Existing safety net / remaining check |
+| --- | --- | --- | --- | --- |
+| `board.ts` | Upstream square hit-testing and snapping use fixed 8×8 geometry; move/premove paths use different drop and predrop representations | Dimension-aware `getKeyAtDomPos`/`getSnappedKeyAtDomPos`; encoded ranks 10–16; `BoardState` pockets; drop-origin handling | Preserve fork geometry and move/drop paths; inspect upstream bug fixes one by one | Geometry, headless board, browser 16×16 drag, pocket and shared-boundary tests; add snapped-target boundary test |
+| `state.ts` | Upstream piece storage and interaction state use different shape; adds `touchIgnoreRadius`, `blockTouchScroll`, `trustAllEvents`, `jsHover`, `predroppable` | Preserve `boardState`, dimensions, pocket roles, injected `premoveFunc`/`predropFunc`, fork drawing state | Reconcile feature by feature; never copy upstream state layout | API/config and injected-hook tests; review touch/hover feature applicability |
+| `config.ts` | Upstream configuration updates target its own state layout, predrop settings and event model | Preserve partial config merge, full-FEN counters, board dimensions, pocket configuration, custom hooks and selection state | Keep fork semantics; port compatible upstream fixes selectively | `fork-boundaries`, `shared-boundaries-extra`, FEN tests; add lifecycle integration cases if needed |
+| `drag.ts` | Upstream differentiates `newPiece`/predrop with distinct flow; fork uses temporary `a0` drag origin and pocket inventory logic; upstream has touch-origin handling and hover logic | Existing actual pocket-drop semantics, rejected-drop accounting, proper touch gestures, encoded large-board hit tests | **Do not transplant upstream drag implementation wholesale**; review event handling improvements separately | 5 Chromium mouse scenarios, jsdom drag completion; genuine touch remains a gate |
+| `render.ts` | Upstream uses 8×8 layout calculations and different piece state / castle-highlighting logic | Variable-size board, custom classes, mini-board pockets, dimension CSS variables and board orientation | Review upstream rendering fixes by hunk; retain dimensional transforms | DOM/API, 16×16 and SVG tests; add resize/animation cases |
+| `wrap.ts` | Upstream coordinate generation uses fixed files/ranks and simplified board DOM; fork builds larger and variant-specific coordinates and pocket containers | Extended file/rank labels, variant notation, dynamic dimensions, pocket wrappers | Preserve fork construction and notation; selectively port improvements | DOM API/geometry/pockets; check notation cases and actual resize |
+
+**Cross-cutting invariants during conflict resolution:** retain fork-owned
+`premove.ts`, `predrop.ts`, `fen.ts`, and `pocket.ts` as-is unless a separately
+reviewed bug fix is justified; maintain package import paths and public API;
+keep all tests local (no requests to production). Automatically merged hunks
+in these shared files require the same review as conflicts.
+
+**Readiness:** The shared-module source comparison is complete for planning.
+Gate 1 is **not closed**: real browser touch coverage and representative local
+PyChess Study/Practice workflows remain unverified. A disposable upstream Git
+merge should only start after those checks or an explicit, documented gate
+exception, with exact upstream/fork SHAs recorded.
+
 ## Phase 2 — Determine Git ancestry and assess a disposable merge
 
 **Start only after Gate 1.**
@@ -393,6 +423,8 @@ boards, Alice mirror flags, pocket roles, and Study manual/automatic shapes.
 
 | 2026-10-16 | Phase 1 merge policy | Fork-owned modules agreed | `premove.ts`, `predrop.ts`, `fen.ts`, `pocket.ts` | Preserve implementations; prioritize boundary tests and inspect upstream fixes separately |
 | 2026-10-16 | Phase 1 shared boundaries | **151/151 Vitest passing (18 files)** | `tests/shared-boundaries-extra.test.ts` | Four regression cases covering FEN refresh during a pocket drag, partial event configuration, last-move replacement and orientation/selection hooks; TypeScript, new-test lint and formatting passed |
+
+| 2026-10-16 | Phase 1 shared-module audit | Six modules assessed; Gate 1 open | Uploaded upstream/fork source ZIP comparison | Preserve dimension, pocket and public API contracts; touch/Study integration remain pending |
 
 ### Merge issue log
 
