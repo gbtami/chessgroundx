@@ -71,3 +71,32 @@ pocketRoles?: cg.PocketRoles;
 ```
 
 The roles of the piece in each side's pocket. In the format `{ white: cg.Role[], black: cg.Role[] }`. Used for internal pocket support.
+
+# Offline development archive
+
+Run `./download-chessgroundx-js-wheelhouse.sh` on Linux x86_64 with glibc,
+Node.js, Python >=3.12, and internet access. No global pnpm is needed.
+The script creates `chessgroundx-js-wheelhouse.zip` and `.js-wheelhouse/`
+without changing the checkout's dependencies or generated JavaScript.
+It verifies a fresh offline install from the ZIP, then runs typecheck, lint,
+format checks, tests, the distribution build, and package creation.
+
+Upload the ZIP alongside the matching source archive. After extracting both:
+
+```bash
+bash /path/to/.js-wheelhouse/install-offline.sh /path/to/chessgroundx
+export PATH="/path/to/.js-wheelhouse/bin:$PATH"
+cd /path/to/chessgroundx
+pnpm run test
+pnpm run dist
+```
+
+The archive includes the pinned pnpm and a Linux x64/glibc dependency store;
+Node must already be installed. Like the pychess wheelhouse's `--ignore-engines`,
+the installer disables pnpm's strict engine checks to allow the sandbox's older
+Node. The project still targets Node >=24; the current locked toolchain has also
+been verified on Node 22.16.0. The builder runs all checks on its actual Node
+version and records it in `build-info.txt`. See `.js-wheelhouse/README.txt` for
+the full workflow. Regenerate
+after changing `package.json`, `pnpm-lock.yaml`, or `pnpm-workspace.yaml`.
+Set `OUTPUT_ROOT=/path/to/output` to write the artifacts outside the checkout.
