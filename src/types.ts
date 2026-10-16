@@ -70,6 +70,8 @@ export interface Rect {
 
 export type Dests = Map<Orig, Key[]>;
 
+export type SquareClasses = Map<Key, string>;
+
 export interface Elements {
   board: HTMLElement;
   pocketTop?: HTMLElement;

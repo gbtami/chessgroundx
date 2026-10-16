@@ -223,6 +223,69 @@ class BrowserInteractions(unittest.TestCase):
         self.assertEqual(self.page.evaluate("cg.state.boardState.pieces.get('c3')?.role"), 'r-piece')
         self.assertEqual(self.page.evaluate("cg.state.boardState.pockets.white.get('r-piece')"), 0)
 
+    def test_mini_pocket_drag_after_orientation_redraw(self):
+        self.page.evaluate("document.getElementById('board').classList.add('mini')")
+        self.page.add_style_tag(content='''
+            pocketbottom, pockettop {position:absolute;top:820px;width:60px;height:60px}
+            pocketbottom {left:0} pockettop {left:80px}
+            .pocket square, .pocket piece {display:block;position:relative;width:60px;height:60px;pointer-events:auto}
+        ''')
+        self.make_board({'fen':'8/8/8/8/8/8/8/8[Rr]',
+                         'pocketRoles':{'white':['r-piece'],'black':['r-piece']},
+                         'turnColor':'black', 'movable':{'color':'black','free':True},
+                         'animation':{'enabled':False}})
+        self.page.evaluate('cg.toggleOrientation()')
+        self.page.wait_for_timeout(80)
+        source = self.page.locator('pocketbottom piece[data-color="black"]')
+        rect = source.bounding_box()
+        self.assertIsNotNone(rect)
+        self.move((rect['x'] + rect['width']/2, rect['y'] + rect['height']/2),
+                  self.square(3,3,orientation='black'))
+        self.assertEqual(self.page.evaluate("cg.state.boardState.pieces.get('c3')?.color"), 'black')
+        self.assertEqual(self.page.evaluate("cg.state.boardState.pockets.black.get('r-piece')"), 0)
+
+    def test_external_pocket_drag_after_repeated_redraw(self):
+        self.make_board({'fen':'8/8/8/8/8/8/8/8[R]',
+                         'pocketRoles':{'white':['r-piece'],'black':[]},
+                         'movable':{'color':'white','free':True},
+                         'animation':{'enabled':False}}, pockets=True)
+        self.page.evaluate('''() => {
+            cg.toggleOrientation(); cg.toggleOrientation(); cg.redrawAll();
+            window.dropCount = 0;
+            cg.set({movable:{events:{afterNewPiece:() => window.dropCount++}}});
+        }''')
+        rect = self.page.locator('#bottom piece[data-role="r-piece"]').bounding_box()
+        self.assertIsNotNone(rect)
+        self.move((rect['x'] + rect['width']/2, rect['y'] + rect['height']/2), self.square(4,4))
+        self.assertEqual(self.page.evaluate("cg.state.boardState.pieces.get('d4')?.role"), 'r-piece')
+        self.assertEqual(self.page.evaluate('dropCount'), 1)
+
+    def test_trusted_touch_rectangular_board_black_orientation(self):
+        self.enable_touch()
+        self.page.evaluate("document.getElementById('board').style.width = '900px'")
+        fen = '/'.join(['9'] * 9 + ['R8'])
+        self.make_board({'fen':fen, 'dimensions':{'width':9,'height':10},
+                         'orientation':'black', 'movable':{'color':'white','free':True},
+                         'animation':{'enabled':False}})
+        self.touch_drag((850,40), (50,760))
+        self.assertEqual(self.page.evaluate("cg.state.boardState.pieces.get('i:')?.role"), 'r-piece')
+        self.assertFalse(self.page.evaluate("cg.state.boardState.pieces.has('a1')"))
+
+    def test_trusted_drag_with_js_hover_on_rank_16(self):
+        fen = '/'.join(['16'] * 15 + ['R15'])
+        self.make_board({'fen':fen, 'dimensions':{'width':16,'height':16},
+                         'jsHover':True, 'movable':{'color':'white','free':False},
+                         'animation':{'enabled':False}})
+        self.page.evaluate("cg.set({movable:{dests:new Map([['a1',['p@']]])}})")
+        self.page.mouse.move(*self.square(1,1,16,16))
+        self.page.mouse.down()
+        self.page.mouse.move(*self.square(16,16,16,16), steps=12)
+        self.page.wait_for_timeout(100)
+        self.assertEqual(self.page.locator('square.move-dest.hover[data-key="p@"]:visible').count(), 1)
+        self.page.mouse.up()
+        self.page.wait_for_timeout(80)
+        self.assertEqual(self.page.evaluate("cg.state.boardState.pieces.get('p@')?.role"), 'r-piece')
+
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)

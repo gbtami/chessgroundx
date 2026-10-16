@@ -3,7 +3,7 @@ import * as board from './board.js';
 import { write as fenWrite } from './fen.js';
 import { Config, configure, applyAnimation } from './config.js';
 import { anim, render } from './anim.js';
-import { cancel as dragCancel, dragNewPiece } from './drag.js';
+import { cancel as dragCancel, dragNewPiece, resetHoverState } from './drag.js';
 import { DrawShape } from './draw.js';
 import { explosion } from './explosion.js';
 import { roleOf, isDropOrig, changeNumber } from './util.js';
@@ -60,7 +60,7 @@ export interface Api {
   // make squares explode (atomic chess)
   explode(keys: cg.Key[]): void;
 
-  // programmatically draw user shapes
+  // programmatically draw user shapes (shallow-copies the array)
   setShapes(shapes: DrawShape[]): void;
 
   // programmatically draw auto shapes
@@ -92,6 +92,7 @@ export function start(state: State, redrawAll: cg.Redraw): Api {
       if (config.orientation && config.orientation !== state.orientation) toggleOrientation();
       applyAnimation(state, config);
       (config.fen ? anim : render)(state => configure(state, config), state);
+      if (config.jsHover === false) resetHoverState(state);
     },
 
     state,
@@ -176,7 +177,7 @@ export function start(state: State, redrawAll: cg.Redraw): Api {
     },
 
     setShapes(shapes: DrawShape[]): void {
-      render(state => (state.drawable.shapes = shapes), state);
+      render(state => (state.drawable.shapes = shapes.slice()), state);
     },
 
     getKeyAtDomPos(pos): cg.Key | undefined {

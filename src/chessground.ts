@@ -10,6 +10,10 @@ import * as svg from './svg.js';
 import * as util from './util.js';
 import { renderPockets, renderPocketsInitial } from './pocket.js';
 
+export function initModule({ el, config }: { el: HTMLElement; config?: Config }): Api {
+  return Chessground(el, config);
+}
+
 export function Chessground(
   element: HTMLElement,
   config?: Config,
@@ -21,6 +25,9 @@ export function Chessground(
 
   function redrawAll(): State {
     const prevUnbind = 'dom' in maybeState ? maybeState.dom.unbind : undefined;
+    // Pocket nodes may be replaced on redraw; release their listeners and the
+    // resize observer before binding the current DOM.
+    prevUnbind?.();
     // compute bounds from existing board element if possible
     // this allows non-square boards from CSS to be handled (for 3D)
     const elements = renderWrap(element, maybeState),
@@ -45,13 +52,12 @@ export function Chessground(
       bounds,
       redraw: debounceRedraw(redrawNow),
       redrawNow,
-      unbind: prevUnbind,
     };
     state.drawable.prevSvgHash = '';
     updateBounds(state);
     redrawNow(false);
     events.bindBoard(state, onResize);
-    if (!prevUnbind) state.dom.unbind = events.bindDocument(state, onResize);
+    state.dom.unbind = events.bindDocument(state, onResize);
     state.events.insert && state.events.insert(elements);
     return state;
   }
