@@ -294,16 +294,23 @@ boards, Alice mirror flags, pocket roles, and Study manual/automatic shapes.
 
 - [x] Add eight standalone library contract tests grounded in those call sites
       (`tests/pychess-consumer-contracts.test.ts`); **122/122 tests green**.
-- [ ] Resolve/check **root entry-point mismatch** in a *local PyChess consumer
-      build*: ChessgroundX `src/index.ts` exports `default Chessground` while
-      `client/nowPlaying.ts`, `client/lobby/util.ts`, and others use
-      `import { Chessground } from 'chessgroundx'`. Do not assume those imports
-      are compatible merely because ChessgroundX's own tests pass. Evaluate the
-      installed version/bundler resolution before changing exports.
-- [ ] Run actual PyChess typecheck and client bundle against a locally built
-      ChessgroundX package; test production only through local fixtures.
+- [x] Resolve root named/default export concern with a local package consumer
+      smoke test. The package `module` entry points to `chessground.js`
+      (named `Chessground` export); `index.js` separately provides the default
+      export. Esbuild successfully bundles actual PyChess-style root and
+      subpath imports. No source API change required.
+- [x] Build the uploaded PyChess client in development and production mode using
+      locally compiled ChessgroundX in its installed dependency location.
+      Both esbuild commands completed successfully in the sandbox
+      (2026-10-16). These are **bundling checks**, not end-to-end runtime tests.
+- [x] Add `scripts/check-pychess-consumer.mjs` as a repeatable standalone
+      import smoke check, run by Node.js CI after `dist`.
+- [ ] Finish the full PyChess TypeScript validation against the locally built
+      package. The earlier attempt did not yield a verified passing result.
+- [ ] Verify representative runtime interactions in a local browser, including
+      drag/drop and Study annotations. Do not contact production pychess.org.
 
-| 2026-10-16 | Phase 1 PyChess consumer contracts | 122/122 offline tests passing | `tests/pychess-consumer-contracts.test.ts` | Eight tests grounded in PyChess source; root named-vs-default import mismatch flagged for local consumer build verification |
+| 2026-10-16 | Phase 1 local PyChess bundling | Development and production esbuild passed | Local uploaded PyChess client with compiled ChessgroundX | Named/subpath imports work; full TS check and browser interactions pending |
 
 ### Merge issue log
 

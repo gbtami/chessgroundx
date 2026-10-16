@@ -25,6 +25,7 @@
     "check-format": "oxfmt --check tests scripts vitest.config.ts",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:consumer": "node scripts/check-pychess-consumer.mjs",
     "bundle": "node scripts/bundle.mjs",
     "dist": "pnpm run compile && pnpm run bundle"
   },

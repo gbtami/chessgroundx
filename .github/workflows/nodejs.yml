@@ -18,4 +18,5 @@ jobs:
       - run: pnpm run lint
       - run: pnpm run test
       - run: pnpm run dist
+      - run: pnpm run test:consumer
       - run: pnpm pack --pack-destination /tmp
