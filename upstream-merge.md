@@ -310,13 +310,14 @@ boards, Alice mirror flags, pocket roles, and Study manual/automatic shapes.
       locally compiled ChessgroundX package, the native TypeScript checker
       passed with zero diagnostics on 473 files (44.24 s, ~325 MB), using
       `--noEmit --incremental false`. No runtime source was modified.
-- [ ] Verify representative runtime interactions in a local browser, including
-      drag/drop and Study annotations. Do not contact production pychess.org.
+- [x] Verify standalone Chromium runtime interactions for trusted mouse dragging, pocket drops, SVG arrow drawing and orientation (`scripts/test-browser-interactions.py`); **5 browser tests passed**, with no production network access.
+- [ ] Test touch gestures and representative Study interactions in a local PyChess browser; standalone browser checks alone do not complete Gate 1.
 
 | 2026-10-16 | Phase 1 local PyChess bundling | Development and production esbuild passed | Local uploaded PyChess client with compiled ChessgroundX | Named/subpath imports work; full TS check and browser interactions pending |
 | 2026-10-16 | Phase 1 full TS attempt | Previously inconclusive | Offline PyChess JS wheelhouse + locally compiled ChessgroundX | Superseded by successful non-incremental typecheck below |
 | 2026-10-16 | Phase 1 full TS check | **Passed: 0 errors, 473 files, 44.24 seconds** | Local PyChess client with compiled ChessgroundX | `tsc --noEmit --incremental false --extendedDiagnostics`; 325 MB used; real-browser interactions remain pending |
 | 2026-10-16 | Phase 1 drag completion | **128/128 tests passing (15 files)** | `tests/drag-completion.test.ts` | Six jsdom regression cases for mouseup move completion, off-board behavior, optional delete-on-drop-off, temporary pocket drag cancellation, accepted and occupied-square rejected pocket drops; trusted browser drag initiation remains unverified |
+| 2026-10-16 | Phase 1 Chromium input | **5/5 standalone browser tests passing** | `scripts/test-browser-interactions.py`, Chromium + Python Playwright | Trusted pointer drag on 8x8 and 16x16, real pocket accepted/rejected drops, right-button SVG arrow and orientation redraw; not yet automated in Node CI; no production-network requests |
 
 ### Merge issue log
 
