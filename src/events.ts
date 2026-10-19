@@ -49,6 +49,9 @@ export function bindDocument(s: State, onResize: () => void): cg.Unbind {
 
     for (const ev of ['touchmove', 'mousemove']) unbinds.push(unbindable(document, ev, onmove as EventListener));
     for (const ev of ['touchend', 'mouseup']) unbinds.push(unbindable(document, ev, onend as EventListener));
+    unbinds.push(unbindable(document, 'touchcancel', () => {
+      if (s.drawable.previewErase) draw.cancel(s);
+    }));
 
     const onScroll = () => s.dom.bounds.clear();
     unbinds.push(unbindable(document, 'scroll', onScroll, { capture: true, passive: true }));

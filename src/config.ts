@@ -80,6 +80,7 @@ export interface Config {
     // false to keep the drawing if a movable piece is clicked.
     // Clicking an empty square or immovable piece will clear the drawing regardless.
     eraseOnClick?: boolean;
+    previewErase?: boolean; // opt in to transient feedback before toggling a drawing off
     shapes?: DrawShape[];
     autoShapes?: DrawShape[];
     brushes?: DrawBrushes;

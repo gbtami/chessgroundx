@@ -106,6 +106,92 @@ class BrowserInteractions(unittest.TestCase):
         self.page.wait_for_timeout(40)
         self.assertEqual(self.page.locator('g.cg-label').count(), 0)
 
+    def test_pending_erase_pointer_preview_cancel_and_commit(self):
+        for width, height, corner, orientation in [(8, 8, 'h8', 'white'), (9, 10, 'i:', 'black'), (16, 16, 'p@', 'white')]:
+            with self.subTest(dimensions=(width, height), orientation=orientation):
+                self.make_board({'fen': '/'.join([str(width)] * height),
+                                 'dimensions': {'width': width, 'height': height},
+                                 'orientation': orientation,
+                                 'drawable': {'previewErase': True, 'defaultSnapToValidMove': False},
+                                 'animation': {'enabled': False}})
+                self.page.evaluate('''corner => {
+                    window.annotation = {orig:'a1',dest:corner,brush:'green',below:true,
+                        modifiers:{hilite:'#fff'},label:{text:'A'}};
+                    window.changes=0;
+                    cg.set({drawable:{onChange:()=>window.changes++}});
+                    cg.setShapes([annotation]); cg.state.dom.redrawNow();
+                    window.originalShape=JSON.stringify(annotation);
+                    window.originalLine=document.querySelector('.cg-shapes-below .cg-hilite').innerHTML;
+                }''', corner)
+                src = self.square(1, 1, width, height, orientation)
+                dst = self.square(width, height, width, height, orientation)
+                self.page.mouse.move(*src)
+                self.page.mouse.down(button='right')
+                self.page.mouse.move(*dst, steps=12)
+                self.page.wait_for_timeout(80)
+                self.assertEqual(self.page.locator('.cg-shapes-below .cg-hilite').get_attribute('opacity'), '0.6')
+                self.assertEqual(self.page.locator('.cg-shapes-below .cg-hilite').inner_html(), self.page.evaluate('originalLine'))
+                self.assertEqual(self.page.locator('.cg-custom-below > g > g').get_attribute('opacity'), '0.6')
+                self.assertEqual(self.page.locator('.cg-shapes > g > line').count(), 0)
+                self.assertEqual(self.page.evaluate('changes'), 0)
+                self.page.mouse.move(*self.square(2, 1, width, height, orientation), steps=6)
+                self.page.wait_for_timeout(60)
+                self.assertEqual(self.page.locator('.cg-shapes-below .cg-hilite').get_attribute('opacity'), '1')
+                self.assertEqual(self.page.locator('.cg-shapes > g > line').count(), 1)
+                self.page.mouse.move(*dst, steps=6)
+                self.page.wait_for_timeout(60)
+                self.assertEqual(self.page.locator('.cg-shapes-below .cg-hilite').get_attribute('opacity'), '0.6')
+                # A second pointer start cancels the active drawing using existing input semantics.
+                self.page.mouse.down(button='left')
+                self.page.mouse.up(button='left')
+                self.page.mouse.up(button='right')
+                self.page.wait_for_timeout(60)
+                self.assertFalse(self.page.evaluate('!!cg.state.drawable.current'))
+                self.assertEqual(self.page.locator('.cg-shapes-below .cg-hilite').get_attribute('opacity'), '1')
+                self.assertIsNone(self.page.locator('.cg-custom-below > g > g').get_attribute('opacity'))
+                self.assertEqual(self.page.evaluate('JSON.stringify(annotation)'), self.page.evaluate('originalShape'))
+                self.assertEqual(self.page.evaluate('changes'), 0)
+                self.move(src, dst, button='right')
+                self.assertEqual(self.page.evaluate('changes'), 1)
+                self.assertEqual(self.page.evaluate('cg.state.drawable.shapes.length'), 0)
+                self.assertEqual(self.page.locator('svg [cgHash*="pendingErase"]').count(), 0)
+                self.page.evaluate('cg.destroy()')
+
+    def test_pending_erase_trusted_touch_cancel_and_multitouch_rejection(self):
+        self.enable_touch()
+        self.make_board({'fen': '8/8/8/8/8/8/8/8',
+                         'drawable': {'previewErase': True, 'defaultSnapToValidMove': False},
+                         'animation': {'enabled': False}})
+        self.page.evaluate('''() => {
+            window.changes=0; window.trustedTouch=false;
+            document.querySelector('cg-board').addEventListener('touchstart',e=>window.trustedTouch=e.isTrusted);
+            cg.set({drawable:{onChange:()=>window.changes++}});
+            cg.setShapes([{orig:'a1',brush:'green'}]);
+        }''')
+        session = self.page.context.new_cdp_session(self.page)
+        x, y = self.square(1, 1)
+        def dispatch(kind, points):
+            session.send('Input.dispatchTouchEvent', {'type': kind, 'touchPoints': points, 'modifiers': 8})
+            self.page.wait_for_timeout(80)
+        single = [{'x': x, 'y': y, 'id': 1}]
+        dispatch('touchStart', single)
+        self.assertTrue(self.page.evaluate('trustedTouch'))
+        self.assertEqual(self.page.locator('.cg-shapes > g > circle').get_attribute('opacity'), '0.6')
+        dispatch('touchCancel', [])
+        self.assertFalse(self.page.evaluate('!!cg.state.drawable.current'))
+        self.assertEqual(self.page.locator('.cg-shapes > g > circle').get_attribute('opacity'), '1')
+        self.assertEqual(self.page.evaluate('changes'), 0)
+        dispatch('touchStart', single + [{'x': x + 50, 'y': y, 'id': 2}])
+        self.assertFalse(self.page.evaluate('!!cg.state.drawable.current'))
+        self.assertEqual(self.page.locator('.cg-shapes > g > circle').get_attribute('opacity'), '1')
+        dispatch('touchCancel', [])
+        dispatch('touchStart', single)
+        self.assertEqual(self.page.locator('.cg-shapes > g > circle').get_attribute('opacity'), '0.6')
+        dispatch('touchEnd', [])
+        self.assertEqual(self.page.evaluate('changes'), 1)
+        self.assertEqual(self.page.evaluate('cg.state.drawable.shapes.length'), 0)
+        session.detach()
+
     def test_below_svg_layers_do_not_intercept_piece_moves(self):
         self.make_board({'fen': '8/8/8/8/8/8/8/R7',
                          'movable': {'color': 'white', 'free': True},

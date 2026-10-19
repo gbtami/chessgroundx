@@ -83,8 +83,8 @@ Input/rendering options adopted during upstream synchronization:
 `DrawShape.customSvg` remains an SVG **string**, anchored at `orig` in the
 existing 100×100 local view box. `drawable.eraseOnClick` and the existing
 manual/automatic shape layers are retained for Study/Practice consumers.
-Upstream's object-based custom SVG and pending-erase preview are not adopted.
-Optional text labels, drawing layers and contrasting outlines were added
+Upstream's object-based custom SVG is not adopted.
+Optional text labels, drawing layers, contrasting outlines and erase previews were added
 separately after synchronization.
 
 `DrawShape.label` adds a text badge to a manual or automatic shape:
@@ -151,6 +151,26 @@ These are ChessgroundX rendering/API features. PyChess Study currently persists
 only `orig`, `dest` and `brush` for drawings; saving labels, planes or outlines
 requires a separate consumer serialization/schema and authoring-UI change.
 Transient auto-shape annotations can use these properties directly.
+
+`drawable.previewErase: true` enables feedback before toggling a manual drawing
+off. It defaults to `false`, preserving existing gesture rendering. While the
+gesture matches a drawing that completion would remove, that drawing renders at
+60% of its normal opacity, including its label, string custom SVG or contrasting
+outline. Both SVG planes support this. Automatic hints, check counters and HTML
+piece ghosts do not fade.
+
+The preview suppresses the duplicate gesture shape and keeps the existing
+drawing's geometry and arrow shortening. Moving to another destination restores
+the drawing; a different brush still previews the existing replacement behavior.
+Matching follows the same first-endpoint/brush rule as gesture completion, even
+when callers provide several shapes at the same endpoints. No preview metadata
+is written into authored shapes, and no `onChange` callback fires until the
+normal gesture completion changes the drawings. Cancellation restores normal
+opacity; an opted-in drawing also cancels on native `touchcancel` without
+committing. `eraseOnClick` and modifier-brush selection are unchanged.
+
+This opt-in renderer feature needs no additional consumer CSS or serialization
+changes. PyChess does not enable it automatically.
 
 The optional `chessgroundx/glyph` subpath provides upstream's `glyphToSvg`,
 `analysisGlyphs` and `endgameGlyphs`. Each catalog takes a maximum stack size;
