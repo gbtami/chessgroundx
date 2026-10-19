@@ -47,6 +47,7 @@ export interface Drawable {
   visible: boolean; // can view
   defaultSnapToValidMove: boolean;
   eraseOnClick: boolean;
+  previewErase?: boolean; // fade manual drawings while a gesture would toggle them off
   onChange?: (shapes: DrawShape[]) => void;
   shapes: DrawShape[]; // user shapes
   autoShapes: DrawShape[]; // computer shapes

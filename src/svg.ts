@@ -14,6 +14,9 @@ type ArrowDests = Map<cg.Key, number>; // how many arrows land on a square
 
 type LabelAngles = Map<cg.Key, Set<number>>; // incoming arrow angle slots for label collision avoidance
 
+// Renderer-only metadata; keep authored shapes and the public sync contract unchanged.
+type SvgShape = SyncableShape & { pendingErase?: boolean };
+
 export function renderSvg(state: State, svg: SVGElement, customSvg: SVGElement): void {
   const d = state.drawable,
     curD = d.current,
@@ -23,9 +26,15 @@ export function renderSvg(state: State, svg: SVGElement, customSvg: SVGElement):
     bounds = state.dom.bounds(),
     nonPieceAutoShapes = d.autoShapes.filter(autoShape => !autoShape.piece),
     hasLabels = d.shapes.concat(nonPieceAutoShapes).some(shape => shape.label),
-    counterShapes = checkCounterShapes(state, d.checkCounters);
+    counterShapes = checkCounterShapes(state, d.checkCounters),
+    // Match addShape's first-endpoint rule, including caller-supplied duplicates.
+    similar = d.previewErase && d.enabled && cur
+      ? d.shapes.find(s => s.orig === cur.orig && s.dest === cur.dest)
+      : undefined,
+    erasing = !!similar && similar.brush === cur?.brush,
+    visibleCur = erasing ? undefined : cur;
 
-  for (const s of d.shapes.concat(nonPieceAutoShapes).concat(counterShapes).concat(cur ? [cur] : [])) {
+  for (const s of d.shapes.concat(nonPieceAutoShapes).concat(counterShapes).concat(visibleCur ? [visibleCur] : [])) {
     if (s.dest) arrowDests.set(s.dest, (arrowDests.get(s.dest) || 0) + 1);
     if (hasLabels && s.dest && s.dest !== s.orig && s.brush && !s.customSvg) {
       const from = pos2user(orient(key2pos(s.orig), state.orientation, state.dimensions), bounds, state.dimensions),
@@ -36,18 +45,20 @@ export function renderSvg(state: State, svg: SVGElement, customSvg: SVGElement):
     }
   }
 
-  const shapes: SyncableShape[] = d.shapes.concat(nonPieceAutoShapes).concat(counterShapes).map((s: DrawShape) => {
+  const shapes: SvgShape[] = d.shapes.concat(nonPieceAutoShapes).concat(counterShapes).map((s: DrawShape, idx) => {
+    const pendingErase = erasing && idx < d.shapes.length && s.orig === cur!.orig && s.dest === cur!.dest;
     return {
       shape: s,
       current: false,
-      hash: shapeHash(s, arrowDests, false, bounds, labelAngles, d.brushes),
+      pendingErase,
+      hash: shapeHash(s, arrowDests, false, bounds, labelAngles, d.brushes, pendingErase),
     };
   });
-  if (cur)
+  if (visibleCur)
     shapes.push({
-      shape: cur,
+      shape: visibleCur,
       current: true,
-      hash: shapeHash(cur, arrowDests, true, bounds, labelAngles, d.brushes),
+      hash: shapeHash(visibleCur, arrowDests, true, bounds, labelAngles, d.brushes),
     });
 
   const fullHash = shapes.map(sc => sc.hash).join(';');
@@ -162,7 +173,8 @@ function shapeHash(
   current: boolean,
   bounds: ClientRect,
   labelAngles: LabelAngles,
-  brushes: DrawBrushes
+  brushes: DrawBrushes,
+  pendingErase = false
 ): Hash {
   return [
     bounds.width,
@@ -176,6 +188,7 @@ function shapeHash(
     modifiers && modifiersHash(modifiers),
     customSvg && customSvgHash(customSvg),
     below && 'below',
+    pendingErase && 'pendingErase',
     // Include the actual incoming directions: replacing one arrow can move a
     // label even when the number of arrows at its destination stays the same.
     label && JSON.stringify([
@@ -207,7 +220,7 @@ function customSvgHash(s: string): Hash {
 
 function renderShape(
   state: State,
-  { shape, current, hash }: SyncableShape,
+  { shape, current, hash, pendingErase }: SvgShape,
   brushes: DrawBrushes,
   arrowDests: ArrowDests,
   bounds: ClientRect
@@ -234,7 +247,7 @@ function renderShape(
     if (shape.modifiers?.hilite) el = renderHilite(el, shape.modifiers.hilite);
   }
   el.setAttribute('cgHash', hash);
-  return el;
+  return previewErase(el, pendingErase);
 }
 
 function renderCustomSvg(customSvg: string, pos: cg.Pos, bounds: ClientRect, bd: cg.BoardDimensions): SVGElement {
@@ -253,7 +266,7 @@ function renderCustomSvg(customSvg: string, pos: cg.Pos, bounds: ClientRect, bd:
 
 function renderOverlay(
   state: State,
-  syncable: SyncableShape,
+  syncable: SvgShape,
   brushes: DrawBrushes,
   arrowDests: ArrowDests,
   labelAngles: LabelAngles,
@@ -319,7 +332,12 @@ function renderOverlay(
   text.textContent = shape.label.text;
   label.appendChild(text);
   g.appendChild(label);
-  return g;
+  return previewErase(g, syncable.pendingErase);
+}
+
+function previewErase(el: SVGElement, pendingErase?: boolean): SVGElement {
+  if (pendingErase) el.setAttribute('opacity', String(Number(el.getAttribute('opacity') ?? 1) * 0.6));
+  return el;
 }
 
 function angleSlot(from: cg.NumberPair, to: cg.NumberPair): number {

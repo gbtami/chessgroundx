@@ -1,6 +1,6 @@
 # ChessgroundX — Deferred upstream work and future implementation plan
 
-Status: **FEN-1 assessed and skipped for compatibility; PM-1 audit complete; SVG-1 merged; SVG-2 library and consumer changes implemented and locally verified for review. Remaining items are optional backlog. Nothing here is a prerequisite to the completed upstream merge.**
+Status: **FEN-1 assessed and skipped for compatibility; PM-1 audit complete; SVG-1/2 merged; SVG-3 opt-in erase preview implemented and locally verified for review. Remaining items are optional backlog. Nothing here is a prerequisite to the completed upstream merge.**
 Created: 2026-10-17
 Last assessed: 2026-10-19
 Source of truth: [`upstream-merge.md`](upstream-merge.md), especially its completion summary, Batch 2 follow-ups, Batch 5 SVG decisions, and final readiness limits.
@@ -23,8 +23,8 @@ This is a **handoff for a future Codex session**, not a request to reopen the me
 | FEN-1 | Dimension-aware malformed-FEN hardening | Assessed; skipped to preserve consumer validation | — | Reopen only with a coordinated parser/validator design |
 | PM-1 | Audit remaining upstream premove changes for applicability | Complete through pinned upstream; no port needed | — | Applicability inventory below |
 | SVG-1 | Text labels on arrows/shapes | Merged in PR #66; saved Study labels remain a consumer feature | — | Additive `label` property; verified locally |
-| SVG-2 | Highlight shapes and below-piece rendering layer | Library and PyChess CSS/PNG changes validated; pending review | — | Optional `below` and `modifiers.hilite` properties |
-| SVG-3 | Pending-erase preview | Deliberately excluded | **P3** | Optional interaction polish |
+| SVG-2 | Highlight shapes and below-piece rendering layer | Merged in library PR #67 and PyChess PR #2418 | — | Optional `below` and `modifiers.hilite` properties |
+| SVG-3 | Pending-erase preview | Opt-in implementation validated; pending independent review | — | Optional interaction polish |
 | SVG-4 | Object-based custom SVG and related API/brush/erase changes | Deliberately excluded | **P3 / defer** | Potentially incompatible API redesign |
 | UI-1 | Firefox/macOS gestures, trusted-event bypass | Existing fork behavior preserved | **P2** if reproduced issue | Platform compatibility |
 | UI-2 | On-square coordinate layout and rank positioning | Not adopted | **P3** | Optional UI feature |
@@ -200,6 +200,8 @@ An isolated copy of PyChess HEAD `e4547c09e3dab1412397c3c2c29aff58611998d3` plus
 
 **Scope boundary:** This adds rendering and compatible CSS/PNG consumption. Study still persists only basic `orig`/`dest`/`brush` drawings; saved planes/outlines/labels need a separate schema/serialization and authoring-UI migration. Evidence (package, isolated consumer, logs, CSS before/after samples/matrix, browser harness and `layers-preview.png`) is under `/tmp/chessgroundx-svg2-2026-10-19/`. Changes are on `feature/svg-layers-highlights` (library) and `feature/chessground-svg-layers` (consumer), ready for independent review; no approval to merge this work is assumed from PR #66's approval.
 
+**Integration outcome:** Independently approved [library PR #67](https://github.com/gbtami/chessgroundx/pull/67) merged as `d8a6670` after Node.js/CodeQL checks passed. The separately reviewable [PyChess PR #2418](https://github.com/pychess/pychess-variants/pull/2418) was already merged with passing Node.js, Python and browser CI. No library release or deployment was performed by this work.
+
 ### SVG-3 — Pending erase preview
 
 **Behavior:** when an existing arrow/circle is about to be toggled off by drawing it again, show reduced-opacity feedback during the gesture (upstream called this `pendingErase`; merge notes mention 60% normal opacity). The existing erase/toggle behavior must remain unchanged at completion.
@@ -207,6 +209,20 @@ An isolated copy of PyChess HEAD `e4547c09e3dab1412397c3c2c29aff58611998d3` plus
 **Plan:** study the coupled upstream `draw.ts` / `svg.ts` / `sync.ts` / `autoPieces.ts` implementation. Add preview state without mutating authored shapes or relying on brush-name restrictions; handle cancellation, touch rejection, multiple arrows and `eraseOnClick`. Preserve Ctrl/Alt/Shift brush behavior and arrow shortening. Test pointer start/move/cancel/end and post-cancel cleanup in browser.
 
 **Done when:** preview is purely transient, opt-in if appropriate, and cancels/replacements leave no stale opacity/classes. Low priority.
+
+### Implementation — 2026-10-19
+
+`drawable.previewErase?: boolean` defaults to false. When enabled, the renderer derives pending removal from the active gesture and the existing `addShape` first-endpoint/brush rule. It fades every manual drawing that this toggle would remove, suppresses the duplicate gesture and retains the original shortening/geometry. Changing the destination or brush, cancelling or disabling the option restores ordinary rendering. Automatic shapes, check counters and HTML piece ghosts are excluded. Render metadata and hashing are private to `svg.ts`; neither authored shapes nor the exported `SyncableShape` contract change, and `autoPieces.ts` needs no adaptation.
+
+The 60% opacity multiplier applies once to each rendered arrow/circle/outline group and each matching label/custom SVG overlay on either plane. No new CSS or shape serialization is required. An opted-in drawing cancels on native `touchcancel` to avoid leaving transient feedback active; the default input path is unchanged. Drawing completion, `eraseOnClick`, modifier brushes, callbacks, dimensions, pockets and fork-owned modules remain unchanged. PyChess's existing configuration leaves this feature disabled and needs no consumer migration.
+
+This adapts upstream `12b25c7` / `7053faa` without their required sync-interface property or single-matching-shape assumption. The fork permits caller-supplied duplicate endpoints and uses the first matching shape's brush to choose removal versus replacement; the preview follows that actual behavior. Verification passed on `feature/svg-erase-preview`, with evidence under `/tmp/chessgroundx-svg3-2026-10-19/`. Keep this independent of the approved SVG-2 merge; approval to merge SVG-3 is not assumed.
+
+**Verification:** **253 Vitest tests / 28 files** passed, including 11 focused preview cases; eight of the initial ten cases failed before implementation. Coverage includes the unchanged default path, circles/arrows, shared destinations, duplicate-endpoint removal/replacement, custom brushes and group opacity, both planes, labels/custom SVGs, immutable authored shapes, automatic hints/ghosts, cancellation and opt-out cleanup. TypeScript, lint (same three existing warnings), formatter, distribution, consumer-import checks and package creation passed.
+
+Chromium passed **20 full-suite cases**, plus **four on the minified bundle** and **four with PyChess CSS**. The new native-input cases cover moving into/out of a pending toggle, existing pointer cancellation, completion/callback counts on 8×8/9×10/16×16 including black orientation, trusted touch cancellation and multi-touch rejection. No production PyChess service was contacted.
+
+The packed candidate in an isolated copy of PyChess `9cb01994dfedf0fbf6122c8c745e14b5320d9cd8` passed nonincremental TypeScript, lint, docs, dev/prod builds, **113 Jest suites / 930 tests**, and **two existing local Study/Practice browser acceptance tests**. The consumer source/dependency installation is unchanged; local acceptance traffic was guarded to loopback. These checks establish existing consumer compatibility, while the standalone native-input cases with PyChess CSS exercise the opt-in feature.
 
 ### SVG-4 — API redesigns intentionally *not* adopted
 
@@ -245,15 +261,15 @@ Recommended checks by risk:
 
 1. **FEN-1**: assessed 2026-10-19; upstream hardening skipped for consumer compatibility. Reopen only under the coordinated validation prerequisite above.
 2. **PM-1**: completed 2026-10-19; no missing applicable fix demonstrated, no code change.
-3. **SVG-1**: merged in PR #66; saved Study labels remain separate. **SVG-2**: library and companion PyChess CSS/PNG changes implemented and locally validated; pending independent review.
-4. **SVG-3**: optional polish if requested.
+3. **SVG-1**: merged in PR #66; saved Study labels remain separate. **SVG-2**: merged in PR #67 and companion PyChess PR #2418.
+4. **SVG-3**: requested; opt-in implementation validated on `feature/svg-erase-preview`, ready for independent review.
 5. **UI-1 / UI-2 / REND-1 / QA-1**: trigger only on a supported browser bug, feature request or performance evidence.
 
 Do not automatically schedule or execute all of these. Close or defer an item explicitly if investigation shows the current fork is already correct.
 
 ## First message to a future Codex session
 
-> Read `README-X.md`, `upstream-merge.md`, and `upstream-deferred-work.md`. Upstream merge PR #65 is **complete**, and its preservation decisions still apply, with the maintainer's explicit allowance for coordinated drawing API/consumer/test migrations. FEN-1 was assessed and skipped for consumer compatibility; PM-1 is complete through the pinned upstream target with no code change. SVG-1 merged in PR #66; SVG-2 library and companion PyChess CSS/PNG changes are implemented and locally validated for independent review. Saved Study label/plane/outline authoring/persistence is separate. Do not automatically restart either audit or replace the fork-owned `fen.ts`, `premove.ts`, `predrop.ts`, or `pocket.ts` wholesale. Keep SVG workstreams independently scoped. Inspect relevant upstream commits and current PyChess consumers, then propose a scoped design plus verification plan before modifying production code. Preserve variable dimensions and role/pocket contracts; drawing API changes require coordinated consumer/test migration. Work on a new feature branch, run local/offline checks and never test against production pychess.org. Report what is proven, deferred or excluded; do not make unrelated tooling or formatting changes.
+> Read `README-X.md`, `upstream-merge.md`, and `upstream-deferred-work.md`. Upstream merge PR #65 is **complete**, and its preservation decisions still apply, with the maintainer's explicit allowance for coordinated drawing API/consumer/test migrations. FEN-1 was assessed and skipped for consumer compatibility; PM-1 is complete through the pinned upstream target with no code change. SVG-1 merged in PR #66; SVG-2 merged in library PR #67 and PyChess PR #2418. SVG-3 is ready for independent review on `feature/svg-erase-preview`; do not assume approval to merge it from earlier reviews. Saved Study label/plane/outline authoring/persistence is separate. Do not automatically restart either audit or replace the fork-owned `fen.ts`, `premove.ts`, `predrop.ts`, or `pocket.ts` wholesale. Keep SVG workstreams independently scoped. Inspect relevant upstream commits and current PyChess consumers, then propose a scoped design plus verification plan before modifying production code. Preserve variable dimensions and role/pocket contracts; drawing API changes require coordinated consumer/test migration. Work on a new feature branch, run local/offline checks and never test against production pychess.org. Report what is proven, deferred or excluded; do not make unrelated tooling or formatting changes.
 
 ## Progress log (future work)
 
@@ -266,3 +282,5 @@ Do not automatically schedule or execute all of these. Close or defer an item ex
 | 2026-10-19 | SVG-1 review correction | Guard zero/nonfinite arrow distance and undefined label scale; two regressions cover hidden bounds and recovery after resize; no feature expansion | [PR #66](https://github.com/gbtami/chessgroundx/pull/66) | 232 unit tests; TypeScript/lint/format/dist/import checks; 16 Chromium + 3 minified; packed consumer 478-file TS/dev/prod/929 Jest; 2 local Study/Practice; unchanged declarations | Local checks passed; maintainer approves merge after checks |
 | 2026-10-19 | SVG-1 integration | Review correction accepted; PR #66 merged with green CI under maintainer authorization | `16c9908` / [PR #66](https://github.com/gbtami/chessgroundx/pull/66) | Node.js and CodeQL checks passed on correction `3982979` before merge | Merged |
 | 2026-10-19 | SVG-2 | Add optional lower SVG planes and contrasting arrow/circle outlines; coordinate PyChess CSS and PNG export while retaining existing defaults/APIs | `feature/svg-layers-highlights` + PyChess `feature/chessground-svg-layers` | 242 unit; typecheck/lint/format/dist/import; 18 Chromium + 4 minified + 4 consumer-CSS; packed consumer 478-file TS, 930 Jest, lint/docs/dev/prod; 2 local Study/Practice; actual served CSS and light/dark mobile/desktop matrix | Ready for independent review |
+| 2026-10-19 | SVG-2 integration | Independent library review approved; library and separate consumer PRs merged with passing CI | `d8a6670` / library [PR #67](https://github.com/gbtami/chessgroundx/pull/67); PyChess [PR #2418](https://github.com/pychess/pychess-variants/pull/2418) | Library Node.js/CodeQL and consumer Node.js/Python/browser CI passed | Merged; no release/deployment |
+| 2026-10-19 | SVG-3 | Add opt-in renderer-only erase feedback; retain first-match toggling, callback/shape ownership, normal shortening and defaults; cancel opted-in touch feedback on native cancellation | `feature/svg-erase-preview` | 253 unit; typecheck/lint/format/dist/import/package; 20 Chromium + 4 minified + 4 consumer-CSS; packed consumer TS/dev/prod/lint/docs/930 Jest; 2 local Study/Practice | Ready for independent review |
