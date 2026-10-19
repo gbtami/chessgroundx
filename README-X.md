@@ -80,12 +80,42 @@ Input/rendering options adopted during upstream synchronization:
 
 # Drawing compatibility
 
-`DrawShape.customSvg` remains an SVG **string**, anchored at `orig` in the
-existing 100×100 local view box. `drawable.eraseOnClick` and the existing
+`DrawShape.customSvg` accepts an SVG **string** or a `DrawCustomSvg` object.
+Existing strings stay anchored at `orig` in the same 100×100 local view box.
+`drawable.eraseOnClick` and the existing
 manual/automatic shape layers are retained for Study/Practice consumers.
-Upstream's object-based custom SVG is not adopted.
-Optional text labels, drawing layers, contrasting outlines and erase previews were added
+Optional text labels, drawing layers, contrasting outlines, erase previews and SVG anchors were added
 separately after synchronization.
+
+The object form `{ html: string, center?: 'orig' | 'dest' | 'label' }` adds a
+choice of anchor. `orig` is the default; `dest` uses the destination square,
+falling back to the origin when no destination is supplied. `label` centers the
+SVG's local view box on this shape's badge, using the same position even when
+badge text is omitted. Brushless custom shapes use the existing upper-right
+badge position; brushed custom shapes use the origin's center. Selecting an SVG
+anchor leaves label placement unchanged.
+
+```ts
+board.setAutoShapes([
+  {
+    orig: 'e2', dest: 'e4', below: true,
+    customSvg: {
+      html: '<circle cx="50" cy="50" r="35" fill="#fc0"/>',
+      center: 'dest',
+    },
+  },
+]);
+```
+
+Custom SVGs retain the existing exclusive overlay behavior: use a separate shape
+to draw an arrow or circle alongside an SVG. Both forms support labels, either
+plane, orientation, resizing and erase previews. Changes to an object's `html`
+or `center` invalidate its SVG cache; rendering never fills in object defaults.
+The object type is exported as `DrawCustomSvg` from `chessgroundx/draw`.
+Code that reads `customSvg` as markup must narrow the new union, for example
+`typeof svg === 'string' ? svg : svg.html` after checking it is defined. Existing
+string producers and glyph helpers remain usable. Arbitrary brushes and
+`eraseOnClick` keep their existing contracts.
 
 `DrawShape.label` adds a text badge to a manual or automatic shape:
 
@@ -106,12 +136,12 @@ placement heuristic to reduce label overlap; arbitrary dense drawings can
 still overlap.
 
 Labels follow board dimensions, orientation and redraws after resize. They
-render in the custom SVG overlay of their selected plane, can coexist with string `customSvg`,
+render in the custom SVG overlay of their selected plane, can coexist with either `customSvg` form,
 and do not change arrow shortening, brush names, gesture toggling or shape-array
 ownership. Automatic piece ghosts continue to use their separate HTML layer.
 Rendering never fills in or mutates caller-owned label objects.
 
-`below: true` puts an SVG drawing, including its label or string `customSvg`,
+`below: true` puts an SVG drawing, including its label or `customSvg`,
 under the pieces. Omit it (or use `false`) for the existing upper plane.
 `modifiers.hilite` adds a contrasting outline to an arrow or circle; the value
 is its color. This is a sharp under-stroke, with no blur filter. Both options
@@ -148,14 +178,15 @@ does this and exports both lower layers before pieces; it also works with older
 ChessgroundX builds that have no lower layers.
 
 These are ChessgroundX rendering/API features. PyChess Study currently persists
-only `orig`, `dest` and `brush` for drawings; saving labels, planes or outlines
+only `orig`, `dest` and `brush` for drawings and excludes custom SVGs in both forms;
+saving custom SVGs, labels, planes or outlines
 requires a separate consumer serialization/schema and authoring-UI change.
 Transient auto-shape annotations can use these properties directly.
 
 `drawable.previewErase: true` enables feedback before toggling a manual drawing
 off. It defaults to `false`, preserving existing gesture rendering. While the
 gesture matches a drawing that completion would remove, that drawing renders at
-60% of its normal opacity, including its label, string custom SVG or contrasting
+60% of its normal opacity, including its label, custom SVG or contrasting
 outline. Both SVG planes support this. Automatic hints, check counters and HTML
 piece ghosts do not fade.
 
