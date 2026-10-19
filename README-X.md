@@ -83,8 +83,9 @@ Input/rendering options adopted during upstream synchronization:
 `DrawShape.customSvg` remains an SVG **string**, anchored at `orig` in the
 existing 100×100 local view box. `drawable.eraseOnClick` and the existing
 manual/automatic shape layers are retained for Study/Practice consumers.
-Upstream's object-based custom SVG, below-piece layers and pending-erase preview
-are not adopted. Optional text labels were added separately after synchronization.
+Upstream's object-based custom SVG and pending-erase preview are not adopted.
+Optional text labels, drawing layers and contrasting outlines were added
+separately after synchronization.
 
 `DrawShape.label` adds a text badge to a manual or automatic shape:
 
@@ -105,15 +106,51 @@ placement heuristic to reduce label overlap; arbitrary dense drawings can
 still overlap.
 
 Labels follow board dimensions, orientation and redraws after resize. They
-render in the existing custom SVG overlay, can coexist with string `customSvg`,
+render in the custom SVG overlay of their selected plane, can coexist with string `customSvg`,
 and do not change arrow shortening, brush names, gesture toggling or shape-array
 ownership. Automatic piece ghosts continue to use their separate HTML layer.
 Rendering never fills in or mutates caller-owned label objects.
 
-This is a ChessgroundX rendering/API feature. PyChess Study currently persists
-only `orig`, `dest` and `brush` for drawings; saving labels requires a separate
-consumer serialization/schema and authoring-UI change. Transient auto-shape
-labels can use this API directly.
+`below: true` puts an SVG drawing, including its label or string `customSvg`,
+under the pieces. Omit it (or use `false`) for the existing upper plane.
+`modifiers.hilite` adds a contrasting outline to an arrow or circle; the value
+is its color. This is a sharp under-stroke, with no blur filter. Both options
+work on manual shapes and automatic hints:
+
+```ts
+board.setAutoShapes([
+  {
+    orig: 'e2', dest: 'e4', brush: 'green', below: true,
+    modifiers: { hilite: '#fff' }, label: { text: 'A' },
+  },
+  {
+    orig: 'd4', below: true,
+    customSvg: '<rect width="100" height="100" fill="#fc0" fill-opacity="0.5"/>',
+  },
+]);
+```
+
+The lower SVG layers (`.cg-shapes-below` and `.cg-custom-below`) sit above the
+board background/square highlights and below normal/fading pieces. They do not
+handle pointer events. The existing `.cg-shapes` / `.cg-custom-svgs` classes and
+`dom.elements.svg` / `customSvg` references still address the upper plane;
+optional `svgBelow` / `customSvgBelow` references address the lower plane.
+Changing a shape's `below` or `hilite` value refreshes its DOM and removes stale
+drawings from the previous plane. Brush opacity is applied once to each outlined
+shape. Automatic piece ghosts remain in their separate HTML layer (`below`
+applies to SVG drawings only). `highlight.custom` remains a separate square-class
+configuration feature.
+
+Use the matching `assets/chessground.base.css` with this build. Consumers that
+maintain their own board CSS must add the lower-layer positioning, size,
+pointer-event and stacking rules too. PyChess's companion CSS/PNG-export update
+does this and exports both lower layers before pieces; it also works with older
+ChessgroundX builds that have no lower layers.
+
+These are ChessgroundX rendering/API features. PyChess Study currently persists
+only `orig`, `dest` and `brush` for drawings; saving labels, planes or outlines
+requires a separate consumer serialization/schema and authoring-UI change.
+Transient auto-shape annotations can use these properties directly.
 
 The optional `chessgroundx/glyph` subpath provides upstream's `glyphToSvg`,
 `analysisGlyphs` and `endgameGlyphs`. Each catalog takes a maximum stack size;

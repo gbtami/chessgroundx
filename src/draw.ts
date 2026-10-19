@@ -11,6 +11,7 @@ export interface DrawShape {
   piece?: DrawShapePiece;
   customSvg?: string;
   label?: { text: string; fill?: string }; // badge background defaults to the brush color, or grey
+  below?: boolean; // SVG drawings only; default is above pieces
 }
 
 export interface DrawShapePiece {
@@ -33,6 +34,7 @@ export interface DrawBrushes {
 
 export interface DrawModifiers {
   lineWidth?: number;
+  hilite?: string; // contrasting outline color for arrows and circles
 }
 
 export interface CheckCounters {

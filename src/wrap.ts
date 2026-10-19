@@ -150,6 +150,7 @@ export function renderWrap(element: HTMLElement, s: HeadlessState): Elements {
   // .cg-wrap (element passed to Chessground)
   //   cg-container
   //     cg-board
+  //     svg.cg-shapes-below / svg.cg-custom-below (under pieces)
   //     svg.cg-shapes
   //       defs
   //       g
@@ -191,6 +192,8 @@ export function renderWrap(element: HTMLElement, s: HeadlessState): Elements {
 
   let svg: SVGElement | undefined;
   let customSvg: SVGElement | undefined;
+  let svgBelow: SVGElement | undefined;
+  let customSvgBelow: SVGElement | undefined;
   let autoPieces: HTMLElement | undefined;
 
   if (s.drawable.visible) {
@@ -211,8 +214,17 @@ export function renderWrap(element: HTMLElement, s: HeadlessState): Elements {
     });
     customSvg.appendChild(createSVG('g'));
 
+    // The lower planes share the fork's dimension-aware viewBoxes. Keep the
+    // existing upper classes/references so consumers can address them as before.
+    svgBelow = svg.cloneNode(true) as SVGElement;
+    svgBelow.setAttribute('class', 'cg-shapes-below');
+    customSvgBelow = customSvg.cloneNode(true) as SVGElement;
+    customSvgBelow.setAttribute('class', 'cg-custom-below');
+
     autoPieces = createEl('cg-auto-pieces');
 
+    container.appendChild(svgBelow);
+    container.appendChild(customSvgBelow);
     container.appendChild(svg);
     container.appendChild(customSvg);
     container.appendChild(autoPieces);
@@ -245,6 +257,8 @@ export function renderWrap(element: HTMLElement, s: HeadlessState): Elements {
     ghost,
     svg,
     customSvg,
+    svgBelow,
+    customSvgBelow,
     autoPieces,
   };
 }

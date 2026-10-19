@@ -55,7 +55,8 @@ export function renderSvg(state: State, svg: SVGElement, customSvg: SVGElement):
   state.drawable.prevSvgHash = fullHash;
 
   /*
-    -- DOM hierarchy --
+    -- DOM hierarchy (the lower plane has the same structure with
+       cg-shapes-below / cg-custom-below classes) --
     <svg class="cg-shapes">      (<= svg)
       <defs>
         ...(for brushes)...
@@ -71,21 +72,29 @@ export function renderSvg(state: State, svg: SVGElement, customSvg: SVGElement):
     </svg>
   */
 
-  const defsEl = svg.querySelector('defs') as SVGElement;
-  const shapesEl = svg.querySelector('g') as SVGElement;
-  const customSvgsEl = customSvg.querySelector('g') as SVGElement;
+  const planes = [
+    { below: false, svg, customSvg },
+    { below: true, svg: state.dom.elements.svgBelow, customSvg: state.dom.elements.customSvgBelow },
+  ];
+  for (const plane of planes) {
+    if (!plane.svg || !plane.customSvg) continue;
+    const inPlane = shapes.filter(s => !!s.shape.below === plane.below),
+      defsEl = plane.svg.querySelector('defs') as SVGElement,
+      shapesEl = plane.svg.querySelector('g') as SVGElement,
+      customSvgsEl = plane.customSvg.querySelector('g') as SVGElement;
 
-  syncDefs(d, shapes, defsEl);
-  syncShapes(
-    shapes.filter(s => !s.shape.customSvg && s.shape.brush),
-    shapesEl,
-    shape => renderShape(state, shape, d.brushes, arrowDests, bounds)
-  );
-  syncShapes(
-    shapes.filter(s => s.shape.customSvg || s.shape.label),
-    customSvgsEl,
-    shape => renderOverlay(state, shape, d.brushes, arrowDests, labelAngles, bounds)
-  );
+    syncDefs(d, inPlane, defsEl);
+    syncShapes(
+      inPlane.filter(s => !s.shape.customSvg && s.shape.brush),
+      shapesEl,
+      shape => renderShape(state, shape, d.brushes, arrowDests, bounds)
+    );
+    syncShapes(
+      inPlane.filter(s => s.shape.customSvg || s.shape.label),
+      customSvgsEl,
+      shape => renderOverlay(state, shape, d.brushes, arrowDests, labelAngles, bounds)
+    );
+  }
 }
 
 function checkCounterShapes(state: State, counters: CheckCounters | undefined): DrawShape[] {
@@ -132,6 +141,8 @@ function syncDefs(d: Drawable, shapes: SyncableShape[], defsEl: SVGElement) {
       brush = d.brushes[s.shape.brush!];
       if (s.shape.modifiers) brush = makeCustomBrush(brush, s.shape.modifiers);
       brushes.set(brush.key, brush);
+      const hilite = s.shape.modifiers?.hilite;
+      if (hilite) brushes.set(hiliteKey(hilite), { ...brush, key: hiliteKey(hilite), color: hilite });
     }
   }
   const keysInDom = new Set();
@@ -146,7 +157,7 @@ function syncDefs(d: Drawable, shapes: SyncableShape[], defsEl: SVGElement) {
 }
 
 function shapeHash(
-  { orig, dest, brush, piece, modifiers, customSvg, label }: DrawShape,
+  { orig, dest, brush, piece, modifiers, customSvg, label, below }: DrawShape,
   arrowDests: ArrowDests,
   current: boolean,
   bounds: ClientRect,
@@ -164,6 +175,7 @@ function shapeHash(
     piece && pieceHash(piece),
     modifiers && modifiersHash(modifiers),
     customSvg && customSvgHash(customSvg),
+    below && 'below',
     // Include the actual incoming directions: replacing one arrow can move a
     // label even when the number of arrows at its destination stays the same.
     label && JSON.stringify([
@@ -181,7 +193,7 @@ function pieceHash(piece: DrawShapePiece): Hash {
 }
 
 function modifiersHash(m: DrawModifiers): Hash {
-  return '' + (m.lineWidth || '');
+  return [m.lineWidth || '', m.hilite].filter(x => x).join(',');
 }
 
 function customSvgHash(s: string): Hash {
@@ -219,6 +231,7 @@ function renderShape(
         state.dimensions
       );
     } else el = renderCircle(brushes[shape.brush!], orig, current, bounds, state.dimensions);
+    if (shape.modifiers?.hilite) el = renderHilite(el, shape.modifiers.hilite);
   }
   el.setAttribute('cgHash', hash);
   return el;
@@ -311,6 +324,28 @@ function renderOverlay(
 
 function angleSlot(from: cg.NumberPair, to: cg.NumberPair): number {
   return (Math.round(Math.atan2(to[1] - from[1], to[0] - from[0]) * 8 / Math.PI) + 16) % 16;
+}
+
+// A contrasting under-stroke keeps the existing arrow/circle geometry intact.
+// Applying opacity once to the group avoids darkening overlapping strokes.
+function renderHilite(el: SVGElement, color: string): SVGElement {
+  const under = el.cloneNode(false) as SVGElement,
+    isArrow = el.tagName === 'line',
+    g = setAttributes(createElement('g'), { class: 'cg-hilite', opacity: el.getAttribute('opacity') });
+  setAttributes(under, {
+    stroke: color,
+    'stroke-width': Number(el.getAttribute('stroke-width')) * (isArrow ? 1.14 : 2),
+    opacity: 1,
+  });
+  if (isArrow) under.setAttribute('marker-end', 'url(#arrowhead-' + hiliteKey(color) + ')');
+  el.setAttribute('opacity', '1');
+  g.appendChild(under);
+  g.appendChild(el);
+  return g;
+}
+
+function hiliteKey(color: string): string {
+  return 'cg-hilite-' + customSvgHash(color);
 }
 
 function renderCircle(
