@@ -40,10 +40,16 @@ describe("board gesture regression contracts", () => {
     api.destroy();
   });
 
-  it("uses modifiers to choose the alternate Study drawing brush", () => {
+  it.each([
+    [{ shiftKey: true }, "red"],
+    [{ ctrlKey: true }, "red"],
+    [{ altKey: true }, "blue"],
+    [{ metaKey: true }, "blue"],
+    [{ shiftKey: true, altKey: true }, "yellow"],
+  ] as const)("uses modifiers %j to choose the %s Study drawing brush", (modifiers, brush) => {
     const { api, board } = mount();
-    board.dispatchEvent(mouse("mousedown", 50, 750, { button: 2, shiftKey: true }));
-    expect(api.state.drawable.current).toMatchObject({ orig: "a1", brush: "red" });
+    board.dispatchEvent(mouse("mousedown", 50, 750, { button: 2, ...modifiers }));
+    expect(api.state.drawable.current).toMatchObject({ orig: "a1", brush });
     api.destroy();
   });
 

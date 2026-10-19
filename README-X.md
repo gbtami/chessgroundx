@@ -82,10 +82,33 @@ Input/rendering options adopted during upstream synchronization:
 
 `DrawShape.customSvg` accepts an SVG **string** or a `DrawCustomSvg` object.
 Existing strings stay anchored at `orig` in the same 100×100 local view box.
-`drawable.eraseOnClick` and the existing
+`drawable.eraseOnMovablePieceClick` and the existing
 manual/automatic shape layers are retained for Study/Practice consumers.
 Optional text labels, drawing layers, contrasting outlines, erase previews and SVG anchors were added
 separately after synchronization.
+
+The click-erasure option is now named `drawable.eraseOnMovablePieceClick`, as
+in upstream Chessground; replace the old `eraseOnClick` option when upgrading.
+Its default remains `true`. With nothing selected and drawing enabled, `true`
+clears manual drawings on any accepted board press; `false` retains them on
+turn-color pieces while empty/opponent-color squares still clear them. The
+predicate uses piece color and turn, independent of legal mobility. An existing
+selection suppresses this erasure; automatic shapes remain untouched. View-only
+boards bind no drawing/movement input. Nonempty pockets use the same option and
+existing selection/drawing gates. `previewErase` remains a separate visual option.
+
+There is no library alias for `eraseOnClick`. PyChess's coordinated consumer
+change temporarily supplies both names with the same value (false in Study,
+true in other analysis contexts), so it works with released 10.7.5 and this API.
+Land that consumer change before upgrading the library. Remove its legacy key
+only after the minimum dependency version guarantees the new name. Other callers
+must migrate the option before upgrading; this is a public-property rename.
+
+`BrushColor` is exported from `chessgroundx/types` for the four native gesture
+colors (`green`, `red`, `blue`, `yellow`). `DrawBrush`, the eight existing presets,
+modifier selection, arbitrary programmatic shape/current brush names and custom-only
+`drawable.brushes` patches retain their existing contracts. `DrawBrushes` stays an
+open dictionary rather than requiring callers to repeat the four standard entries.
 
 The object form `{ html: string, center?: 'orig' | 'dest' | 'label' }` adds a
 choice of anchor. `orig` is the default; `dest` uses the destination square,
@@ -115,7 +138,7 @@ The object type is exported as `DrawCustomSvg` from `chessgroundx/draw`.
 Code that reads `customSvg` as markup must narrow the new union, for example
 `typeof svg === 'string' ? svg : svg.html` after checking it is defined. Existing
 string producers and glyph helpers remain usable. Arbitrary brushes and
-`eraseOnClick` keep their existing contracts.
+`eraseOnMovablePieceClick` keep their existing contracts.
 
 `DrawShape.label` adds a text badge to a manual or automatic shape:
 
@@ -198,7 +221,7 @@ when callers provide several shapes at the same endpoints. No preview metadata
 is written into authored shapes, and no `onChange` callback fires until the
 normal gesture completion changes the drawings. Cancellation restores normal
 opacity; an opted-in drawing also cancels on native `touchcancel` without
-committing. `eraseOnClick` and modifier-brush selection are unchanged.
+committing. `eraseOnMovablePieceClick` and modifier-brush selection retain the same behavior.
 
 This opt-in renderer feature needs no additional consumer CSS or serialization
 changes. PyChess does not enable it automatically.

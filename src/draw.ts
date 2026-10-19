@@ -51,7 +51,7 @@ export interface Drawable {
   enabled: boolean; // can draw
   visible: boolean; // can view
   defaultSnapToValidMove: boolean;
-  eraseOnClick: boolean;
+  eraseOnMovablePieceClick: boolean;
   previewErase?: boolean; // fade manual drawings while a gesture would toggle them off
   onChange?: (shapes: DrawShape[]) => void;
   shapes: DrawShape[]; // user shapes
@@ -71,7 +71,7 @@ export interface DrawCurrent {
   snapToValidMove: boolean; // whether to snap to valid piece moves
 }
 
-const brushes = ['green', 'red', 'blue', 'yellow'];
+const brushes: cg.BrushColor[] = ['green', 'red', 'blue', 'yellow'];
 
 export function start(state: State, e: cg.MouchEvent): void {
   // support one finger touch only
@@ -140,7 +140,7 @@ export function clear(state: State): void {
   }
 }
 
-function eventBrush(e: cg.MouchEvent): string {
+function eventBrush(e: cg.MouchEvent): cg.BrushColor {
   const modA = (e.shiftKey || e.ctrlKey) && isRightButton(e);
   const modB = e.altKey || e.metaKey || e.getModifierState?.('AltGraph');
   return brushes[(modA ? 1 : 0) + (modB ? 2 : 0)];
