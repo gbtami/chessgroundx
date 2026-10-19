@@ -87,7 +87,7 @@ manual/automatic shape layers are retained for Study/Practice consumers.
 Optional text labels, drawing layers, contrasting outlines, erase previews and SVG anchors were added
 separately after synchronization.
 
-The click-erasure option is now named `drawable.eraseOnMovablePieceClick`, as
+Since 11.0.0, the click-erasure option is named `drawable.eraseOnMovablePieceClick`, as
 in upstream Chessground; replace the old `eraseOnClick` option when upgrading.
 Its default remains `true`. With nothing selected and drawing enabled, `true`
 clears manual drawings on any accepted board press; `false` retains them on
