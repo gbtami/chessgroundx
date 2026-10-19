@@ -227,6 +227,36 @@ describe("optional SVG text labels", () => {
     f.api.destroy();
   });
 
+  it.each([
+    [0, 0],
+    [0, 400],
+  ])("recovers a labeled arrow rendered with %sx%s bounds after resize", (width, height) => {
+    const f = mount();
+    f.bounds.width = width;
+    f.bounds.height = height;
+    f.api.state.dom.bounds.clear();
+    f.api.setShapes([{ orig: "d4", dest: "e4", brush: "green", label: { text: "A" } }]);
+    f.redraw();
+    const hiddenLabel = f.labels()[0];
+    expect(hiddenLabel.outerHTML).not.toMatch(/NaN|Infinity/);
+    expect(f.position().every(Number.isFinite)).toBe(true);
+
+    f.bounds.width = 400;
+    f.bounds.height = 400;
+    f.api.state.dom.bounds.clear();
+    f.redraw();
+    expect(f.labels()).toHaveLength(1);
+    expect(f.labels()[0]).not.toBe(hiddenLabel);
+    expect(f.labels()[0].outerHTML).not.toMatch(/NaN|Infinity/);
+    expect(f.position()[0]).toBeCloseTo(1 - 33 / 64);
+    expect(f.position()[1]).toBeCloseTo(1);
+    expect(Number(f.labels()[0].querySelector("circle")?.getAttribute("r"))).toBeGreaterThan(0);
+    const line = f.root.querySelector("svg.cg-shapes line")!;
+    for (const attr of ["x1", "y1", "x2", "y2"])
+      expect(Number.isFinite(Number(line.getAttribute(attr)))).toBe(true);
+    f.api.destroy();
+  });
+
   it("keeps labels behind the destination even on a very short arrow", () => {
     const f = mount();
     f.api.setShapes([{ orig: "d4", dest: "d5", brush: "green", label: { text: "A" } }]);

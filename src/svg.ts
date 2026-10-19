@@ -256,7 +256,7 @@ function renderOverlay(
     to = isArrow ? pos2user(orient(key2pos(shape.dest!), state.orientation, bd), bounds, bd) : from,
     cellOrig = pos2user([0, 0], bounds, bd),
     cellNext = pos2user([1, 1], bounds, bd),
-    scale = Math.min(Math.abs(cellNext[0] - cellOrig[0]), Math.abs(cellNext[1] - cellOrig[1])),
+    scale = Math.min(Math.abs(cellNext[0] - cellOrig[0]), Math.abs(cellNext[1] - cellOrig[1])) || 0,
     at: cg.NumberPair = [to[0], to[1]],
     corner = !shape.brush;
 
@@ -271,9 +271,10 @@ function renderOverlay(
       // get additional label separation without changing arrow geometry.
       backoff = 33 / 64 + ((arrowDests.get(shape.dest!) || 0) > 1 ? 10 / 64 : 0) +
         (slot % 2 && adjacent ? 0.4 * scale : 0),
-      along = Math.max(0, distance - backoff) / distance;
-    at[0] = from[0] + dx * along;
-    at[1] = from[1] + dy * along;
+      // Hidden boards can have coincident or nonfinite endpoints until resize.
+      along = distance > 0 && Number.isFinite(distance) ? Math.max(0, distance - backoff) / distance : 0;
+    at[0] = Number.isFinite(distance) ? from[0] + dx * along : 0;
+    at[1] = Number.isFinite(distance) ? from[1] + dy * along : 0;
   } else if (corner) {
     at[0] += 0.4 * scale;
     at[1] -= 0.4 * scale;
