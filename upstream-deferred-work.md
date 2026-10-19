@@ -1,7 +1,8 @@
 # ChessgroundX — Deferred upstream work and future implementation plan
 
-Status: **Backlog / planning only. Nothing in this document is a prerequisite to the completed upstream merge.**
+Status: **FEN-1 assessed and skipped for compatibility; PM-1 audit complete; SVG-1 rendering/API implemented and locally verified. Remaining items are optional backlog. Nothing here is a prerequisite to the completed upstream merge.**
 Created: 2026-10-17
+Last assessed: 2026-10-19
 Source of truth: [`upstream-merge.md`](upstream-merge.md), especially its completion summary, Batch 2 follow-ups, Batch 5 SVG decisions, and final readiness limits.
 Upstream synchronized through: `69f3451c9d70d682d5421539f28d68a15cfda4cd` (integration commit `79db22a6749714961ecbcd4a593f9d6b1c1ea788`, PR [#65](https://github.com/gbtami/chessgroundx/pull/65)).
 
@@ -11,13 +12,17 @@ This is a **handoff for a future Codex session**, not a request to reopen the me
 
 **Invariant:** Preserve ChessgroundX's 16×16/rectangular geometry, encoded ranks 10–16, letter/promoted roles, integrated pockets/drop origins, custom premove/predrop hooks, current SVG/Study contracts, public exports, and PyChess consumer compatibility. `src/fen.ts`, `src/premove.ts`, `src/predrop.ts`, and `src/pocket.ts` remain fork-owned. Never contact the production pychess.org service from automated tests.
 
+**Maintainer direction, 2026-10-19:** All preservation decisions in `upstream-merge.md` continue to apply to this backlog. In particular, FEN enhancements must always survive; skip conflicting upstream changes when adapting them would create excessive compatibility work. Deferred work does not authorize replacing fork contracts with upstream contracts.
+
+**Drawing API clarification, 2026-10-19:** Drawing API changes may be considered when PyChess consumer code and tests are migrated together so the resulting behavior works correctly. This permits a separately scoped drawing API migration; the other preservation requirements still stand. SVG-1 below uses an additive property and does not require such a migration for existing consumers.
+
 ## Executive backlog
 
-| ID | Item | Status at merge | Suggested priority | Nature |
+| ID | Item | Current disposition | Suggested priority | Nature |
 | --- | --- | --- | --- | --- |
-| FEN-1 | Dimension-aware malformed-FEN hardening | Upstream fixes assessed; not adapted | **P1** | Robustness, requires contract decisions |
-| PM-1 | Audit remaining upstream premove changes for applicability | Three named commits assessed; wider history not audited | **P2** | Review first, no presumed code change |
-| SVG-1 | Text labels on arrows/shapes | Deliberately excluded | **P2** if Study needs them | Optional feature |
+| FEN-1 | Dimension-aware malformed-FEN hardening | Assessed; skipped to preserve consumer validation | — | Reopen only with a coordinated parser/validator design |
+| PM-1 | Audit remaining upstream premove changes for applicability | Complete through pinned upstream; no port needed | — | Applicability inventory below |
+| SVG-1 | Text labels on arrows/shapes | Rendering/API implemented; saved Study labels remain a consumer feature | — | Additive `label` property; verified locally |
 | SVG-2 | Highlight shapes and below-piece rendering layer | Deliberately excluded | **P2** if requested | Optional feature / DOM architecture |
 | SVG-3 | Pending-erase preview | Deliberately excluded | **P3** | Optional interaction polish |
 | SVG-4 | Object-based custom SVG and related API/brush/erase changes | Deliberately excluded | **P3 / defer** | Potentially incompatible API redesign |
@@ -32,7 +37,37 @@ Priorities are **recommendations for planning**, not urgency or evidence of curr
 
 **Original upstream commits:** `cfdacd4` (ignore placements with invalid optional positions), `43a3c20` (guard promoted `~` lookups). ChessgroundX's `pos2key` and parser differ: a square outside a configured 8×8 board might still be representable in the global 16-file coordinate space. Therefore **do not cherry-pick upstream's optional-key guards**.
 
-**Proposed plan**
+### Assessment and decision — 2026-10-19
+
+**Skip these ports; leave `src/fen.ts` and `src/util.ts` unchanged.** The fork already guards a missing piece before setting `promoted` for `~`. Upstream's additional optional-key guard addresses a helper contract the fork does not have. Discarding out-of-bounds placements would also change an observable PyChess validation dependency.
+
+PyChess `client/chess.ts::validFen()` calls `read(placement, dimensions)` and checks the returned piece coordinates against the variant's dimensions. A disposable bounds-check experiment changed only the fork parser's placement insertion to require `0 <= col < bd.width` and `0 <= row < bd.height`. Running the actual consumer validator produced:
+
+| Full FEN (8×8 chess) | Existing parser keys | Existing `validFen()` | With experimental bounds check |
+| --- | --- | --- | --- |
+| `8p/8/8/8/8/8/8/K6k w - - 0 1` | `i8`, `a1`, `h1` | `false` | `true` |
+| `16p/8/8/8/8/8/8/K6k w - - 0 1` | `undefined8`, `a1`, `h1` | `false` | `true` |
+
+In each case filtering loses the evidence the validator currently uses to reject the FEN. All **67 built-in variant start positions** still passed the validator in both experiments, demonstrating why valid-input checks alone would miss this regression. This is a compatibility finding, not a claim that malformed keys are desirable or that the existing validator rejects every malformed input.
+
+The investigation also recorded the existing parser behavior:
+
+| Input aspect | Observed behavior; unchanged by this work |
+| --- | --- |
+| Dimensions / excess files | Width is not checked during placement. Coordinates use the global 16×16 encoding; excessive files can produce malformed keys. |
+| Short or extra ranks | Short board strings are bottom-aligned. Without brackets, only the first `height` ranks form the board; the next slash segment is the pocket, and later segments are ignored. With brackets, all preceding ranks are parsed, including ranks beyond the configured height. |
+| Empty runs | Consecutive digits form a multi-digit run, applied before the next piece token. The parser does not validate rank totals. |
+| Piece tokens | All alphabetic letter roles and `*` wall squares are supported. Unknown punctuation can become an invalid role; the reader is not a strict FEN validator. |
+| Promotion / mirror markers | `+` and `\|` flag the next piece and can survive rank separators. `~` flags the previously inserted piece when present; an intervening empty run does not advance its lookup. No new malformed-marker policy was imposed. |
+| Pockets | Bracket and extra-slash forms count repeated ASCII letters by color. Digits and nonletters are ignored rather than treated as multiplicities or promotion prefixes. An unclosed bracket currently drops the final character through the existing slice behavior. |
+
+Valid-input probes round-tripped **8×8, 9×10 and 16×16** positions combining `|+A`, `|z~`, `*`, repeated pocket letters and multi-digit runs. Extra-slash pockets normalized to the same bracket form; encoded top ranks remained `8`, `:` and `@`. Existing FEN/configuration/Alice/pocket tests also passed as part of the unchanged 218-test suite.
+
+Consumer inspection used PyChess HEAD `e4547c09e3dab1412397c3c2c29aff58611998d3`: direct FEN imports in `chess.ts`, `material.ts`, `aliceBoard.ts`, `roundCtrl.ts`, `variants.ts`, and both analysis/two-board history modules. Alice explicitly partitions pieces by `mirror` and writes them back; these consumers retain the existing reader/writer interfaces. The experiment bundled the actual local consumer source with the existing parser and a temporary bounds-check version; neither repository's production source nor installed dependencies were edited. Evidence: `/tmp/chessgroundx-fen-review-2026-10-19/reproduce.mjs` and `results.json` (temporary local artifacts; the findings and fixtures above are the durable record).
+
+**Reopening condition:** A concrete robustness requirement plus a coordinated design that validates raw placement in PyChess before the display parser discards invalid data, or another explicit compatible error-reporting contract. Do not silently change `read()` into a strict validator or normalize malformed promotion/mirror/pocket syntax as an incidental upstream port. The original implementation plan below is conditional on that prerequisite.
+
+**Original plan, retained for a future explicitly scoped reopening**
 
 1. Read `src/fen.ts`, `src/util.ts`, the fork FEN tests, and PyChess FEN consumers. Document the current semantics of malformed ranks, excess files/ranks, bad piece markers, and pocket syntax. First decide which cases must be rejected, ignored, or preserved; do not invent a contract from upstream tests alone.
 2. Write narrowly scoped tests for configured `8×8`, `9×10`, and `16×16` boards: out-of-bounds placements; multi-digit empty runs; Shogi `+` and `~`; mirror markers; pockets; no accidental pieces leaking into valid positions. Include round trips of valid inputs to ensure compatibility.
@@ -41,13 +76,66 @@ Priorities are **recommendations for planning**, not urgency or evidence of curr
 
 **Done when:** defined malformed-input policy, tests with before/after evidence where applicable, valid variant FEN remains stable, no public API change. This should be a separate PR.
 
+**Current outcome:** Investigation complete; implementation intentionally skipped under the maintainer's preservation direction. The implementation acceptance criteria above are not claimed as achieved.
+
 ## Workstream PM-1 — Remaining upstream premove-history applicability
 
 **Already assessed, no direct port:** `b8713a6`, `4859567`, `a2a2d84`. Their optional-key/occupancy-trimming or board-edge behavior differs from ChessgroundX's geometric candidate generator; the fork promotion-edge tests already cover the relevant examples. Upstream later removed its trimming machinery in `12f8805`.
 
-**Proposed plan:** inspect only upstream premove commits since the recorded merge base that were not yet classified; maintain a small table of commit, intent, present in fork?, applicable?, action. Focus on *observable boundaries*: custom `premoveFunc`, `predropFunc`, selection, queuing/cancellation/replay, promotions and dimensions. Do **not** port upstream's standard-chess implementation wholesale or demand 100% branch coverage. Make code changes only for a demonstrated missing fix, with a focused regression.
+**Audit scope:** all commits touching upstream `src/premove.ts` in `fb399cc3240d..69f3451c9d70`, checked with `git log --reverse --no-merges -p` and the two merge commits' combined diffs. This is the completed merge's pinned range, not a claim about upstream commits after that target. Shared-module integration decisions already assessed in merge Batches 2–4 remain in force.
+
+### Applicability inventory — 2026-10-19
+
+**Outcome: complete; no production code change.** The table covers all **36 non-merge commits** in this range, including the three previously assessed promotion fixes for completeness. “Present” describes runtime behavior or implementation, not Git ancestry: the genuine upstream merge already made these commits ancestors.
+
+| Commit | Intent | Present in fork? | Applicable? / action |
+| --- | --- | --- | --- |
+| `1e4b242` | Add `.js` import suffixes | Yes | Already present; no change. |
+| `349c567` | Arrow-function cleanup | Yes, corresponding helpers | No further cleanup needed. |
+| `65bc805` | Reindent role selection | Different variant dispatch | Formatting only; skip. |
+| `cebe607` | Introduce friendly-piece trimming | No | Changes geometric-candidate contract; skip. |
+| `cdced4f` | Fix knight movement after erroneous Set comparison | Yes, arithmetic movement | Faulty comparison absent; no port. |
+| `dd9c8ef` | Extract movement helpers into util | No | Internal reorganization; keep fork helper/export contracts. |
+| `6951532` | Allow bishop paths through an en-passant-removable pawn | No trimming | Path was never rejected by fork geometry; no port. |
+| `ba4c4c2` | Extend en-passant path exception to rooks | No trimming | Same distinction; skip trimming and associated state/API change. |
+| `244eea8` | Rename trimming option; change default | No | Preserve fork defaults; skip. |
+| `4b2f156` | Rename upstream util direction helpers | No corresponding helpers | Naming only; skip. |
+| `9448da9` | Trim blocked castling premoves | No | Preserve geometric candidates and variant castling; skip. |
+| `bc964c4` | Trim using opponent pieces too | No | Changes occupancy policy; skip. |
+| `e40d3f2` | Consolidate path checks / castling-trimming checks | No trimming | No corresponding path machinery; skip. |
+| `43c30da` | Reject same-square movement inside helpers | Same public result | Fork filters the origin in `premove()`; preserve exported geometry helpers. |
+| `c8b7b44` | Reorder trimming rejection checks | No trimming | No corresponding checks; skip. |
+| `8aed7f3` | Add attack/occupancy trimming and turn guard | Turn eligibility enforced by board | Skip trimming; keep board availability/turn gating. |
+| `15f25dd` | Refactor MobilityContext; rename unrestricted option | No | Different hook/state contract; skip. |
+| `dc03533` | Repair rook/queen candidates behind an advancing enemy pawn | Geometric candidate already allowed | Faulty occupancy restriction absent; no port. |
+| `408fca9` | Prefer `Map.has`, guard enemy lookup in trimming | No corresponding trimming code | No missing lookup fix; skip. |
+| `87c3304` | Hoist per-destination context computation | No MobilityContext | Possible analogous optimization is performance work, not a missing behavioral fix; no change without measurements. |
+| `93e53e2` | Repair absent-lastMove / Horde en-passant trimming | No trimming | Fork does not require lastMove to generate these geometric candidates; no port. |
+| `a5b0625` | Guard missing enemy-pawn advance square | No off-board probe | Optional-key trimming path absent; no port. |
+| `b8713a6` | Guard optional square in promotion/en-passant helper | No such helper | Prior no-port decision stands. |
+| `3c9c872` | Precompute position/key pairs and guard optional keys | Dimension-bounded enumeration | Preserve `allPos(bd)` / global key contract; no standard 64-square cache or optional-key API. |
+| `7d3a3c1` | Complete context destination rename | No MobilityContext | Internal rename; skip. |
+| `c101fc8` | Reorder trimming-array guard for lint | No trimming | No corresponding code; skip. |
+| `d1253f1` | Add per-role additional mobility predicates | Existing destination-generator hooks | Keep `premoveFunc` / `predropFunc`; no competing predicate API. |
+| `4859567` | Restore promotion premoves at board edge | Yes, observable candidate | Existing white/black promotion regressions pass; no port. |
+| `a2a2d84` | Restore promotion while trimming friendly destinations | Deliberately different occupancy policy | Keep friendly destinations as geometric candidates; existing regressions protect this. |
+| `95a209b` | Replace per-role predicates with one role-aware predicate | Existing generator hooks, different API | Preserve caller-supplied generators and letter/promoted roles; no port. |
+| `12f8805` | Remove trimming from Chessground | Already no trimming | Confirms the temporary trimming series is not required; no code to remove. |
+| `b54a453` | Clarify pawn file-distance expression | Equivalent candidate geometry | Nonfunctional cleanup only; skip. |
+| `03faf23` | TODO for removal of castling flag | No | Upstream/lila migration note; skip. |
+| `60920b9` | Remove `MobilityContext.canCastle` | No; fork retains `canCastle` | Preserve `premovable.castle` and hook argument; do not make castling unconditional. |
+| `c4cdf48` | Import/type lint changes | Fork imports retained | No behavior change; no unrelated formatting. |
+| `fba9fcc` | Shorthand properties during tooling upgrade | No corresponding context object | No behavior change; skip. |
+
+Merge commits `fe5fd1e` and `bb8bebb` have no additional combined-diff hunks in `src/premove.ts`; their constituent changes are included above. No unclassified premove-source commit remains in the pinned range.
+
+**Boundary review:** `src/board.ts` checks piece/pocket availability, turn and premove enablement before calling the injected generators. It rejects same-origin moves, queues only returned destinations, revalidates replay against the current legal destination map, and clears the saved premove after success or failure. Cancellation clears selection/destinations. These responsibilities must stay outside the fork's pure geometric generator. PyChess `roundCtrl.ts` installs `premoveForVariant(...)` and `predrop(...)`; `cataloguedPremove.ts` wraps the fork generator for catalogued/promoted roles and forwards `canCastle`. Replacing these with upstream's standard-role `MobilityContext` would change real consumer contracts.
+
+**Verification:** the existing 218-test suite passed (25 files), including `upstream-premove-applicability`, `upstream-board-boundaries`, `premove-matrix`, custom hook, cancellation/hover, pocket inventory and encoded-rank cases. No runtime files, tests or public signatures changed. No new browser/build/Study acceptance run is needed for this documentation-only disposition; the completed merge's earlier acceptance remains historical evidence, not a fresh result.
 
 **Done when:** applicability inventory completed; either explicitly **no code change** or a small separately tested PR.
+
+**Current outcome:** Done for the pinned upstream range; explicitly **no code change**.
 
 ## Workstream SVG — Optional drawing enhancements
 
@@ -57,9 +145,36 @@ These are independent features; do **not** implement as one broad SVG rewrite. U
 
 **Behavior:** small text labels attached to a shape/arrow, potentially with custom fill and collision-aware placement. Possible Study usage: name candidate moves (`A`, `B`), identify teaching examples, or number key arrows.
 
-**Plan:** confirm a PyChess Study/Practice UX requirement; design an **additive** `label?` shape property; adapt upstream text layout to variable dimensions and orientation; guard against unsafe markup; keep arbitrary brush names, existing arrows/circles, and legacy string `customSvg`. Test placement on 8×8, 9×10, 16×16, rotation, overlapping labels, SVG redraw and Study serialization if used. Review related upstream cache/label fixes before accepting the feature.
+**Original plan:** confirm a PyChess Study/Practice UX requirement; design an **additive** `label?` shape property; adapt upstream text layout to variable dimensions and orientation; guard against unsafe markup; keep arbitrary brush names, existing arrows/circles, and legacy string `customSvg`. Test placement on 8×8, 9×10, 16×16, rotation, overlapping labels, SVG redraw and Study serialization if used. Review related upstream cache/label fixes before accepting the feature.
 
-**Done when:** feature works across board sizes and existing consumers work unchanged. If no actual UX request exists, **defer**.
+### Implementation and verification — 2026-10-19
+
+The maintainer selected SVG work; this first implementation is independently scoped to the **ChessgroundX rendering/API feature**. `DrawShape.label?: { text: string; fill?: string }` now works on manual and automatic arrows/circles, standalone brushless square badges, and shapes carrying legacy string `customSvg`. See [README-X.md](README-X.md#drawing-compatibility) for examples and semantics. No Study label-entry UI or saved-label protocol was introduced.
+
+- Arrow labels sit near the arrowhead on the shaft; circle labels sit at the square center; brushless labels sit near the upper right of `orig`. The background defaults to the selected brush color or grey. Rendering uses `textContent` and never mutates caller data, including frozen label objects.
+- Labels use the existing custom SVG overlay and account for its half-unit viewBox offset relative to the arrow plane. Transforms use fork orientation/dimensions and cell scaling. The 8×8, 9×10 and 16×16 paths retain encoded ranks and existing drawing/pocket/auto-piece behavior.
+- Nearby incoming arrow directions use upstream's 16-slot label-placement idea, while **the fork's existing multi-arrow shortening rule remains unchanged**. The label cache includes actual incoming slots, text and resolved fill; changing one incoming arrow with the same arrow count or changing only fill invalidates the label correctly. The overlap rule is a heuristic, not a guarantee for arbitrary dense drawings.
+- The label/custom SVG group shares a synchronized lifetime within the existing overlay. Labels coexist with string custom SVG, and replacement/removal leaves no stale label nodes. Existing nonlabel shapes retain their DOM structure; public renderer/sync signatures are unchanged. Gesture toggling, callbacks, arbitrary brush names and author-owned shape arrays retain their contracts.
+
+Related upstream dispositions: `7b09a68` motivates synchronized label lifetime and label-aware cache identity; `afa5844` motivates incoming-direction invalidation (the fork includes the slots themselves, beyond just their count); `5317af1` supplies angle-slot collision ideas but its selective arrow-shortening change is excluded; `6c530c7` was reviewed for coordinate/custom-center assumptions, while the fork keeps its string custom SVG origin/viewBox contract. No object-SVG, highlight/below layer, erase-preview or erase-option migration was folded into this work.
+
+**Consumer boundary:** current PyChess Study `studySync.ts::simpleShapes()` / `studyTree.ts` and PGN drawing serialization retain only `orig`, `dest` and `brush`. Existing flows remain compatible, but saved labels would be dropped by those paths. Transient auto-shape labels can be supplied directly. A saved-label feature must migrate client/server DTO validation, serialization/import/export, authoring UI and tests together; it is not claimed complete by this library feature.
+
+| Check | Result |
+| --- | --- |
+| Library regressions | **230 passed, 26 files**; 12 new cases in `tests/svg-labels.test.ts`. Before implementation, nine of the first ten label cases failed; after implementation and additions, all 12 pass. |
+| Library typecheck / lint / formatter / distribution / consumer imports | Passed; lint retains the same three pre-existing nonfatal warnings. |
+| Local Chromium | **16 passed**, including two added label tests (one checks all three board sizes and both orientations). |
+| Minified bundle | Three targeted Chromium cases passed: label geometry/literal text, trusted arrow toggle/overlay cleanup, and existing Study-like orientation redraw. |
+| Packed PyChess consumer | Installed candidate into an isolated copy of PyChess HEAD `e4547c09e3dab1412397c3c2c29aff58611998d3`; **478-file nonincremental typecheck**, development/production builds and **113 Jest suites / 929 tests** passed. |
+| Local Study/Practice acceptance | Existing `test_drawings_survive_piece_selection_and_moves` and `test_practice_browser_acceptance_and_analysis_restore`: **2 passed** against the production-built candidate; loopback-only Python/browser network guard. This verifies existing flows, not new label persistence. |
+| Visual review | Inspected a Chromium preview of arrow/circle/corner badges on 8×8, 9×10 and 16×16 boards. |
+
+Evidence root: `/tmp/chessgroundx-svg1-2026-10-19/` (`logs/`, installed `pychess/`, package tarball and `labels-preview.png`). Initial local acceptance could not initialize the board because the isolated copy lacked generated engine assets; running its unchanged `cp2static.sh` supplied them, then the same two tests passed. The first attempt is retained in `logs/attempt1-consumer-study-practice.txt`. Neither the live PyChess source/dependencies nor production services were changed.
+
+**Review correction — 2026-10-19:** Guard the label's arrow-distance division when endpoints coincide or are nonfinite during zero-sized layout; use finite fallback coordinates and a zero scale when cell-size calculation is undefined. Two focused cases (0×0 and 0×400 bounds) fail before the correction and pass afterward, including valid label/arrow positioning after resize. The correction changes only label geometry and its regression tests. Revalidation passed: **232 Vitest tests**, TypeScript, lint (same three existing warnings), formatter, distribution/import checks, **16 Chromium + 3 minified cases**, packed consumer **478-file TypeScript / dev+prod builds / 929 Jest tests**, and **2 local Study/Practice acceptance tests**. All public declarations remain unchanged by this correction. Evidence: `/tmp/chessgroundx-svg1-review-2026-10-19/`.
+
+**Current outcome:** Rendering/API and the requested robustness correction validated on `feature/upstream-svg-enhancements`; the maintainer approves merging [PR #66](https://github.com/gbtami/chessgroundx/pull/66) after checks pass. Saved Study label authoring/persistence remains a separate consumer feature. SVG-2/3/4 remain separate workstreams.
 
 ### SVG-2 — Highlights and below-piece SVG layer
 
@@ -79,7 +194,7 @@ These are independent features; do **not** implement as one broad SVG rewrite. U
 
 ### SVG-4 — API redesigns intentionally *not* adopted
 
-Upstream object-valued SVG data, mandatory/default brush restrictions, alternate drawing layers, and an erase-option rename differ from ChessgroundX's string `customSvg`, arbitrary `DrawBrushes`, and `eraseOnClick` consumed by PyChess analysis. **Do not treat these as required modernization.** If a concrete feature demands one, first inventory actual PyChess consumers and design compatibility shims/deprecations. Avoid breakage or silent aliasing.
+Upstream object-valued SVG data, mandatory/default brush restrictions, alternate drawing layers, and an erase-option rename differ from ChessgroundX's string `customSvg`, arbitrary `DrawBrushes`, and `eraseOnClick` consumed by PyChess analysis. **Do not treat these as required modernization.** The maintainer permits drawing API migration when PyChess and tests are updated together. If a concrete feature demands one, first inventory actual consumers and choose an explicit coordinated migration or compatibility shim/deprecation. Avoid breakage or silent aliasing. SVG-1 did not require this redesign.
 
 ## UI-1 — Browser/platform input differences
 
@@ -112,9 +227,9 @@ Recommended checks by risk:
 
 ## Recommended order and issue/PR boundaries
 
-1. **FEN-1**: focused robustness investigation and, if justified, implementation (one PR).
-2. **PM-1**: short source-history applicability audit (documentation-only unless a real fix is missing).
-3. **SVG-2 or SVG-1** only after selecting an actual Study/Practice product need; implement independently. Below-piece layers are a plausible first choice but more invasive; labels may be simpler if that is the only requirement.
+1. **FEN-1**: assessed 2026-10-19; upstream hardening skipped for consumer compatibility. Reopen only under the coordinated validation prerequisite above.
+2. **PM-1**: completed 2026-10-19; no missing applicable fix demonstrated, no code change.
+3. **SVG-1**: library rendering/API implemented and verified 2026-10-19; saved Study labels need a separately scoped consumer feature. **SVG-2** remains the next independent optional drawing enhancement; specify the highlight/layer behavior before implementation.
 4. **SVG-3**: optional polish if requested.
 5. **UI-1 / UI-2 / REND-1 / QA-1**: trigger only on a supported browser bug, feature request or performance evidence.
 
@@ -122,10 +237,14 @@ Do not automatically schedule or execute all of these. Close or defer an item ex
 
 ## First message to a future Codex session
 
-> Read `README-X.md`, `upstream-merge.md`, and `upstream-deferred-work.md`. Upstream merge PR #65 is **complete**; do not reopen it or replace the fork-owned `fen.ts`, `premove.ts`, `predrop.ts`, or `pocket.ts` wholesale. Pick **one** backlog ID, inspect relevant upstream commits and current PyChess consumers, and propose a scoped design plus verification plan before modifying production code. Preserve variable dimensions, role/pocket/annotation and public API contracts. Work on a new feature branch, run local/offline checks and never test against production pychess.org. Report what is proven, deferred or excluded; do not make unrelated tooling or formatting changes.
+> Read `README-X.md`, `upstream-merge.md`, and `upstream-deferred-work.md`. Upstream merge PR #65 is **complete**, and its preservation decisions still apply, with the maintainer's explicit allowance for coordinated drawing API/consumer/test migrations. FEN-1 was assessed and skipped for consumer compatibility; PM-1 is complete through the pinned upstream target with no code change. SVG-1 rendering/API is implemented and locally verified, while saved Study label authoring/persistence is still separate. Do not automatically restart either audit or replace the fork-owned `fen.ts`, `premove.ts`, `predrop.ts`, or `pocket.ts` wholesale. Keep SVG-2/3/4 independently scoped. Inspect relevant upstream commits and current PyChess consumers, then propose a scoped design plus verification plan before modifying production code. Preserve variable dimensions and role/pocket contracts; drawing API changes require coordinated consumer/test migration. Work on a new feature branch, run local/offline checks and never test against production pychess.org. Report what is proven, deferred or excluded; do not make unrelated tooling or formatting changes.
 
 ## Progress log (future work)
 
 | Date | ID | Decision / findings | PR / commit | Verification | Status |
 | --- | --- | --- | --- | --- | --- |
 | 2026-10-17 | ALL | Backlog extracted from completed merge review; no new implementation requested | — | Documentation only | Open / optional |
+| 2026-10-19 | FEN-1 | Skip upstream bounds hardening: actual PyChess validator changes from rejecting to accepting overflowing piece placements when those pieces are discarded; all fork enhancements retained | Documentation on `feature/upstream-svg-enhancements` | Two rejected-to-accepted consumer examples; 67 valid start positions; 8×8/9×10/16×16 extension round trips; existing 218 tests passed | Assessed / implementation skipped |
+| 2026-10-19 | PM-1 | Classified 36 non-merge premove-source commits plus two merges; preserve geometric generator, custom hooks and castling flag; no missing applicable fix | Documentation on `feature/upstream-svg-enhancements` | Source/consumer boundary audit and existing 218 tests passed | Complete / no code change |
+| 2026-10-19 | SVG-1 | Add optional text badges; preserve fork geometry, string custom SVG, arbitrary brushes and default drawing behavior; saved Study labels remain separate | `feature/upstream-svg-enhancements` | 230 unit tests; typecheck/lint/format/dist/import checks; 16 Chromium + 3 minified cases; packed consumer 478-file TS, dev/prod, 929 Jest, 2 local Study/Practice acceptance; visual preview | Library rendering/API ready for independent review |
+| 2026-10-19 | SVG-1 review correction | Guard zero/nonfinite arrow distance and undefined label scale; two regressions cover hidden bounds and recovery after resize; no feature expansion | [PR #66](https://github.com/gbtami/chessgroundx/pull/66) | 232 unit tests; TypeScript/lint/format/dist/import checks; 16 Chromium + 3 minified; packed consumer 478-file TS/dev/prod/929 Jest; 2 local Study/Practice; unchanged declarations | Local checks passed; maintainer approves merge after checks |

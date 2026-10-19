@@ -83,8 +83,37 @@ Input/rendering options adopted during upstream synchronization:
 `DrawShape.customSvg` remains an SVG **string**, anchored at `orig` in the
 existing 100×100 local view box. `drawable.eraseOnClick` and the existing
 manual/automatic shape layers are retained for Study/Practice consumers.
-Upstream's object-based custom SVG, labels, below-piece layers and pending-erase
-preview are not adopted in this synchronization.
+Upstream's object-based custom SVG, below-piece layers and pending-erase preview
+are not adopted. Optional text labels were added separately after synchronization.
+
+`DrawShape.label` adds a text badge to a manual or automatic shape:
+
+```ts
+board.setAutoShapes([
+  { orig: 'e2', dest: 'e4', brush: 'green', label: { text: 'A' } },
+  { orig: 'd4', brush: 'blue', label: { text: '12', fill: '#6350a0' } },
+  { orig: 'h8', label: { text: '!' } },
+]);
+```
+
+Arrow badges sit on the shaft near the arrowhead; circle badges sit at the
+square center. Without a brush, only a badge appears near the square's upper
+right corner. `fill` colors the badge background, defaulting to the brush color
+or grey. Text is rendered literally, including `<`, `>` and `&`; it is not SVG
+markup. Short labels work best. Nearby incoming arrows use an angle-based
+placement heuristic to reduce label overlap; arbitrary dense drawings can
+still overlap.
+
+Labels follow board dimensions, orientation and redraws after resize. They
+render in the existing custom SVG overlay, can coexist with string `customSvg`,
+and do not change arrow shortening, brush names, gesture toggling or shape-array
+ownership. Automatic piece ghosts continue to use their separate HTML layer.
+Rendering never fills in or mutates caller-owned label objects.
+
+This is a ChessgroundX rendering/API feature. PyChess Study currently persists
+only `orig`, `dest` and `brush` for drawings; saving labels requires a separate
+consumer serialization/schema and authoring-UI change. Transient auto-shape
+labels can use this API directly.
 
 The optional `chessgroundx/glyph` subpath provides upstream's `glyphToSvg`,
 `analysisGlyphs` and `endgameGlyphs`. Each catalog takes a maximum stack size;
