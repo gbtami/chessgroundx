@@ -206,14 +206,15 @@ describe("optional pending-erase preview", () => {
     f.api.destroy();
   });
 
-  it("leaves automatic hints and piece ghosts alone", () => {
-    const f = mount(true);
+  it("leaves automatic hints and piece ghosts alone, even with shared shape objects", () => {
+    const f = mount();
     const shared: DrawShape = { orig: "a1", dest: "h8", brush: "green" };
     f.api.setShapes([shared]);
     f.api.setAutoShapes([
-      { ...shared, modifiers: { lineWidth: 14 } },
+      shared,
       { orig: "b2", piece: { role: "pr-piece", color: "white", promoted: true } },
     ]);
+    f.api.set({ drawable: { previewErase: true } });
     f.redraw();
     const ghost = f.root.querySelector("cg-auto-pieces")!.innerHTML;
     f.gesture("a1", "h8");

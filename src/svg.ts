@@ -51,7 +51,10 @@ export function renderSvg(state: State, svg: SVGElement, customSvg: SVGElement):
       shape: s,
       current: false,
       pendingErase,
-      hash: shapeHash(s, arrowDests, false, bounds, labelAngles, d.brushes, pendingErase),
+      // A manual drawing and an identical automatic hint need independent
+      // lifetimes while only one of them changes opacity.
+      hash: shapeHash(s, arrowDests, false, bounds, labelAngles, d.brushes, pendingErase) +
+        (d.previewErase ? (idx < d.shapes.length ? ',manual' : ',auto') : ''),
     };
   });
   if (visibleCur)
