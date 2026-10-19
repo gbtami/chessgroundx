@@ -61,6 +61,51 @@ class BrowserInteractions(unittest.TestCase):
         self.page.mouse.up(button=button)
         self.page.wait_for_timeout(80)
 
+    def test_label_geometry_and_literal_text(self):
+        for width, height, corner in [(8, 8, 'h8'), (9, 10, 'i:'), (16, 16, 'p@')]:
+            with self.subTest(dimensions=(width, height)):
+                self.page.locator('#board').evaluate(
+                    '(el, size) => { el.style.width = size[0] + "px"; el.style.height = size[1] + "px"; }',
+                    [width * 50, height * 50],
+                )
+                self.make_board({'fen': '/'.join([str(width)] * height),
+                                 'dimensions': {'width': width, 'height': height},
+                                 'animation': {'enabled': False}})
+                self.page.evaluate('''corner => {
+                    cg.setShapes([{orig:corner, brush:'blue', label:{text:'<svg onload="bad()"/> & A'}}]);
+                    cg.state.dom.redrawNow();
+                }''', corner)
+                label = self.page.locator('g.cg-label')
+                self.assertEqual(label.locator('text').text_content(), '<svg onload="bad()"/> & A')
+                self.assertEqual(label.locator('svg, script').count(), 0)
+                for orientation in ['white', 'black']:
+                    self.page.evaluate('orientation => cg.set({orientation})', orientation)
+                    self.page.wait_for_timeout(40)
+                    box = label.locator('circle').bounding_box()
+                    board = self.page.locator('cg-board').bounding_box()
+                    expected_x = board['x'] + (width - 0.5 if orientation == 'white' else 0.5) * 50
+                    expected_y = board['y'] + (0.5 if orientation == 'white' else height - 0.5) * 50
+                    self.assertAlmostEqual(box['x'] + box['width'] / 2, expected_x, delta=0.2)
+                    self.assertAlmostEqual(box['y'] + box['height'] / 2, expected_y, delta=0.2)
+                self.page.evaluate('cg.destroy()')
+
+    def test_labels_preserve_trusted_arrow_toggle_and_overlay_cleanup(self):
+        self.make_board({'fen': '8/8/8/8/8/8/8/8',
+                         'drawable': {'enabled': True, 'defaultSnapToValidMove': False},
+                         'animation': {'enabled': False}})
+        self.page.evaluate('''() => {
+            cg.setShapes([{orig:'a1', dest:'h8', brush:'green', label:{text:'A'}}]);
+            cg.setAutoShapes([{orig:'b2', label:{text:'B'}}]);
+            cg.state.dom.redrawNow();
+        }''')
+        self.assertEqual(self.page.locator('g.cg-label').count(), 2)
+        self.move(self.square(1, 1), self.square(8, 8), button='right')
+        self.assertEqual(self.page.evaluate('cg.state.drawable.shapes'), [])
+        self.assertEqual(self.page.locator('g.cg-label').count(), 1)
+        self.page.evaluate('cg.setAutoShapes([])')
+        self.page.wait_for_timeout(40)
+        self.assertEqual(self.page.locator('g.cg-label').count(), 0)
+
     def test_trusted_piece_drag(self):
         self.make_board({'fen':'8/8/8/8/8/8/8/R7',
                          'movable': {'color':'white','free':True},

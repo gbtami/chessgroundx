@@ -10,6 +10,7 @@ export interface DrawShape {
   modifiers?: DrawModifiers;
   piece?: DrawShapePiece;
   customSvg?: string;
+  label?: { text: string; fill?: string }; // badge background defaults to the brush color, or grey
 }
 
 export interface DrawShapePiece {
