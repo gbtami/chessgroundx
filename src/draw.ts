@@ -9,9 +9,14 @@ export interface DrawShape {
   brush?: string;
   modifiers?: DrawModifiers;
   piece?: DrawShapePiece;
-  customSvg?: string;
+  customSvg?: string | DrawCustomSvg;
   label?: { text: string; fill?: string }; // badge background defaults to the brush color, or grey
   below?: boolean; // SVG drawings only; default is above pieces
+}
+
+export interface DrawCustomSvg {
+  html: string;
+  center?: 'orig' | 'dest' | 'label'; // default orig; strings retain origin anchoring
 }
 
 export interface DrawShapePiece {

@@ -106,6 +106,50 @@ class BrowserInteractions(unittest.TestCase):
         self.page.wait_for_timeout(40)
         self.assertEqual(self.page.locator('g.cg-label').count(), 0)
 
+    def test_custom_svg_object_anchors_follow_cells_labels_resize_and_rotation(self):
+        for width, height, corner in [(8, 8, 'h8'), (9, 10, 'i:'), (16, 16, 'p@')]:
+            with self.subTest(dimensions=(width, height)):
+                self.page.locator('#board').evaluate(
+                    '(el, size) => {el.style.width=size[0]+"px";el.style.height=size[1]+"px";}',
+                    [width * 50, height * 50],
+                )
+                self.make_board({'fen': '/'.join([str(width)] * height),
+                                 'dimensions': {'width': width, 'height': height},
+                                 'animation': {'enabled': False}})
+                for orientation in ['white', 'black']:
+                    self.page.evaluate('orientation => cg.set({orientation})', orientation)
+                    for cell_size in [50, 40]:
+                        self.page.locator('#board').evaluate(
+                            '(el, size) => {el.style.width=size[0]+"px";el.style.height=size[1]+"px";}',
+                            [width * cell_size, height * cell_size],
+                        )
+                        self.page.evaluate('cg.redrawAll()')
+                        for below in [False, True]:
+                            for center in ['orig', 'dest', 'label']:
+                                self.page.evaluate('''({corner,below,center}) => {
+                                    cg.setAutoShapes([{orig:'a1',dest:corner,below,label:{text:'A'},
+                                        customSvg:{html:'<rect data-anchor="target" width="100" height="100" fill="#fc0"/>',center}}]);
+                                    cg.state.dom.redrawNow();
+                                }''', {'corner': corner, 'below': below, 'center': center})
+                                rect = self.page.locator('svg [data-anchor="target"]').bounding_box()
+                                board = self.page.locator('cg-board').bounding_box()
+                                if center == 'label':
+                                    label = self.page.locator('.cg-label circle').bounding_box()
+                                    expected_x, expected_y = label['x'] + label['width'] / 2, label['y'] + label['height'] / 2
+                                else:
+                                    orig = center == 'orig'
+                                    at_left_bottom = orig == (orientation == 'white')
+                                    expected_x = board['x'] + (0.5 if at_left_bottom else width - 0.5) * cell_size
+                                    expected_y = board['y'] + (height - 0.5 if at_left_bottom else 0.5) * cell_size
+                                self.assertAlmostEqual(rect['x'] + rect['width'] / 2, expected_x, delta=0.2)
+                                self.assertAlmostEqual(rect['y'] + rect['height'] / 2, expected_y, delta=0.2)
+                                self.assertAlmostEqual(rect['width'], cell_size, delta=0.2)
+                                layer = '.cg-custom-below' if below else '.cg-custom-svgs'
+                                self.assertEqual(self.page.locator(layer + ' [data-anchor="target"]').count(), 1)
+                self.page.evaluate('cg.setAutoShapes([]);cg.state.dom.redrawNow()')
+                self.assertEqual(self.page.locator('svg svg, .cg-label').count(), 0)
+                self.page.evaluate('cg.destroy()')
+
     def test_pending_erase_pointer_preview_cancel_and_commit(self):
         for width, height, corner, orientation in [(8, 8, 'h8', 'white'), (9, 10, 'i:', 'black'), (16, 16, 'p@', 'white')]:
             with self.subTest(dimensions=(width, height), orientation=orientation):

@@ -189,7 +189,9 @@ function shapeHash(
     dest && (arrowDests.get(dest) || 0) > 1,
     piece && pieceHash(piece),
     modifiers && modifiersHash(modifiers),
-    customSvg && customSvgHash(customSvg),
+    customSvg && (typeof customSvg === 'string'
+      ? customSvgHash(customSvg)
+      : customSvgHash(customSvg.html) + ':' + (customSvg.center ?? 'orig')),
     below && 'below',
     pendingErase && 'pendingErase',
     // Include the actual incoming directions: replacing one arrow can move a
@@ -232,7 +234,10 @@ function renderShape(
   const orig = orient(key2pos(shape.orig), state.orientation, state.dimensions);
 
   if (shape.customSvg) {
-    el = renderCustomSvg(shape.customSvg, orig, bounds, state.dimensions);
+    el = renderCustomSvg(
+      typeof shape.customSvg === 'string' ? shape.customSvg : shape.customSvg.html,
+      pos2user(orig, bounds, state.dimensions)
+    );
   } else {
     if (shape.dest && shape.dest !== shape.orig) {
       let brush: DrawBrush = brushes[shape.brush!];
@@ -253,13 +258,11 @@ function renderShape(
   return previewErase(el, pendingErase);
 }
 
-function renderCustomSvg(customSvg: string, pos: cg.Pos, bounds: ClientRect, bd: cg.BoardDimensions): SVGElement {
-  const [x, y] = pos2user(pos, bounds, bd);
-
-  // Translate to top-left of `orig` square
+function renderCustomSvg(customSvg: string, [x, y]: cg.NumberPair): SVGElement {
+  // Translate to the top-left of the 100x100 local view box at the chosen anchor.
   const g = setAttributes(createElement('g'), { transform: `translate(${x},${y})` });
 
-  // Give 100x100 coordinate system to the user for `orig` square
+  // Give the SVG content a 100x100 local coordinate system.
   const svg = setAttributes(createElement('svg'), { width: 1, height: 1, viewBox: '0 0 100 100' });
 
   g.appendChild(svg);
@@ -276,7 +279,8 @@ function renderOverlay(
   bounds: ClientRect
 ): SVGElement {
   const { shape, hash } = syncable;
-  if (!shape.label) return renderShape(state, syncable, brushes, arrowDests, bounds);
+  if (!shape.label && typeof shape.customSvg !== 'object')
+    return renderShape(state, syncable, brushes, arrowDests, bounds);
 
   const bd = state.dimensions,
     orig = orient(key2pos(shape.orig), state.orientation, bd),
@@ -310,7 +314,15 @@ function renderOverlay(
   }
 
   const g = setAttributes(createElement('g'), { cgHash: hash });
-  if (shape.customSvg) g.appendChild(renderCustomSvg(shape.customSvg, orig, bounds, bd));
+  if (shape.customSvg) {
+    const custom = shape.customSvg,
+      center = typeof custom === 'string' ? 'orig' : custom.center ?? 'orig',
+      anchor = center === 'label' ? at : center === 'dest' && shape.dest
+        ? pos2user(orient(key2pos(shape.dest), state.orientation, bd), bounds, bd)
+        : from;
+    g.appendChild(renderCustomSvg(typeof custom === 'string' ? custom : custom.html, anchor));
+  }
+  if (!shape.label) return previewErase(g, syncable.pendingErase);
   // Custom SVGs use a viewBox shifted half a unit from the arrow/circle plane.
   const label = setAttributes(createElement('g'), {
     class: 'cg-label',
