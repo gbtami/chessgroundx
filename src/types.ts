@@ -81,6 +81,8 @@ export interface Elements {
   ghost?: HTMLElement;
   svg?: SVGElement;
   customSvg?: SVGElement;
+  svgBelow?: SVGElement;
+  customSvgBelow?: SVGElement;
   autoPieces?: HTMLElement;
 }
 export interface Dom {

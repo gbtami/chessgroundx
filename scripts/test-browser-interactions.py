@@ -106,6 +106,80 @@ class BrowserInteractions(unittest.TestCase):
         self.page.wait_for_timeout(40)
         self.assertEqual(self.page.locator('g.cg-label').count(), 0)
 
+    def test_below_svg_layers_do_not_intercept_piece_moves(self):
+        self.make_board({'fen': '8/8/8/8/8/8/8/R7',
+                         'movable': {'color': 'white', 'free': True},
+                         'animation': {'enabled': False}})
+        self.page.evaluate('''() => {
+            cg.setAutoShapes([
+                {orig:'a1', below:true, customSvg:'<rect width="100" height="100" fill="#ff0"/>'},
+                {orig:'a1', dest:'h8', below:true, brush:'green', modifiers:{hilite:'#fff'}, label:{text:'A'}}
+            ]);
+            cg.state.dom.redrawNow();
+        }''')
+        stacking = self.page.evaluate('''() => {
+            const els = [cg.state.dom.elements.svgBelow, cg.state.dom.elements.customSvgBelow];
+            const piece = document.querySelector('cg-board piece');
+            const result = els.map(el => {
+                const s=getComputedStyle(el); return {position:s.position,pointerEvents:s.pointerEvents,zIndex:s.zIndex};
+            });
+            for (const el of [...els,piece]) el.style.pointerEvents='all';
+            const r=piece.getBoundingClientRect();
+            for (const fading of [false,true]) {
+                piece.classList.toggle('fading', fading);
+                const stack=document.elementsFromPoint(r.x+r.width/2,r.y+r.height/2);
+                if (stack.indexOf(piece) < 0 || els.some(el => stack.indexOf(el) < 0 || stack.indexOf(el) < stack.indexOf(piece)))
+                    throw Error('SVG covers piece or stacking sample is incomplete');
+            }
+            piece.classList.remove('fading');
+            for (const el of [...els,piece]) el.style.removeProperty('pointer-events');
+            return result;
+        }''')
+        self.assertEqual(stacking, [{'position': 'absolute', 'pointerEvents': 'none', 'zIndex': '0'}] * 2)
+        self.move(self.square(1, 1), self.square(1, 2))
+        self.assertEqual(self.page.evaluate("cg.state.boardState.pieces.get('a2')?.role"), 'r-piece')
+        self.assertEqual(self.page.locator('svg.cg-custom-below .cg-label').count(), 1)
+        self.page.evaluate('cg.setAutoShapes([])')
+        self.page.wait_for_timeout(40)
+        self.assertEqual(self.page.locator('svg.cg-shapes-below > g > *').count(), 0)
+        self.assertEqual(self.page.locator('svg.cg-custom-below > g > *').count(), 0)
+
+    def test_below_layer_geometry_after_resize_and_rotation(self):
+        for width, height, corner in [(8, 8, 'h8'), (9, 10, 'i:'), (16, 16, 'p@')]:
+            with self.subTest(dimensions=(width, height)):
+                self.page.locator('#board').evaluate(
+                    '(el, size) => { el.style.width=size[0]+"px"; el.style.height=size[1]+"px"; }',
+                    [width * 50, height * 50],
+                )
+                self.make_board({'fen': '/'.join([str(width)] * height),
+                                 'dimensions': {'width': width, 'height': height},
+                                 'animation': {'enabled': False}})
+                self.page.evaluate('''corner => {
+                    cg.setShapes([
+                        {orig:corner,below:true,brush:'blue',modifiers:{hilite:'#fff'},label:{text:'A'}},
+                        {orig:corner,below:true,customSvg:'<rect width="100" height="100" fill="#fc0"/>'}
+                    ]);
+                    cg.state.dom.redrawNow();
+                }''', corner)
+                for orientation in ['white', 'black']:
+                    self.page.evaluate('orientation => cg.set({orientation})', orientation)
+                    self.page.locator('#board').evaluate(
+                        '(el, size) => { el.style.width=size[0]+"px"; el.style.height=size[1]+"px"; }',
+                        [width * 40, height * 40],
+                    )
+                    self.page.evaluate('cg.redrawAll()')
+                    board = self.page.locator('cg-board').bounding_box()
+                    rect = self.page.locator('svg.cg-custom-below svg rect').bounding_box()
+                    circle = self.page.locator('svg.cg-shapes-below .cg-hilite circle').first.bounding_box()
+                    x = board['x'] + (width - 1 if orientation == 'white' else 0) * board['width'] / width
+                    y = board['y'] + (0 if orientation == 'white' else height - 1) * board['height'] / height
+                    self.assertAlmostEqual(rect['x'], x, delta=0.2)
+                    self.assertAlmostEqual(rect['y'], y, delta=0.2)
+                    self.assertAlmostEqual(rect['width'], board['width'] / width, delta=0.2)
+                    self.assertAlmostEqual(circle['x'] + circle['width'] / 2, x + rect['width'] / 2, delta=0.2)
+                    self.assertAlmostEqual(circle['y'] + circle['height'] / 2, y + rect['height'] / 2, delta=0.2)
+                self.page.evaluate('cg.destroy()')
+
     def test_trusted_piece_drag(self):
         self.make_board({'fen':'8/8/8/8/8/8/8/R7',
                          'movable': {'color':'white','free':True},
