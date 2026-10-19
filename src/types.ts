@@ -1,4 +1,5 @@
 export type Color = typeof colors[number];
+export type BrushColor = 'green' | 'red' | 'blue' | 'yellow';
 export type Side = typeof sides[number];
 export type Alphabet = typeof letters[number];
 export type Letter = `${'' | '+'}${Alphabet | Uppercase<Alphabet> | '*'}`; // '*' is used for inaccessible squares in winboard/xboard FEN

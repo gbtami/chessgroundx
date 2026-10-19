@@ -106,6 +106,67 @@ class BrowserInteractions(unittest.TestCase):
         self.page.wait_for_timeout(40)
         self.assertEqual(self.page.locator('g.cg-label').count(), 0)
 
+    def test_click_erase_option_preserves_selection_and_automatic_hints(self):
+        cases = [
+            # option, drawing enabled, view only, square, expected remaining manual shapes
+            (False, True, False, (1, 1), 1),
+            (True, True, False, (1, 1), 0),
+            (False, True, False, (2, 3), 0),
+            (False, True, False, (8, 8), 0),
+            (True, False, False, (2, 3), 1),
+            (True, True, True, (2, 3), 1),
+        ]
+        for erase, enabled, view_only, square, expected in cases:
+            with self.subTest(erase=erase, enabled=enabled, view_only=view_only, square=square):
+                self.make_board({'fen': '7r/8/8/8/8/8/8/R7', 'viewOnly': view_only,
+                                 'drawable': {'enabled': enabled, 'eraseOnMovablePieceClick': erase},
+                                 'movable': {'color': 'white', 'free': True},
+                                 'animation': {'enabled': False}})
+                self.page.evaluate('''() => {
+                    window.changes=0;
+                    cg.set({drawable:{onChange:()=>window.changes++}});
+                    cg.setShapes([{orig:'c3',dest:'d4',brush:'green'}]);
+                    cg.setAutoShapes([{orig:'b2',brush:'paleBlue'}]);
+                }''')
+                self.page.mouse.click(*self.square(*square))
+                self.page.wait_for_timeout(40)
+                self.assertEqual(self.page.evaluate('cg.state.drawable.shapes.length'), expected)
+                self.assertEqual(self.page.evaluate('changes'), 1 - expected)
+                self.assertEqual(self.page.evaluate('cg.state.drawable.autoShapes.length'), 1)
+                if not erase and square == (1, 1):
+                    # A second click completes a selected move without invoking click erasure.
+                    self.page.mouse.click(*self.square(1, 2))
+                    self.page.wait_for_timeout(40)
+                    self.assertEqual(self.page.evaluate('cg.state.drawable.shapes.length'), 1)
+                    self.assertEqual(self.page.evaluate('changes'), 0)
+                    self.page.mouse.click(*self.square(2, 3))
+                    self.page.wait_for_timeout(40)
+                    self.assertEqual(self.page.evaluate('cg.state.drawable.shapes.length'), 0)
+                    self.assertEqual(self.page.evaluate('changes'), 1)
+                self.page.evaluate('cg.destroy()')
+
+    def test_click_erase_option_applies_to_pocket_presses(self):
+        for erase, color, expected in [(False, 'white', 1), (False, 'black', 0), (True, 'white', 0)]:
+            with self.subTest(erase=erase, color=color):
+                self.make_board({'fen': '8/8/8/8/8/8/8/8[Rr]',
+                                 'orientation': color,
+                                 'pocketRoles': {'white': ['r-piece'], 'black': ['r-piece']},
+                                 'drawable': {'eraseOnMovablePieceClick': erase},
+                                 'movable': {'color': 'both', 'free': True},
+                                 'animation': {'enabled': False}}, pockets=True)
+                self.page.evaluate('''() => {
+                    window.changes=0;
+                    cg.set({drawable:{onChange:()=>window.changes++}});
+                    cg.setShapes([{orig:'c3',brush:'green'}]);
+                    cg.setAutoShapes([{orig:'b2',brush:'paleGreen'}]);
+                }''')
+                self.page.locator('#bottom piece[data-role="r-piece"]').click()
+                self.page.wait_for_timeout(40)
+                self.assertEqual(self.page.evaluate('cg.state.drawable.shapes.length'), expected)
+                self.assertEqual(self.page.evaluate('changes'), 1 - expected)
+                self.assertEqual(self.page.evaluate('cg.state.drawable.autoShapes.length'), 1)
+                self.page.evaluate('cg.destroy()')
+
     def test_custom_svg_object_anchors_follow_cells_labels_resize_and_rotation(self):
         for width, height, corner in [(8, 8, 'h8'), (9, 10, 'i:'), (16, 16, 'p@')]:
             with self.subTest(dimensions=(width, height)):
